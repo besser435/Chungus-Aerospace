@@ -3,6 +3,7 @@ For the model rockets made by my friend and myself.
 
 We are starting with putting our own telemetry software on a rocket using a Feather M4 and a barometer sensor.
 
+
 Resources:
 Contains demo files and libraries (very helpful, look at specific sensor code examples!): https://circuitpython.org/libraries
 Intro and setup of CircuitPython: https://learn.adafruit.com/welcome-to-circuitpython/installing-circuitpython
