@@ -4,13 +4,15 @@ import requests
 from requests.structures import CaseInsensitiveDict
 import math # sad
 
+version = "v0.2"
+date = "December 2021"
 
 def weather():
     global complete_url
-    api_key = ""  # Enter the API key you got from the OpenWeatherMap website
+    api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"  # Enter the API key you got from the OpenWeatherMap website
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    zip_code = "53719"
-    use_zip = 0
+    zip_code = "85054"
+    use_zip = 1
     city_name = "scottsdale"
     
 
@@ -43,7 +45,7 @@ def weather():
         print("Temp in Celsius = " + str(math.trunc(current_temperature - 273.15)))
         print("Temp in Fahrenheit = " + str(math.trunc((1.8 * current_temperature) - 459.67)))
         print("Description = " + str(weather_description))
-        print("Pressure in millibars =" + str(current_pressure))
+        print("Pressure in millibars = " + str(current_pressure))
         print("Pressure in inches of Hg = " + str(round(current_pressure/33.864, 3)))
         #print(x) # prints raw json data
     else:
