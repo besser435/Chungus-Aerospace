@@ -9,11 +9,11 @@ date = "December 2021"
 
 def weather():
     global complete_url
-    api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"  # Enter the API key you got from the OpenWeatherMap website
+    api_key = ""  # Enter the API key you got from the OpenWeatherMap website
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
     zip_code = "85054"
-    use_zip = 1
-    city_name = "scottsdale"
+    use_zip = 0
+    city_name = "phoenix"
     
 
     if use_zip == 0:
