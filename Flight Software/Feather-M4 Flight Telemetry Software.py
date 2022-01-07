@@ -1,15 +1,17 @@
-def main_notes():   # to collapse the text below in the IDE  
-    """
-    Flight Software for the CircuitPython platform by Joe Mama and besser
-    Made for the Chungus Aerospace Program
+"""
+---Chungus Aerospace Program---
+https://github.com/besser435/Chungus-Aerospace
 
-    Currenty this only collects data, it doesn't control anything (yet)
-    
-    https://github.com/besser435?tab=repositories
-    """
+Flight Software for the CircuitPython platform by Joe Mama and besser
+This current code is meant to run an a Feather M4. Thats what the 
+pinouts are configured for.
+
+Currenty this only collects data, it doesn't control anything (yet)
+
+"""
 
 
-version = "v0.2.1"
+version = "v0.2.2"
 date = "January 2022"
 
 # idea: add wifi module so it can fetch the current pressure in phoenix. this way we
@@ -20,74 +22,106 @@ import analogio
 import board
 import digitalio
 import storage
-import adafruit
 import adafruit_sdcard
 from rainbowio import colorwheel
 import adafruit_dotstar
 import neopixel
 import microcontroller
-def main():
 
 
+#vbat_voltage = analogio.AnalogIn(board.D9)
 
-    vbat_voltage = analogio.AnalogIn(board.D9)
+i2c = board.I2C() # uses board.SCL and board.SDA
 
-    i2c = board.I2C() # uses board.SCL and board.SDA
+SD_CS = board.D10   # pin D10 for Feather M4 Express
+spi = board.SPI()
+cs = digitalio.DigitalInOut(SD_CS)
 
-    SD_CS = board.D10
-    spi = board.SPI()
-    cs = digitalio.DigitalInOut(SD_CS)
-    
-    sdcard = adafruit_sdcard.SDCard(spi, cs)
-    vfs = storage.VfsFat(sdcard)
-    storage.mount(vfs, "/sd")
+sdcard = adafruit_sdcard.SDCard(spi, cs)
+vfs = storage.VfsFat(sdcard)
+storage.mount(vfs, "/sd")
 
+# For Feather M0 Express, Metro M0 Express, Metro M4 Express, Circuit Playground Express, QT Py M0
+led = neopixel.NeoPixel(board.NEOPIXEL, 1)
+led = digitalio.DigitalInOut(board.D13)
+led.direction = digitalio.Direction.OUTPUT
 
-    # For Feather M0 Express, Metro M0 Express, Metro M4 Express, Circuit Playground Express, QT Py M0
-    led = neopixel.NeoPixel(board.NEOPIXEL, 1)
-    
-    #led = digitalio.DigitalInOut(board.D13)
-    led.direction = digitalio.Direction.OUTPUT
-
-    print("Logging temperature to filesystem")
-    # append to the file!
-    while True:
-        # open file for append
-        with open("/sd/temperature.txt", "a") as f:
-            led.value = True  # turn on LED to indicate we're writing to the file
-            t = microcontroller.cpu.temperature
-            print("Temperature = %0.1f" % t)
-            f.write("%0.1f\n" % t)
-            led.value = False  # turn off LED to indicate we're done
-        # file is saved
-        time.sleep(1)
-
-        print("Logging to log file")
-
-    initial_time = time.monotonic()
-    #add RTC code
-
-
-
-    def get_voltage(pin):
-        return (pin.value * 3.3) / 65536 * 2
-    
-# BMP388
 # I2C setup
 i2c = board.I2C()  # uses board.SCL and board.SDA
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 
-# SPI setup
-# from digitalio import DigitalInOut, Direction
-# spi = board.SPI()
-# cs = DigitalInOut(board.D5)
-# bmp = adafruit_bmp3xx.BMP3XX_SPI(spi, cs)
-
-
-
-bmp.sea_level_pressure = 1008
+# BMP388
+bmp.sea_level_pressure = 1016
 bmp.pressure_oversampling = 8
 bmp.temperature_oversampling = 2
+
+
+#print("Waiting for launch...")
+#time.sleep(20)  # allows time for the rocket to be set up and have the launch started. This is awful and will be addressed later
+
+
+"""
+Old logging code that I dont want to delete incase the new stuff bungs up
+
+while True:
+    # open file for append
+    with open("/sd/launch_stats.txt", "a") as f:    # a means to append to the file, not overwrite it
+        led.value = True  # turn on LED to indicate we're writing to the file
+        f.write("Pressure: {:5.2f}  Temperature: {:5.2f}  Altitude: {:5.2f}\n".format(bmp.pressure, bmp.temperature, bmp.altitude))
+        led.value = False  # turn off LED to indicate we're done
+    # file is saved
+    print("Logged to file")
+    time.sleep(0.1)
+
+      
+    LED colors:
+    White - idle
+    Yellow flash - countdown
+    Green flash - executing code/logging data
+
+    
+  
+"""
+
+# check if there is a file on the SD card. if there is, create a new one with
+# a different file name so the old one isnt overwritten
+
+
+writes_to_file = 0
+
+with open("/sd/launch_stats.txt", "a") as f:
+    f.write("Pressure, Temperature, Altitude\n")
+    writes_to_file += 1
+
+while True:
+    # open file for append
+    with open("/sd/launch_stats.txt", "a") as f:    # a means to append to the file, not overwrite it
+        led.value = True  # turn on LED to indicate we're writing to the file
+
+        f.write("{:5.2f},{:5.2f},{:5.2f}\n".format(bmp.pressure, bmp.temperature, bmp.altitude))
+
+        led.value = False  # turn off LED to indicate we're done
+
+    writes_to_file += 1
+    print("Writes to file: " + str(writes_to_file)) # for debugging while editing code
+
+    time.sleep(0.05)
+
+
+
+
+
+
+
+
+
+
+
+#add RTC code and include it in the log
+
+
+def get_voltage(pin):
+    return (pin.value * 3.3) / 65536 * 2
 
 
 """
@@ -104,12 +138,10 @@ while True:
 """
 
 
-
 while True:
     print(
-        "Pressure: {:6.4f}  Temperature: {:5.2f}".format(bmp.pressure, bmp.temperature,
-        "Altitude: {} meters".format(bmp.altitude)))
-    time.sleep(0.1)
+        "Pressure: {:5.2f}  Temperature: {:5.2f}  Altitude: {:5.2f}".format(bmp.pressure, bmp.temperature, bmp.altitude))
+    time.sleep(0.5)
 
 
 
@@ -118,6 +150,3 @@ while True:
 
 
 
-
-
-main()
