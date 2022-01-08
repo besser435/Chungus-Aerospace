@@ -4,14 +4,14 @@ import requests
 from requests.structures import CaseInsensitiveDict
 import math # sad
 
-version = "v0.2.3"
-date = "January 2022"
+version = "v0.2"
+date = "December 2021"
 
 def weather():
     global complete_url
     api_key = ""  # Enter the API key you got from the OpenWeatherMap website
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    zip_code = ""
+    zip_code = "85054"
     use_zip = 0
     city_name = "phoenix"
     
@@ -29,8 +29,7 @@ def weather():
 
     if x["cod"] != "404":
         if use_zip == 0:
-            print(version)
-            print("Check weather! Requesting cities can return the wrong info")
+            print("Check weather! Request cities can return the wrong info")
             print("Weather in " + city_name)
         else:
             print("Weather in " + str(zip_code))
@@ -66,6 +65,4 @@ def weather():
             print(" = Processed request succsessfully")
     response_code()  
 weather()
-
-input("Press enter to continue")
 
