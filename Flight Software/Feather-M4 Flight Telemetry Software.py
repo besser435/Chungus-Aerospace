@@ -65,12 +65,11 @@ t = rtc.datetime
 
 # ------------------------- options ------------------------
 bmp.sea_level_pressure = 1019
-log_stop_count = 350        # when to stop logging after an amount of data points are collected
+log_stop_count = 20        # when to stop logging after an amount of data points are collected
 log_interval = 0.01
 led_neo.brightness = 1      # should be 1 for launch so it can be seen easier
+file_name = "launch.csv"  
 
-
-file_name = "launch.txt"  
 # storage
 #launched = 0
 STARTING_ALTITUDE = bmp.altitude
@@ -118,7 +117,7 @@ while True:
 time_delay_count = 0
 print("Waiting for launch...")  # allows time for the rocket to be set up and have the launch started. This is awful and will be addressed later
 
-while time_delay_count <= 10:
+while time_delay_count <= 2:
     time_delay_count += 1
     led_neo[0] = (255, 255, 0)
     time.sleep(0.5)
@@ -166,11 +165,12 @@ while True:                                             # Main data logging code
         led.value = True  # turn on LED to indicate writting has started
 
         f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude))
-        f.write("%d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + "\n")
+        f.write("%d,%02d,%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + "\n")
 
 
         # proof of concept parachute code
         logged_arm = 0
+        logged_chute = 0
         if bmp.altitude >= STARTING_ALTITUDE + 50:  # arms at 50 meters
             if logged_arm == 0:
                 f.write("Arm parachute. Current alt: " + str(bmp.altitude))
@@ -178,9 +178,10 @@ while True:                                             # Main data logging code
             
             if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute
                 #do your mom    # deploys chute
-                f.write("Deploy parachute. Current alt: " + str(bmp.altitude))
-                break # get out of this loop somehow so the charge doesnt constantly fire. i dont think this break works
-
+                if logged_chute == 0:
+                    f.write("Deploy parachute. Current alt: " + str(bmp.altitude))
+                    logged_chute +=1
+              
 
         led.value = False  # turn off LED to indicate writting is done
     time.sleep(log_interval)
