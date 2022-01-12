@@ -4,16 +4,16 @@ import requests
 from requests.structures import CaseInsensitiveDict
 import math # sad
 
-version = "v0.2"
-date = "December 2021"
+version = "v1.1"
+date = "January 2022"
 
 def weather():
     global complete_url
-    api_key = ""  # Enter the API key you got from the OpenWeatherMap website
+    api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"  # Screw it, I'm leaking this on GitHub
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    zip_code = "85054"
+    zip_code = ""
     use_zip = 0
-    city_name = "phoenix"
+    city_name = "mesa"
     
 
     if use_zip == 0:
