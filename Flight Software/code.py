@@ -66,71 +66,59 @@ initial_time = time.monotonic()
 
 
 # ------------------------- options ------------------------
-#devlopment_mode = 0         # edits things like countdown so the code can be tested easier without having to changing several other options
+development_mode = 1        # edits things like countdown so the code can be tested easier without having to changing several other options
 bmp.sea_level_pressure = 1019
-log_stop_count = 300        # when to stop logging after an amount of data points are collected
-log_interval = 0.01         # Unlikely to be the actual number due to the polling rate of the barometer
-led_neo.brightness = 1      # should be 1 for launch so it can be seen easier
+log_stop_count = 350        # when to stop logging after an amount of data points are collected
+log_interval = 0.01         # Unlikely to be the actual number due to the polling rate of the sensors
+log_delay = 20              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
 file_name = "launch.csv"  
 
 # storage
 #launched = 0
 STARTING_ALTITUDE = bmp.altitude
+launch_delay_count = 0
+writes_to_file = 0
+i = 0
 
 
-# Add check to see if there is an SD card. this prevents data loss if something went wrong and should be added ASAP
+if development_mode == 1:
+    led_neo.brightness = 0.3  # prevents flashbang   
 
+    while launch_delay_count <= 1:
+        launch_delay_count += 1
+        led_neo[0] = (255, 255, 0)
+        time.sleep(0.5)
+        led_neo[0] = (0, 0, 0)
+        time.sleep(0.5)
 
-def show_boot():    # shows that the code is running. also moar RGB is moar good
+else:
+    led_neo.brightness = 1
+
+    # shows that the code is running
     led_neo[0] = (255, 0, 0)
-    time.sleep(0.3)
+    time.sleep(0.2)
     led_neo[0] = (0, 255, 0)
-    time.sleep(0.3)
+    time.sleep(0.2)
     led_neo[0] = (0, 0, 255)
-    time.sleep(0.3)
+    time.sleep(0.2)
     led_neo[0] = (255, 255, 255)
-    time.sleep(0.7)
+    time.sleep(0.2)
     led_neo[0] = (0, 0, 0)
     # this should also change an LED color based on batt volatge. batt specs on adafruit
     # https://www.adafruit.com/product/3898
     # https://cdn-shop.adafruit.com/product-files/3898/3898_specsheet_LP801735_400mAh_3.7V_20161129.pdf
     # look at page 3
-    # voltage range from 4.2-3v????
-show_boot()
+    # voltage range from 4.2-3v???? Use multimeter to see fully charged and discharged state. just leave plugged in to discharge
+
+    while launch_delay_count <= log_delay:
+        launch_delay_count += 1
+        led_neo[0] = (255, 255, 0)
+        time.sleep(0.5)
+        led_neo[0] = (0, 0, 0)
+        time.sleep(0.5)
 
 
-"""
-unicorn barf
-i = 0
-while True:
-    i = (i + 1) % 256  # run from 0 to 255
-    led_neo.fill(colorwheel(i))
-    time.sleep(0.01)
-"""
-
-
-"""while True: # tests for launch conditions then runs the rest of the code
-    if launch/countdown, 
-        break
-
-"""
-
-time_delay_count = 0
-print("Waiting for launch...")  # allows time for the rocket to be set up and have the launch started. This is awful and will be addressed later
-
-while time_delay_count <= 1:
-    time_delay_count += 1
-    led_neo[0] = (255, 255, 0)
-    time.sleep(0.5)
-    led_neo[0] = (0, 0, 0)
-    time.sleep(0.5)
-
-
-# check if there is a file on the SD card. if there is, create a new one with
-# a different file name so the old one isnt overwritten
-
-
-# Sets the real time clock if enabled
+# Sets the real time clock if enabled. Maybe make this a seperate script to clean up this one and so the time isnt reset by accident
 days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 if False:   # change to True to write the time. remember to set to false before running the code again
     #                     year, mon, date, hour, min, sec, wday, yday, isdst
@@ -140,14 +128,18 @@ if False:   # change to True to write the time. remember to set to false before 
     print()
 
 
-# log bat voltage at the start
-# add date logging heres
-writes_to_file = 0
+# Add check to see if there is an SD card. this prevents data loss if something went wrong. if so, flash LED with error
+# check if there is a file on the SD card. if there is, create a new one with
+# a different file name so the old one isnt overwritten
+
+
 with open("/sd/" + file_name, "a") as f: # a means to append to the file, not overwrite it
     f.write(str("Date: %d/%d/%d" % (t.tm_mon, t.tm_mday, t.tm_year) + "\n"))
 
 with open("/sd/" + file_name, "a") as f:
     f.write("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + "\n")
+
+# log bat voltage
 
 with open("/sd/" + file_name, "a") as f: 
     f.write("Starting altitude: (test to see if parachute code works, idk how constants work) " + str(STARTING_ALTITUDE) + "\n")
@@ -194,42 +186,29 @@ while True:
     time.sleep(log_interval)
 
 
-    # add some code that detects if the altitude stops changing and if it does it stops logging
-
-
     writes_to_file += 1
     print("Writes to file: " + str(writes_to_file)) # for debugging while editing code
 
-    
-    if writes_to_file >= log_stop_count:    # stops the logging of data
+
+    # stops the logging of data
+    if writes_to_file > 100:    # makes sure the code below isnt just executed on the pad
+    #if launched == 1:   # possible way of doing the line of code above but more reliable. disabled as its not implimented 
+        if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
+                break
+
+    if writes_to_file >= log_stop_count:    # backup to the code above
         break
 
-    """ replaces the above code
-    If change in altitude > x
-    then:
-    If change in altitude > x (again)
-    then: 
-    If change in altitude > x (again)
-    then liftoff has been detected
-    code to stop logging
-    
-    
-    
-    """
+
 #                          ------------------------ End of main data logging code ------------------------
 
 
 
-with open("/sd/" + file_name, "a") as f: 
-    f.write("Starting altitude: (test to see if parachute code works, idk how constants work) " + str(STARTING_ALTITUDE) + "\n")
-
 
 while True:     # indicates that the data recording is done
-    led_neo[0] = (50, 255, 0)
-    time.sleep(0.5)
-    led_neo[0] = (0, 100, 255)
-    time.sleep(0.5)
-
+    i = (i + 1) % 256  # run from 0 to 255
+    led_neo.fill(colorwheel(i)) # Unicorn barf
+    time.sleep(0.01)
 
 
 """
@@ -238,4 +217,6 @@ while True:
         "Pressure: {:5.2f}  Temperature: {:5.2f}  Altitude: {:5.2f}".format(bmp.pressure, bmp.temperature, bmp.altitude))
     time.sleep(0.05)
     """
+
+
 
