@@ -4,7 +4,7 @@ import requests
 from requests.structures import CaseInsensitiveDict
 import math # sad
 
-version = "v1.1"
+version = "v1.1.1"
 date = "January 2022"
 
 def weather():
@@ -29,7 +29,7 @@ def weather():
 
     if x["cod"] != "404":
         if use_zip == 0:
-            print("Check weather! Request cities can return the wrong info")
+            print("Check weather! Requesting cities can return the wrong info")
             print("Weather in " + city_name)
         else:
             print("Weather in " + str(zip_code))
@@ -66,3 +66,4 @@ def weather():
     response_code()  
 weather()
 
+input("Press enter to close")
