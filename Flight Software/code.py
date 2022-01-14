@@ -12,14 +12,14 @@ Currenty this only collects data, it doesn't control anything (yet)
 """
 
 
-version = "v1.2"
+version = "v1.4"
 date = "January 2022"
 
 
 import adafruit_bmp3xx
 import time
-import analogio
-import busio
+#import analogio
+#import busio
 import adafruit_pcf8523
 import board
 import digitalio
@@ -27,16 +27,20 @@ import storage
 import adafruit_sdcard
 from rainbowio import colorwheel
 import neopixel
-import microcontroller
-import neopixel
-import adafruit_dotstar
+from analogio import AnalogIn
 
 
-#vbat_voltage = analogio.AnalogIn(board.D9)     #log this
+
 
 # Setup Bits
 # I2C
 i2c = board.I2C() 
+
+# Batt voltage
+vbat_voltage = AnalogIn(board.VOLTAGE_MONITOR)
+def get_voltage(pin):
+    return (pin.value * 3.3) / 65536 * 2
+battery_voltage = get_voltage(vbat_voltage)
 
 # pin D10 for Feather M4 Express
 SD_CS = board.D10   
@@ -48,7 +52,7 @@ sdcard = adafruit_sdcard.SDCard(spi, cs)
 vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
 
-# For Feather M0 Express, Metro M0 Express, Metro M4 Express, Circuit Playground Express, QT Py M0
+# LED pins and setup
 led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1)
 led = digitalio.DigitalInOut(board.D13)           
 led.direction = digitalio.Direction.OUTPUT         
@@ -62,14 +66,17 @@ bmp.temperature_oversampling = 2
 #i2c = busio.I2C(board.SCL, board.SDA)
 rtc = adafruit_pcf8523.PCF8523(i2c)
 t = rtc.datetime
-initial_time = time.monotonic()
+
+# Relay to deploy chute
+chute_relay = digitalio.DigitalInOut(board.A1)  # NOTE change this pin to whatever pin is good. 
+chute_relay.direction = digitalio.Direction.OUTPUT
 
 
 # ------------------------- options ------------------------
-development_mode = 1        # edits things like countdown so the code can be tested easier without having to changing several other options
-bmp.sea_level_pressure = 1019
-log_stop_count = 350        # when to stop logging after an amount of data points are collected
-log_interval = 0.01         # Unlikely to be the actual number due to the polling rate of the sensors
+development_mode = 0        # edits things like countdown so the code can be tested easier without having to change several other options
+bmp.sea_level_pressure = 1023
+log_stop_count = 400        # when to stop logging after an amount of data points are collected
+log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
 log_delay = 20              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
 file_name = "launch.csv"  
 
@@ -78,12 +85,15 @@ file_name = "launch.csv"
 STARTING_ALTITUDE = bmp.altitude
 launch_delay_count = 0
 writes_to_file = 0
+chute_armed = 0
+logged_chute_deploy = 0
+speed_1 = 0
+t_s_1 = 0
 i = 0
 
 
 if development_mode == 1:
     led_neo.brightness = 0.3  # prevents flashbang   
-
     while launch_delay_count <= 1:
         launch_delay_count += 1
         led_neo[0] = (255, 255, 0)
@@ -93,22 +103,16 @@ if development_mode == 1:
 
 else:
     led_neo.brightness = 1
-
     # shows that the code is running
     led_neo[0] = (255, 0, 0)
-    time.sleep(0.2)
+    time.sleep(0.3)
     led_neo[0] = (0, 255, 0)
-    time.sleep(0.2)
+    time.sleep(0.3)
     led_neo[0] = (0, 0, 255)
-    time.sleep(0.2)
+    time.sleep(0.3)
     led_neo[0] = (255, 255, 255)
-    time.sleep(0.2)
+    time.sleep(0.3)
     led_neo[0] = (0, 0, 0)
-    # this should also change an LED color based on batt volatge. batt specs on adafruit
-    # https://www.adafruit.com/product/3898
-    # https://cdn-shop.adafruit.com/product-files/3898/3898_specsheet_LP801735_400mAh_3.7V_20161129.pdf
-    # look at page 3
-    # voltage range from 4.2-3v???? Use multimeter to see fully charged and discharged state. just leave plugged in to discharge
 
     while launch_delay_count <= log_delay:
         launch_delay_count += 1
@@ -116,6 +120,10 @@ else:
         time.sleep(0.5)
         led_neo[0] = (0, 0, 0)
         time.sleep(0.5)
+    led_neo[0] = (0, 255, 0)    # shows that code execution is about to start
+    time.sleep(1)
+    led_neo[0] = (0, 0, 0)
+
 
 
 # Sets the real time clock if enabled. Maybe make this a seperate script to clean up this one and so the time isnt reset by accident
@@ -133,23 +141,16 @@ if False:   # change to True to write the time. remember to set to false before 
 # a different file name so the old one isnt overwritten
 
 
-with open("/sd/" + file_name, "a") as f: # a means to append to the file, not overwrite it
+initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
+
+
+with open("/sd/" + file_name, "a") as f: 
     f.write(str("Date: %d/%d/%d" % (t.tm_mon, t.tm_mday, t.tm_year) + "\n"))
-
-with open("/sd/" + file_name, "a") as f:
     f.write("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + "\n")
-
-# log bat voltage
-
-with open("/sd/" + file_name, "a") as f: 
+    f.write("Batt voltage: {:.2f}".format(battery_voltage) + "\n")    
     f.write("Starting altitude: (test to see if parachute code works, idk how constants work) " + str(STARTING_ALTITUDE) + "\n")
-
-with open("/sd/" + file_name, "a") as f: 
     f.write("Data points to collect: " + str(log_stop_count) + "\n")
-
-with open("/sd/" + file_name, "a") as f: 
-    f.write("Pressure(mbar),Temperature(°c),Altitude(m),Elapsed Seconds\n")
-
+    f.write("Pressure (mbar),Temperature (°c),Altitude (m),V Speed (m/s),Elapsed Seconds\n")
 
 
 
@@ -160,34 +161,49 @@ while True:
         led.value = True  # turn on LED to indicate writting has started
 
 
-        f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude))
-        
         current_time = time.monotonic()
         time_stamp = current_time - initial_time
-        f.write("{:5.2f}" .format(time_stamp) + "\n") # logs elapsed time
 
 
-        # proof of concept parachute code
-        logged_arm = 0
-        logged_chute = 0
-        if bmp.altitude >= STARTING_ALTITUDE + 50:  # arms at 50 meters
-            if logged_arm == 0:
-                f.write("Arm parachute. Current alt: " + str(bmp.altitude))
-                logged_arm += 1 # this is so the event isnt logged repeatedly
-            
+        # change speed name to altitude
+        t_s_0 = time_stamp
+        v_speed = (bmp.altitude - speed_1) / (t_s_0 - t_s_1)
+
+
+        f.write("{:5.2f},{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude, v_speed))
+        f.write("{:5.2f}" .format(time_stamp) + "\n") # logs elapsed time 
+
+
+        # possible relay code to send power to the parachute charge
+        #https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs for relay pin and stuff
+
+        if bmp.altitude >= (STARTING_ALTITUDE + 50):  # arms at 50 meters. idk if the parenthisis are needed. ill try with and without
+            if chute_armed == 0: # this is so the event isnt logged repeatedly
+                f.write("Armed parachute. Current alt: " + str(bmp.altitude) + "\n")
+                chute_armed += 1
+
+        if chute_armed == 1:
             if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute
-                #do your mom    # deploys chute
-                if logged_chute == 0:
-                    f.write("Deploy parachute. Current alt: " + str(bmp.altitude))
-                    logged_chute +=1
-              
+                for x in range(3):  # to ensure ignition
+                    chute_relay.value = True
+                    time.sleep(0.5)
+                    chute_relay.value = False
+                    time.sleep(0.5)
 
+                if logged_chute_deploy == 0:
+                    f.write("Deployed parachute. Current alt: " + str(bmp.altitude) + "\n")
+                    logged_chute_deploy +=1
+                    
         led.value = False  # turn off LED to indicate writting is done
     time.sleep(log_interval)
 
 
     writes_to_file += 1
     print("Writes to file: " + str(writes_to_file)) # for debugging while editing code
+
+
+    speed_1 = bmp.altitude 
+    t_s_1 = time_stamp
 
 
     # stops the logging of data
@@ -204,11 +220,12 @@ while True:
 
 
 
-
 while True:     # indicates that the data recording is done
     i = (i + 1) % 256  # run from 0 to 255
     led_neo.fill(colorwheel(i)) # Unicorn barf
     time.sleep(0.01)
+
+
 
 
 """
