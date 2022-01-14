@@ -10,7 +10,7 @@ a perfect copy, but it kind of works. Thats why there is some
 code that isnt really needed here.
 """
 
-version = "v1.0"
+version = "v1.1"
 date = "January 2022"
 
 
@@ -55,7 +55,7 @@ def main():
             chute_relay.value = False
             print("Relay off")
             time.sleep(0.5) # delay between turning off and then on again
-            
+
     led_neo[0] = (0, 255, 0)
     time.sleep(3)
                 
