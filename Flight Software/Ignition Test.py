@@ -10,7 +10,7 @@ a perfect copy, but it kind of works. Thats why there is some
 code that isnt really needed here.
 """
 
-version = "v1"
+version = "v1.0"
 date = "January 2022"
 
 
@@ -21,7 +21,7 @@ import neopixel
 
 
 # Setup Bits
-# For Feather M0 Express, Metro M0 Express, Metro M4 Express, Circuit Playground Express, QT Py M0
+# LED pins and setup
 led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1)        
 led_neo.brightness = 1
 
@@ -36,20 +36,31 @@ chute_armed = 0
 def main():
     global chute_armed
 
+    for x in range(10):
+        led_neo[0] = (255, 255, 0)
+        time.sleep(0.5)
+        led_neo[0] = (0, 0, 0)
+        time.sleep(0.5)
+    
+
     chute_armed += 1
     if chute_armed == 1:
         for x in range(3):  # to ensure ignition
             chute_relay.value = True
+            print("Relay on")
             led_neo[0] = (0, 0, 255)
-            time.sleep(0.5)
+            time.sleep(0.5) # on for 0.5 seconds
 
             led_neo[0] = (0, 0, 0)
             chute_relay.value = False
-            time.sleep(0.5)
+            print("Relay off")
+            time.sleep(0.5) # delay between turning off and then on again
             
-        led_neo[0] = (0, 255, 0)
+    led_neo[0] = (0, 255, 0)
+    time.sleep(3)
                 
 main()
+
 
 """ Main code used in the flight computer firmware
 
