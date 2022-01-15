@@ -11,8 +11,8 @@ def weather():
     global complete_url
     api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"  # Screw it, I'm leaking this on GitHub
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    zip_code = ""
-    use_zip = 0
+    zip_code = "85054"
+    use_zip = 1
     city_name = "mesa"
     
 
