@@ -3,33 +3,33 @@ NOTE
 ---Chungus Aerospace Program---
 https://github.com/besser435/Chungus-Aerospace
 
-Flight Software for the CircuitPython platform by Joe Mama and besser
+Flight Software for the CALC flight system by Joe Mama and besser.
 This current code is meant to run on a Feather M4. Thats what the 
 pinouts are configured for.
+
+In the future this might run off of a Raspberry Pi Zero
+for better I/O, camera support, and a few other things.
 
 Currenty this only collects data, it doesn't control anything (yet)
 
 """
 
 
-version = "v1.4"
+version = "v1.5"
 date = "January 2022"
 
 
 import adafruit_bmp3xx
-import time
-#import analogio
-#import busio
+import adafruit_adxl34x
 import adafruit_pcf8523
+import adafruit_sdcard
+import neopixel
 import board
 import digitalio
 import storage
-import adafruit_sdcard
+import time
 from rainbowio import colorwheel
-import neopixel
 from analogio import AnalogIn
-
-
 
 
 # Setup Bits
@@ -62,6 +62,9 @@ bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 bmp.pressure_oversampling = 8
 bmp.temperature_oversampling = 2
 
+# ADXL345
+accel = adafruit_adxl34x.ADXL345(i2c)
+
 # Real time clock
 #i2c = busio.I2C(board.SCL, board.SDA)
 rtc = adafruit_pcf8523.PCF8523(i2c)
@@ -73,11 +76,11 @@ chute_relay.direction = digitalio.Direction.OUTPUT
 
 
 # ------------------------- options ------------------------
-development_mode = 0        # edits things like countdown so the code can be tested easier without having to change several other options
-bmp.sea_level_pressure = 1023
-log_stop_count = 400        # when to stop logging after an amount of data points are collected
+development_mode = 1        # edits things like countdown so the code can be tested easier without having to change several other options
+bmp.sea_level_pressure = 1024
+log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
 log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
-log_delay = 20              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
+log_delay = 10              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
 file_name = "launch.csv"  
 
 # storage
@@ -121,11 +124,11 @@ else:
         led_neo[0] = (0, 0, 0)
         time.sleep(0.5)
     led_neo[0] = (0, 255, 0)    # shows that code execution is about to start
-    time.sleep(1)
+    time.sleep(2)
     led_neo[0] = (0, 0, 0)
 
 
-
+"""
 # Sets the real time clock if enabled. Maybe make this a seperate script to clean up this one and so the time isnt reset by accident
 days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 if False:   # change to True to write the time. remember to set to false before running the code again
@@ -133,7 +136,7 @@ if False:   # change to True to write the time. remember to set to false before 
     t = time.struct_time((2022,  1,   7,   15,   43,   0,  5,    -1,  -1))
 
     rtc.datetime = t
-    print()
+"""
 
 
 # Add check to see if there is an SD card. this prevents data loss if something went wrong. if so, flash LED with error
@@ -147,10 +150,11 @@ initial_time = time.monotonic() # needs to be here and not in the time set ups b
 with open("/sd/" + file_name, "a") as f: 
     f.write(str("Date: %d/%d/%d" % (t.tm_mon, t.tm_mday, t.tm_year) + "\n"))
     f.write("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + "\n")
-    f.write("Batt voltage: {:.2f}".format(battery_voltage) + "\n")    
-    f.write("Starting altitude: (test to see if parachute code works, idk how constants work) " + str(STARTING_ALTITUDE) + "\n")
+    f.write("Voltage: {:.2f}".format(battery_voltage) + "\n")   # If USB is connected it will read that voltage instead
+    f.write("Starting altitude: " + str(STARTING_ALTITUDE) + "\n")
     f.write("Data points to collect: " + str(log_stop_count) + "\n")
-    f.write("Pressure (mbar),Temperature (°c),Altitude (m),V Speed (m/s),Elapsed Seconds\n")
+    f.write("Pressure (mbar),Temperature (°c),Altitude (m),V Speed (m/s),Accel on xyz (m/s^2),Elapsed Seconds\n")
+
 
 
 
@@ -169,8 +173,9 @@ while True:
         t_s_0 = time_stamp
         v_speed = (bmp.altitude - speed_1) / (t_s_0 - t_s_1)
 
-
-        f.write("{:5.2f},{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude, v_speed))
+        #"%f %f %f" % accelerometer.acceleration
+        f.write("{:5.2f},{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude, v_speed,))
+        f.write("%.2f %.2f %.2f," % accel.acceleration,)
         f.write("{:5.2f}" .format(time_stamp) + "\n") # logs elapsed time 
 
 
@@ -195,7 +200,7 @@ while True:
                     logged_chute_deploy +=1
                     
         led.value = False  # turn off LED to indicate writting is done
-    time.sleep(log_interval)
+        time.sleep(log_interval)
 
 
     writes_to_file += 1
@@ -206,15 +211,18 @@ while True:
     t_s_1 = time_stamp
 
 
-    # stops the logging of data
-    if writes_to_file > 100:    # makes sure the code below isnt just executed on the pad
-    #if launched == 1:   # possible way of doing the line of code above but more reliable. disabled as its not implimented 
-        if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
+    with open("/sd/" + file_name, "a") as f:
+        # stops the logging of data
+        if writes_to_file > 50:    # makes sure the code below isnt just executed on the pad
+        #if launched == 1:   # possible way of doing the line of code above but more reliable. disabled as its not implimented 
+            if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
+                f.write("Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
                 break
 
-    if writes_to_file >= log_stop_count:    # backup to the code above
-        break
-
+        if writes_to_file >= log_stop_count:    # backup to the code above
+            f.write("Stopped logging; writes to file met. (" + str(writes_to_file) + " writes) ")
+            f.write("This means altitude code did not execute.\n")
+            break
 
 #                          ------------------------ End of main data logging code ------------------------
 
