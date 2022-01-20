@@ -1,2 +1,0 @@
-All the flight logs from the flight software will be stored here
-Create folders in this dir that are named with the date that the logs were collected on
