@@ -14,7 +14,10 @@ for better I/O, camera support, and a few other things.
 """
 
 
-version = "v1.6"
+
+
+
+version = "v1.7"
 date = "January 2022"
 
 
@@ -69,6 +72,7 @@ accel = adafruit_adxl34x.ADXL345(i2c)
 rtc = adafruit_pcf8523.PCF8523(i2c)
 t = rtc.datetime
 
+
 # Relay to deploy chute
 chute_relay = digitalio.DigitalInOut(board.A1)  # NOTE change this pin to whatever pin is good. 
 chute_relay.direction = digitalio.Direction.OUTPUT
@@ -77,22 +81,25 @@ chute_relay.direction = digitalio.Direction.OUTPUT
 # ------------------------- options ------------------------
 development_mode = 0        # edits things like countdown so the code can be tested easier without having to change several other options
 bmp.sea_level_pressure = 1024
-log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
+log_stop_count = 50        # when to stop logging after an amount of data points are collected, backup to low altitude condition
 log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
-log_delay = 10              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
-file_name = "launch.csv"  
+log_delay = 2              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
+#file_name = "launch " + str((t.tm_mon, t.tm_mday, t.tm_year)) + ".csv" 
+file_name = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
 
 # storage
 #launched = 0
 STARTING_ALTITUDE = bmp.altitude
 launch_delay_count = 0
 max_altitude = 0
+logged_liftoff = 0
 data_cycles = 0
 chute_armed = 0
 logged_chute_deploy = 0
 speed_1 = 0
-t_s_1 = 0
+#t_s_1 = 0  # v_speed axed as it DRASTICAllY slowed down logging. It makes sense, its a lot of division
 i = 0
+
 
 
 if development_mode == 1:
@@ -108,13 +115,13 @@ else:
     led_neo.brightness = 1
     # shows that the code is running
     led_neo[0] = (255, 0, 0)
-    time.sleep(0.3)
+    time.sleep(0.2)
     led_neo[0] = (0, 255, 0)
-    time.sleep(0.3)
+    time.sleep(0.2)
     led_neo[0] = (0, 0, 255)
-    time.sleep(0.3)
+    time.sleep(0.2)
     led_neo[0] = (255, 255, 255)
-    time.sleep(0.3)
+    time.sleep(0.2)
     led_neo[0] = (0, 0, 0)
 
     while launch_delay_count <= log_delay:
@@ -124,7 +131,7 @@ else:
         led_neo[0] = (0, 0, 0)
         time.sleep(0.5)
     led_neo[0] = (0, 255, 0)    # shows that code execution is about to start
-    time.sleep(2)
+    time.sleep(1)
     led_neo[0] = (0, 0, 0)
 
 
@@ -146,37 +153,37 @@ with open("/sd/" + file_name, "a") as f:
     f.write("Voltage: {:.2f}".format(battery_voltage) + "\n")   # If USB is connected it will read that voltage instead
     f.write("Starting altitude: " + str(STARTING_ALTITUDE) + "\n")
     f.write("Data points to collect: " + str(log_stop_count) + "\n")
-    f.write("Pressure (mbar),Temperature (°c),Altitude (m),V Speed (m/s),Accel on xyz (m/s^2),Elapsed Seconds\n")
-
+    f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),Elapsed Seconds\n")
+    #f.write("Pressure (mbar),Temperature (°c),Altitude (m),V Speed (m/s),Accel on xyz (m/s^2),Elapsed Seconds\n")
 
 initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
 
 
 #                          ------------------------ Main data logging code ------------------------
+led.value = True  # turn on LED to indicate writting has started
 while True:    
     # open file for append
     with open("/sd/" + file_name, "a") as f:    
-        led.value = True  # turn on LED to indicate writting has started
+        
 
 
         current_time = time.monotonic()
         time_stamp = current_time - initial_time
 
 
-        # change speed name to altitude
-        t_s_0 = time_stamp
-        v_speed = (bmp.altitude - speed_1) / (t_s_0 - t_s_1)
+        # change speed name to altitude  
+        #t_s_0 = time_stamp
+        #v_speed = (bmp.altitude - speed_1) / (t_s_0 - t_s_1)
 
 
         # potential way of starting the logging in the future. needs to be proven to work tho, which is what this is
-        # this should be in the main loop for now, but should be above it if this works.
-        logged_liftoff = 0  
+        # this should be in the main loop for now, but should be above it if this works.  
         if bmp.altitude >= STARTING_ALTITUDE + 3:
-            f.write("Liftoff detected. Current alt: " + bmp.altitude +  "\n")
+            f.write("Liftoff detected. Current alt: " + str(bmp.altitude) +  "\n")
             logged_liftoff += 1
 
 
-        f.write("{:5.2f},{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude, v_speed,))
+        f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,)) #v_speed,))
         f.write("%.2f %.2f %.2f," % accel.acceleration,)
         f.write("{:5.2f}" .format(time_stamp) + "\n") # logs elapsed time 
 
@@ -200,14 +207,13 @@ while True:
                     f.write("Deployed parachute. Current alt: " + str(bmp.altitude) + "\n")
                     logged_chute_deploy +=1
 
-
-    speed_1 = bmp.altitude 
-    t_s_1 = time_stamp
-
     
+    #speed_1 = bmp.altitude 
+    #t_s_1 = time_stamp
+
     with open("/sd/" + file_name, "a") as f:
         # stops the logging of data
-        if data_cycles > 100:    # makes sure the code below isnt just executed on the pad   #if data_cycles > 100 and (bmp.altitude <= STARTING_ALTITUDE + 5):# does this work?
+        if data_cycles > 50:    # makes sure the code below isnt just executed on the pad   #if data_cycles > 100 and (bmp.altitude <= STARTING_ALTITUDE + 5):# does this work?
         #if launched == 1:   # possible way of doing the line of code above but more reliable. disabled as its not implimented 
             if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
                 f.write("Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
@@ -219,27 +225,27 @@ while True:
                 f.write("This means altitude code did not execute.\n")
                 break
 
-
-    if bmp.altitude >= max_altitude:
-        max_altitude = bmp.altitude
+            
+    """if bmp.altitude >= max_altitude:
+        max_altitude = bmp.altitude"""
     #if past apogee:
         #log max altitude
 
-
+    
     data_cycles += 1 # not an exact number. it should maybe be moved to the end of the code an renamed to cycles
     print("Data cycles: " + str(data_cycles)) # for debugging while editing code
 
 
-    led.value = False  # turn off LED to indicate writting is done
+    
     time.sleep(log_interval)
 #                          ------------------------ End of main data logging code ------------------------
+led.value = False  # turn off LED to indicate writting is done
 
 
-with open("/sd/" + file_name, "a") as f:
-    f.write("Max altitude: " + str(max_altitude) + "\n")
+#with open("/sd/" + file_name, "a") as f:
+    #f.write("Max altitude: " + str(max_altitude) + "\n")
 
 while True:     # indicates that the data recording is done
     i = (i + 1) % 256  # run from 0 to 255
     led_neo.fill(colorwheel(i)) # Unicorn barf
     time.sleep(0.01)
-
