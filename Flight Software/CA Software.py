@@ -1,45 +1,14 @@
 def notes():
     """
     NOTE
-    ---Chungus Aerospace AIO Rocket Software---
+    Chungus Aerospace AIO Rocket Software
     https://github.com/besser435/Chungus-Aerospace
 
-    This program has everything that Chungus Aerospace needs.
-
-
-    """
-
-    # potential menu concept
-    """
-    This will display telem data, it should update about every second.
-    Maybe put the menu in a for loop with a 1 second sleep
-    Make a GUI rather than CLI UI, only if the hanging issue is solved. use pygame_menu or something
-
-    CALC v2
-    Status: Idle
-    Pi Temp: 30c
-
-    Options:
-    1.  Prep for launch
-    2.  Checklist
-    3.  Display last launch data summary
-    4.  Push last launch to GitHub (maybe automate this, or dont that could be a disaster) # engineering nighmare for me
-
-
-
-    """
-
-    """
-    Last Launch Summary
-    Total burn time:
-    Apogee:
-    Max speed:
-
-
     """
 
 
-version = "v0.1.3"
+
+version = "CALC v2.2-alpha.1"
 date = "January 2022"
 
 """
@@ -58,7 +27,9 @@ import random
 import time 
 import sys
 import os  
-from colorama import init   # pip install colorama
+from colorama import init
+
+
 init()
 from colorama import Fore, Back, Style
 init(autoreset=True)
@@ -112,27 +83,25 @@ chute_relay.direction = digitalio.Direction.OUTPUT
 
 # options
 debug = 0
-launch_countdown = 4    # how long the countdown is in seconds
+launch_countdown = 3    # how long the countdown is in seconds
 
 
 # storage
 weather_api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"
+preflight_errors = 0
+
 
 
 def cc():   # shortens this long command to just cc()
     os.system("cls" if os.name == "nt" else "clear")    # clears terminal
+cc()
 
 
-def flight_software():
-    cc()
-    print("Get lastest version from other file.")
-    main_menu()
-
-    
 def weather():
+    global current_pressure
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
     zip_code = "85054"
-    use_zip = 1
+    use_zip = 0
     city_name = "phoenix"
 
 
@@ -151,6 +120,7 @@ def weather():
         if use_zip == 0:
             print("Check weather! Requesting cities can return the wrong info")
             print("Weather in " + city_name)
+
         else:
             print("Weather in " + str(zip_code))
 
@@ -168,6 +138,7 @@ def weather():
         print("Pressure in millibars = " + str(current_pressure))
         print("Pressure in inches of Hg = " + str(round(current_pressure/33.864, 3)))
         #print(x) # prints raw json data
+
     else:
         print("City Not Found")
 
@@ -185,9 +156,134 @@ def weather():
             print(" = Processed request succsessfully")
     response_code()  
 
-    input("Press enter to return to the main menu")
+    input("Press enter to return to the main menu ")
     cc()
     main_menu()
+
+
+"""def push_github():
+    This has been shelved for now. Moving the folder containing the launch logs
+    to the host PC is a lot easier for a few reasons.
+
+    print("Push to Github")
+    print()
+
+    ask_dir = input("Enter folder path to push: ")"""
+    
+
+def test_pyros_menu():
+    test_type_ask = input("Would you like to test a motor or parachute? m/p ")
+
+    if test_type_ask == "m":
+        begin_countdown("Motor Test")
+
+    elif test_type_ask == "p":
+        begin_countdown("Parachute Test")
+
+    else:
+        cc()
+        main_menu()
+
+
+def test_charge(test_type):
+    if test_type == "Motor Test":
+        #relay motor pin + load cell logging
+        print("motor test")
+
+    elif test_type == "Parachute Test":
+        #relay chute pin
+        print("chute test")
+
+    else:
+        cc()
+        print(Fore.RED + "Test error, test not found: " + test_type)
+        main_menu()
+
+
+
+# -------------------------------Main flight code-------------------------------
+def flight_software():
+    cc()
+    print("Get lastest version from other file.")
+    #bmp.sea_level_pressure = pressure
+    
+    main_menu()
+
+
+def preflight_checks():
+    # get weather
+    #print("Is pressure correct?")
+    
+
+
+    # ----------------------Error checking----------------------
+    #if battery voltage is low:
+    #print(Fore.YELLOW + "Low battery voltage! (" + str(1) + ")")
+        #preflight_errors += 1
+
+
+    #if wind > x:
+    #print(Fore.YELLOW + "High winds! (" + str(1) + ")")
+        #preflight_errors += 1
+
+    
+
+
+    if preflight_errors > 0:
+        print(Fore.RED + "Stopping the countdown. There are " + str(preflight_errors) + " preflight errors" )
+        continue_launch = input("Continue with the launch? y/n ")
+
+        if continue_launch == "y":
+            cc()
+            begin_countdown("Launch")
+
+        else:
+            cc()
+            print(Fore.YELLOW + "Countdown aborted")
+            main_menu()
+
+    else:
+        begin_countdown("Launch")
+
+
+def begin_countdown(type):  # The type param is so other code can also use the countdown
+    global launch_countdown
+    cc()
+    print("Countdown for " + Fore.GREEN + type)
+
+    confirm_countdown = input("Are you sure you want to start the countdown? y/n ")
+    if confirm_countdown == "y":
+
+        cc()
+        print(Fore.CYAN + "Starting " + type + " Countdown. Press CTRL + C to cancel")   
+        print()
+
+        for i in range(launch_countdown):
+            launch_countdown -= 1
+            print(Fore.LIGHTYELLOW_EX + str(launch_countdown))
+            #led_neo[0] = (255, 255, 255)
+            time.sleep(1)
+            #led_neo[0] = (0, 0, 0)
+
+            #check if the connection between my pc and the Pi is active.
+            #that way if the connection stops it automatically stops the countdown
+            #this is incase we need to cancel the countdown
+    else:
+        cc()
+        main_menu()
+
+
+    if type == "Launch":
+        flight_software()
+        # print the data in the main loop, but make sure prints dont slow down the logging
+
+    elif type == "Motor Test":
+        test_charge("Motor Test")
+
+    elif type == "Parachute Test":
+        test_charge("Parachute Test")
+
+
 
 
 def view_sensors():
@@ -222,62 +318,37 @@ def view_sensors():
     main_menu()
 
 
-def begin_countdown():
-    global launch_countdown
-
-
-    confirm_countdown = input("Are you sure you want to start the countdown? y/n ")
-    if confirm_countdown == "y":
-
-
-        cc()
-        print(Fore.CYAN + "Starting Countdown. Press CTRL + C to cancel")   # maybe try keyboard module to cancel rather than interrupt
-        print()
-
-        for i in range(launch_countdown):
-            launch_countdown -= 1
-            print(Fore.LIGHTYELLOW_EX + str(launch_countdown))
-            #led_neo[0] = (255, 255, 255)
-            time.sleep(1)
-            #led_neo[0] = (0, 0, 0)
-            
-
-        flight_software()
-        #live_telem()    # this will probably just have to be in the launch software rather than a seperate function. maybe a seperate python script
-
-    else:
-        cc()
-        main_menu()
-
-
 def main_menu():    
-
     # set LED to rainbow barf RGB 
-    print("Chungus Aerospace Software By Besser")
+    print("Chungus Aerospace Logic Controller By Besser and Joe Mamma")
     print(version)
     print(date)
     
-    if debug:
-        pass
+
     print()
     print(Fore.CYAN + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print(Fore.LIGHTGREEN_EX + "Options:")
-    print("1: Start Launch Wizard")     # not a wizrd currently. it just starts the launch function
+    print("1: Start Launch Wizard")     
     print("2: Checklist")
     print("3: Display last launch summary")
-    print("4. Push last launch to GitHub")
+    #print("4. Push last launch folder to GitHub")
     print("5. View current sensor data")
     print("6. View weather")
-    print("7. Motor Static Fire Test")
-    print("8. Parachute Ejection Test")
+    print("7. Test Fire Charges")
+    print("9. CSV Flight Data Analyzer")
+    print()
+    print("S: Software settings")   # disable any wifi code, 
     print("Q: Quit")
   
     which_option = input("What would you like to do? ")
 
+
+    # FUNCTIONS SHOULD CALL EACH OTHER, NOT JUST RAN HERE. THAT WAY ERRORS ARE CAUGHT
+
+
     if "1" == which_option:
         cc()
-        begin_countdown()
-        #launch()
+        preflight_checks()
         
     elif "2" == which_option:
         cc()
@@ -285,9 +356,11 @@ def main_menu():
         
     elif "3" == which_option:
         cc()
+        main_menu()
 
     elif "4" == which_option:
         cc()
+        #push_github()
 
     elif "5" == which_option:
         cc()
@@ -296,6 +369,14 @@ def main_menu():
     elif "6" == which_option:
         cc()
         weather()
+
+    elif "7" == which_option:
+        cc()
+        test_pyros_menu()
+
+    elif "d" == which_option:   # d is for development. I can just put whatever I want there to run it quickly
+        cc()
+        test_pyros_menu()
 
     elif "q" == which_option:
         sys.exit()
@@ -308,8 +389,5 @@ def main_menu():
         print(Fore.RED + "Invalid input")
         main_menu()
 
-def debug_messages():
-    if debug:
-        pass
 
 main_menu()
