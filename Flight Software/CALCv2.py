@@ -8,7 +8,7 @@ def notes():
 
 
 
-version = "CALC v2.2-alpha.1"
+version = "CALC v2.0-alpha.2.3"
 date = "January 2022"
 
 """
