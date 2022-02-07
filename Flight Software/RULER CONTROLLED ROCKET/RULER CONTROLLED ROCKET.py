@@ -9,7 +9,8 @@ or RAM.
 
 
 """
-version = "v1.0"
+version = "v1.1"
+
 
 import time
 import board
@@ -19,7 +20,7 @@ import adafruit_dotstar
 from rainbowio import colorwheel
 import digitalio
 
-#from adafruit_dps310.basic import DPS310
+
      
 """# Setup
 # LED for capacitive button setup. There is probably a better way of doing this
@@ -32,12 +33,12 @@ led5.direction = digitalio.Direction.OUTPUT
 led6 = digitalio.DigitalInOut(board.LED6)   # µ
 led6.direction = digitalio.Direction.OUTPUT
 
-led7 = digitalio.DigitalInOut(board.LED7)   # Digikeys
+led7 = digitalio.DigitalInOut(board.LED7)   # Digikey
 led7.direction = digitalio.Direction.OUTPUT
-
+"""
 # RGB goodness
 led_dotstar = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1)
-"""
+
 # Motor ignition relay
 motor_relay = digitalio.DigitalInOut(board.A0)  # NOTE change this pin to whatever pin is good. 
 motor_relay.direction = digitalio.Direction.OUTPUT
@@ -100,35 +101,41 @@ for i in range(launch_delay):   # countdown
 
 print("Ready")
 
+for i in range(launch_delay):   # countdown
+    led_dotstar[0] = (255, 255, 0)
+    print("T- " + str(launch_delay))
+    time.sleep(0.5)
+    led_dotstar[0] = (0, 0, 0)
+    time.sleep(0.5)
 
 
-class intitial_write:   
-    with open(file_name, "a") as f:     # might need to be with open("/" + file_name, "a") as f:
-        f.write("Software version: " + version + "\n")
-        f.write("Data points cutoff: " + str(log_stop_count) + "\n")
-        f.write("Starting altitude: " + str(STARTING_ALTITUDE) + "\n")
-        f.write("Pressure (mbar),Temperature (°c),Altitude (m),Elapsed Seconds,Events\n")
-        motor_relay.value = True    # lauches the rocket    
+with open(file_name, "a") as f:     # might need to be with open("/" + file_name, "a") as f:
+    f.write(",,,,\n")
+    f.write("Software version: " + version + "\n")
+    f.write("Data points cutoff: " + str(log_stop_count) + "\n")
+    f.write("Starting altitude: " + str(STARTING_ALTITUDE) + "\n")
+    f.write("Pressure (mbar),Temperature (°c),Altitude (m),Elapsed Seconds,Events\n")
+    motor_relay.value = True    # lauches the rocket    
+    f.write(event_comma_count + "Motor lit\n")
+    
 
-        f.write(event_comma_count + "Motor lit\n")
-        
+led_dotstar[0] = (0, 255, 128)
+print("Waiting for liftoff...")
 
+while True:
+    if bmp.altitude >= STARTING_ALTITUDE + 3:
+        if logged_liftoff == 0:
 
-class lifoff_detection:
-    global initial_time
-    while True:
-        if bmp.altitude >= STARTING_ALTITUDE + 3:
-            if logged_liftoff == 0:
+            initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
+            current_time = time.monotonic()
+            time_stamp = current_time - initial_time     
 
-                initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
-                current_time = time.monotonic()
-                time_stamp = current_time - initial_time     
-
-                with open(file_name, "a") as f:
-                    f.write(",,," + str(time_stamp) + ",Liftoff detected\n")
-                motor_relay.value = False
-                logged_liftoff += 1
-                break
+            with open(file_name, "a") as f:
+                f.write(",,," + str(time_stamp) + ",Liftoff detected\n")
+            motor_relay.value = False
+            logged_liftoff += 1
+            break
+led_dotstar[0] = (0, 0, 0)
 
 
 
@@ -141,7 +148,6 @@ while True:
     with open(file_name, "a") as f:    
         f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,)) 
         f.write("{:5.2f}".format(time_stamp) + "\n") # logs elapsed time 
-
 
         # stops the logging of data
         if data_cycles > 50 and (bmp.altitude <= STARTING_ALTITUDE + 5): 
@@ -159,9 +165,11 @@ while True:
     
     data_cycles += 1 
     print("Data cycles: " + str(data_cycles)) # for debugging while editing code
-
+    
     
 #                          ------------------------ End of main data logging code ------------------------
+
+
 
 
 while True:     # indicates that the data recording is done
