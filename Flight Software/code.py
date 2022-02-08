@@ -225,14 +225,14 @@ while True:
             f.write(event_comma_count + "retard")
             
             # Arm
-            if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that and statements are a thing, but this is easier to read imo
+        if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that and statements are a thing, but this is easier to read imo
                 if chute_armed == 0: # this is so the event isnt logged repeatedly
                     f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Current time: " + str(time_stamp) + "m\n")
                     chute_armed += 1
                     print("Armed parachute")
 
             # Deploy - close relay
-            if chute_armed == 1:
+             if chute_armed == 1:
                 if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute  BUG adds logging delay
                     DATA_CYCLES_CHUTE = data_cycles 
                     chute_relay.value = True
