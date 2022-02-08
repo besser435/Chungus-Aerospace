@@ -92,7 +92,6 @@ STARTING_ALTITUDE = bmp.altitude
 launch_delay_count = 0
 logged_liftoff = 0
 data_cycles = 0
-
 i = 0
 
 
@@ -220,34 +219,30 @@ while True:
         
         # possible relay code to send power to the parachute charge
         #https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs for relay pin and stuff
-        retard = randint(0, 999)   # pure autism
-        if retard == 0:    # needs to be a constant because this is in a loop
-            f.write(event_comma_count + "retard")
-            
-            # Arm
-            if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that and statements are a thing, but this is easier to read imo
-                if chute_armed == 0: # this is so the event isnt logged repeatedly
-                    f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Current time: " + str(time_stamp) + "m\n")
-                    chute_armed += 1
-                    print("Armed parachute")
+        # Arm
+        if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that <and> statements are a thing, but this is easier to read imo
+            if chute_armed == 0: # this is so the event isnt logged repeatedly
+                f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Current time: " + str(time_stamp) + "m\n")
+                chute_armed += 1
+                print("Armed parachute")
 
-            # Deploy - close relay
-            if chute_armed == 1:
-                if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute  BUG adds logging delay
-                    DATA_CYCLES_CHUTE = data_cycles 
-                    chute_relay.value = True
-                    print("Parachute relay on")
+        # Deploy - close relay
+        if chute_armed == 1:
+            if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute  BUG adds logging delay
+                DATA_CYCLES_CHUTE = data_cycles 
+                chute_relay.value = True
+                print("Parachute relay on")
 
-                    if logged_chute_deploy == 0:
-                        f.write(event_comma_count + "Deployed parachute. Current alt: " + str(bmp.altitude) + "m. Current time: " + str(time_stamp) + "\n")
-                        logged_chute_deploy +=1
+                if logged_chute_deploy == 0:
+                    f.write(event_comma_count + "Deployed parachute. Current alt: " + str(bmp.altitude) + "m. Current time: " + str(time_stamp) + "\n")
+                    logged_chute_deploy +=1
 
-                # Close relay
-                if logged_chute_deploy == 1:    # this might not work. 
-                    if DATA_CYCLES_CHUTE >= 10: # waits 10 data cyles before opening the relay
-                        chute_relay.value = False   # this was True before and idk why. Does it actually need to be True?
-                        f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
-                        print("Parachute relay off")
+            # Close relay
+            if logged_chute_deploy == 1:    # this might not work. 
+                if DATA_CYCLES_CHUTE >= 10: # waits 10 data cyles before opening the relay
+                    chute_relay.value = False   # this was True before and idk why. Does it actually need to be True?
+                    f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
+                    print("Parachute relay off")
 
 
     
