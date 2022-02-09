@@ -1,15 +1,5 @@
-def notes():
-    """
-    NOTE
-    Chungus Aerospace AIO Rocket Software
-    https://github.com/besser435/Chungus-Aerospace
-
-    """
-
-
-
-version = "CALC v2.0-alpha.2.3"
-date = "January 2022"
+version = "CALC v2.0-alpha.3"
+date = "Febuary 2022"
 
 """
 import adafruit_bmp3xx
@@ -22,13 +12,12 @@ import digitalio
 import storage
 from rainbowio import colorwheel
 from analogio import AnalogIn
+from gpiozero import CPUTemperature
 """
-import random
 import time 
 import sys
 import os  
 from colorama import init
-
 
 init()
 from colorama import Fore, Back, Style
@@ -59,9 +48,8 @@ vfs = storage.VfsFat(sdcard)
 storage.mount(vfs, "/sd")
 
 # LED pins and setup
-led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1)
-led = digitalio.DigitalInOut(board.D13)           
-led.direction = digitalio.Direction.OUTPUT         
+led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1)     
+led_neo.brightness = 1  
 
 # BMP388
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
@@ -79,17 +67,20 @@ t = rtc.datetime
 # Relay to deploy chute
 chute_relay = digitalio.DigitalInOut(board.A1)  # NOTE change this pin to whatever pin is good. 
 chute_relay.direction = digitalio.Direction.OUTPUT
-"""
 
+# Motor ignition relay
+motor_relay = digitalio.DigitalInOut(board.A0)  # NOTE change this pin to whatever pin is good. 
+motor_relay.direction = digitalio.Direction.OUTPUT
+
+"""
 # options
 debug = 0
-launch_countdown = 3    # how long the countdown is in seconds
-
+#bmp.sea_level_pressure = 1024 # NOTE get this from weather data
+launch_countdown = 11    # how long the countdown is in seconds
 
 # storage
 weather_api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"
 preflight_errors = 0
-
 
 
 def cc():   # shortens this long command to just cc()
@@ -161,16 +152,6 @@ def weather():
     main_menu()
 
 
-"""def push_github():
-    This has been shelved for now. Moving the folder containing the launch logs
-    to the host PC is a lot easier for a few reasons.
-
-    print("Push to Github")
-    print()
-
-    ask_dir = input("Enter folder path to push: ")"""
-    
-
 def test_pyros_menu():
     test_type_ask = input("Would you like to test a motor or parachute? m/p ")
 
@@ -204,18 +185,132 @@ def test_charge(test_type):
 # -------------------------------Main flight code-------------------------------
 def flight_software():
     cc()
-    print("Get lastest version from other file.")
-    #bmp.sea_level_pressure = pressure
+    # options
+    log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
+    log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
+    file_name = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
+    event_comma_count = ",,,,," # makes sure events go in their own column on the far right 
+
+    # storage
+    STARTING_ALTITUDE = bmp.altitude
+    data_cycles = 0
+    logged_liftoff = 0
+    chute_armed = 0 
+    logged_chute_deploy = 0
     
-    main_menu()
+    # .csv creation and formatting
+    with open("/sd/" + file_name, "a") as f: 
+        f.write(",,,,,\n")  # creates the right amount of columns 
+        f.write(str("Date: %d/%d/%d" % (t.tm_mon, t.tm_mday, t.tm_year) + ",,,,,\n"))   # The extra commas is so GitHub doesnt get cranky
+        f.write("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + ",,,,,\n")
+        f.write("Software version: " + version + ",,,,,\n")
+        f.write("Starting altitude: " + str(STARTING_ALTITUDE) + ",,,,,\n")
+        f.write("Data points cutoff: " + str(log_stop_count) + ",,,,,\n")
+        f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),Elapsed Seconds,Events\n")
+
+    with open("/sd/" + file_name, "a") as f:  # ignite motor 
+        led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
+        f.write(event_comma_count + "Motor lit\n")
+        motor_relay.value = True    # lauches the rocket 
+
+
+    while True: # wait for liftoff then go to logging
+        if bmp.altitude >= STARTING_ALTITUDE + 2:
+            if logged_liftoff == 0:
+                with open("/sd/" + file_name, "a") as f:
+                    f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
+                    f.write("%.2f %.2f %.2f," % accel.acceleration,)
+                    f.write(",Liftoff detected\n")
+            
+                    led_neo[0] = (0, 0, 255)    # indicates liftoff has been detected and it passed to the logging code.
+                    # this is for dev purposes, you wont see it because the rocket will be in the air already
+
+                motor_relay.value = False
+                logged_liftoff += 1
+                break
+
+
+    initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
+    #                          ------------------------ Main data logging code ------------------------
+    while True:   
+        with open("/sd/" + file_name, "a") as f:    
+            current_time = time.monotonic()
+            time_stamp = current_time - initial_time
+
+            f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
+            f.write("%.2f %.2f %.2f," % accel.acceleration,)
+            f.write("{:5.2f}".format(time_stamp) + ",\n") # logs elapsed time 
+            # This is for when its connected wirelessly through a computer. This way we
+            # can get live telem data (for as long as the rocket is in wireless range)
+            print("Alt: " + str(bmp.altitude), end = ",   ")   
+            print("Time:{:5.2f}".format(time_stamp))
+            #print(vertical_speed)
+            
+
+            #https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs for relay pin and stuff
+            # Arm
+            if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that and statements are a thing, but this is easier to read imo
+                if chute_armed == 0: # this is so the event isnt logged repeatedly
+                    f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Current time: " + str(time_stamp) + "m\n")
+                    chute_armed += 1
+                    print("Armed parachute")
+
+            # Deploy - close relay
+            if chute_armed == 1:
+                if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute  BUG adds logging delay
+                    DATA_CYCLES_CHUTE = data_cycles 
+                    chute_relay.value = True
+                    print("Parachute relay on")
+
+                    if logged_chute_deploy == 0:
+                        f.write(event_comma_count + "Deployed parachute. Current alt: " + str(bmp.altitude) + "m. Current time: " + str(time_stamp) + "\n")
+                        logged_chute_deploy +=1
+
+                # Close relay
+                if logged_chute_deploy == 1:    # this might not work. 
+                    if DATA_CYCLES_CHUTE >= 10: # waits 10 data cyles before opening the relay
+                        chute_relay.value = False   # this was True before and idk why. Does it actually need to be True?
+                        f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
+                        print("Parachute relay off")
+
+
+        # stops the logging of data
+        if data_cycles > 50:    
+            if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
+                with open("/sd/" + file_name, "a") as f:
+                    f.write(event_comma_count + "Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
+                    break
+
+        if data_cycles >= log_stop_count:   # backup to the code above
+            with open("/sd/" + file_name, "a") as f:
+                f.write(event_comma_count + "Stopped logging; writes to file met. (" + str(data_cycles) + " writes) ")
+                f.write(event_comma_count + "This means altitude code did not execute.\n")
+                break
+
+        
+        data_cycles += 1 # this seems simple but its crucial to some things so dont mess with it
+
+        time.sleep(log_interval)
+    #                          ------------------------ End of main data logging code ------------------------
+    post_flight()
+
+
+def post_flight():
+    while True:     # indicates that the data recording is done
+        i = (i + 1) % 256  # run from 0 to 255
+        led_neo.fill(colorwheel(i)) # Unicorn barf
+        time.sleep(0.01)
+
+    end_flight = input("Press enter to end the flight")
+    if end_flight:
+        cc()
+        main_menu()
 
 
 def preflight_checks():
     # get weather
     #print("Is pressure correct?")
     
-
-
     # ----------------------Error checking----------------------
     #if battery voltage is low:
     #print(Fore.YELLOW + "Low battery voltage! (" + str(1) + ")")
@@ -225,8 +320,6 @@ def preflight_checks():
     #if wind > x:
     #print(Fore.YELLOW + "High winds! (" + str(1) + ")")
         #preflight_errors += 1
-
-    
 
 
     if preflight_errors > 0:
@@ -262,8 +355,9 @@ def begin_countdown(type):  # The type param is so other code can also use the c
             launch_countdown -= 1
             print(Fore.LIGHTYELLOW_EX + str(launch_countdown))
             #led_neo[0] = (255, 255, 255)
-            time.sleep(1)
+            time.sleep(0.5)
             #led_neo[0] = (0, 0, 0)
+            time.sleep(0.5)
 
             #check if the connection between my pc and the Pi is active.
             #that way if the connection stops it automatically stops the countdown
@@ -275,7 +369,6 @@ def begin_countdown(type):  # The type param is so other code can also use the c
 
     if type == "Launch":
         flight_software()
-        # print the data in the main loop, but make sure prints dont slow down the logging
 
     elif type == "Motor Test":
         test_charge("Motor Test")
@@ -323,7 +416,11 @@ def main_menu():
     print("Chungus Aerospace Logic Controller By Besser and Joe Mamma")
     print(version)
     print(date)
-    
+
+
+    #cpu = CPUTemperature()  #test
+    #print(cpu.temperature)
+
 
     print()
     print(Fore.CYAN + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
