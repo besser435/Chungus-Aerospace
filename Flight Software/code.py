@@ -12,7 +12,7 @@ for better I/O, camera support, and a few other things.
 
 
 """
-version = "v1.10"
+version = "v1.10.1"
 date = "Febuary 2022"
 
 
