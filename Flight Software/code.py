@@ -220,12 +220,12 @@ while True:
         
         # possible relay code to send power to the parachute charge
         #https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs for relay pin and stuff
-        retard = randint(0, 999)   # pure autism
-        if retard == 0:    # needs to be a constant because this is in a loop
-            f.write(event_comma_count + "retard")
+        rud = randint(0, 999)   # pure autism
+        if rud == 0:    # needs to be a constant because this is in a loop
+            f.write(event_comma_count + "lol rud time")
             
             # Arm
-        if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that and statements are a thing, but this is easier to read imo
+             if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that and statements are a thing, but this is easier to read imo
                 if chute_armed == 0: # this is so the event isnt logged repeatedly
                     f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Current time: " + str(time_stamp) + "m\n")
                     chute_armed += 1
