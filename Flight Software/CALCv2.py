@@ -1,4 +1,4 @@
-version = "CALC v2.0-alpha.3"
+version = "CALC v2.0-alpha.4"
 date = "Febuary 2022"
 
 """
@@ -16,9 +16,9 @@ from gpiozero import CPUTemperature
 """
 import time 
 import sys
-import os  
+import os
+from unittest import main  
 from colorama import init
-
 init()
 from colorama import Fore, Back, Style
 init(autoreset=True)
@@ -82,6 +82,10 @@ launch_countdown = 11    # how long the countdown is in seconds
 weather_api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"
 preflight_errors = 0
 
+# rocket storage
+STARTING_ALTITUDE = 1000 #bmp.altitude
+fire_chute_alt = 100    # default value in m, changes based on user input
+arm_chute_alt = fire_chute_alt - 2
 
 def cc():   # shortens this long command to just cc()
     os.system("cls" if os.name == "nt" else "clear")    # clears terminal
@@ -170,15 +174,34 @@ def test_charge(test_type):
     if test_type == "Motor Test":
         #relay motor pin + load cell logging
         print("motor test")
+        main_menu()
 
     elif test_type == "Parachute Test":
         #relay chute pin
         print("chute test")
+        main_menu()
 
     else:
         cc()
         print(Fore.RED + "Test error, test not found: " + test_type)
         main_menu()
+
+def rocket_settings():
+    global fire_chute_alt
+    global arm_chute_alt    
+    cc()  
+    print(Fore.LIGHTGREEN_EX + "Rocket Settings:")
+    print(Fore.CYAN + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+    print()
+    ask_chute_alt = input("What is the altitude the parachute should deploy at? (m) ")
+    fire_chute_alt = STARTING_ALTITUDE + int(ask_chute_alt)
+    arm_chute_alt = fire_chute_alt - 2 # 
+    main_menu()
+
+def a():
+    print("Deploy parachute at " + str(fire_chute_alt) + "m")
+    print("Arm parachute at " + str(arm_chute_alt) + "m")
+
 
 
 
@@ -189,14 +212,15 @@ def flight_software():
     log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
     log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
     file_name = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
-    event_comma_count = ",,,,," # makes sure events go in their own column on the far right 
+    event_comma_count = ",,,,,," # makes sure events go in their own column on the far right 
 
     # storage
-    STARTING_ALTITUDE = bmp.altitude
     data_cycles = 0
     logged_liftoff = 0
     chute_armed = 0 
     logged_chute_deploy = 0
+    alt_1 = 0
+    t_s_1 = 0
     
     # .csv creation and formatting
     with open("/sd/" + file_name, "a") as f: 
@@ -206,7 +230,7 @@ def flight_software():
         f.write("Software version: " + version + ",,,,,\n")
         f.write("Starting altitude: " + str(STARTING_ALTITUDE) + ",,,,,\n")
         f.write("Data points cutoff: " + str(log_stop_count) + ",,,,,\n")
-        f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),Elapsed Seconds,Events\n")
+        f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),v_speed (m/s),Elapsed Seconds,Events\n")
 
     with open("/sd/" + file_name, "a") as f:  # ignite motor 
         led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
@@ -229,15 +253,17 @@ def flight_software():
                 logged_liftoff += 1
                 break
 
-
-    initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
     #                          ------------------------ Main data logging code ------------------------
+    initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
     while True:   
+        t_s_0 = time_stamp
+        vert_speed = (bmp.altitude - alt_1) / (t_s_0 - t_s_1)
+
         with open("/sd/" + file_name, "a") as f:    
             current_time = time.monotonic()
             time_stamp = current_time - initial_time
 
-            f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
+            f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude, vert_speed,))
             f.write("%.2f %.2f %.2f," % accel.acceleration,)
             f.write("{:5.2f}".format(time_stamp) + ",\n") # logs elapsed time 
             # This is for when its connected wirelessly through a computer. This way we
@@ -281,6 +307,7 @@ def flight_software():
                     f.write(event_comma_count + "Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
                     break
 
+
         if data_cycles >= log_stop_count:   # backup to the code above
             with open("/sd/" + file_name, "a") as f:
                 f.write(event_comma_count + "Stopped logging; writes to file met. (" + str(data_cycles) + " writes) ")
@@ -289,6 +316,9 @@ def flight_software():
 
         
         data_cycles += 1 # this seems simple but its crucial to some things so dont mess with it
+
+        alt_1 = bmp.altitude 
+        t_s_1 = time_stamp
 
         time.sleep(log_interval)
     #                          ------------------------ End of main data logging code ------------------------
@@ -308,8 +338,17 @@ def post_flight():
 
 
 def preflight_checks():
+    global preflight_errors
     # get weather
-    #print("Is pressure correct?")
+    #print("Barometer pressure: " + bmp.altitude)
+    #print("Weather pressure: ")
+    print("Starting Altitude: " + str(STARTING_ALTITUDE))
+    print()
+    value_check = input("Are these values corrent? y/n ")
+    if value_check == "y":
+        pass # autism
+    else:
+        preflight_errors =+ 1
     
     # ----------------------Error checking----------------------
     #if battery voltage is low:
@@ -332,7 +371,7 @@ def preflight_checks():
 
         else:
             cc()
-            print(Fore.YELLOW + "Countdown aborted")
+            print(Fore.YELLOW + "Launch aborted")
             main_menu()
 
     else:
@@ -364,6 +403,7 @@ def begin_countdown(type):  # The type param is so other code can also use the c
             #this is incase we need to cancel the countdown
     else:
         cc()
+        print(Fore.YELLOW + "Countdown aborted")
         main_menu()
 
 
@@ -380,7 +420,7 @@ def begin_countdown(type):  # The type param is so other code can also use the c
 
 
 def view_sensors():
-    #break_sensors = input("Press enter to return to the menu")
+    
     """while True:
         print("Voltage: {:.2f}".format(battery_voltage) + "v")
         print("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec))
@@ -389,23 +429,18 @@ def view_sensors():
         print("Temperature: " + bmp.temperature + "°c")
         print("Acceration: %.2f %.2f %.2f," % accel.acceleration)
         print("hi")
-        time.sleep(0.25)
-        cc()
+        time.sleep(0.1)
+        cc()"""
 
-        break_sensors = input("Press enter to return to the menu")
-        if break_sensors:
-            break       # test me"""
     wait = 0
     while True:
         print("hi")
-        time.sleep(0.2)
+        time.sleep(0.1)
         cc()
         wait += 1
 
-        if wait >= 20:  # after 20 updates the loop ends. maybe try keyboard module to break instead of hard update cap
+        if wait >= 50:  # after 50 updates the loop ends. maybe try keyboard module to break instead of hard update cap
             break
-
-
 
     cc()
     main_menu()
@@ -421,10 +456,10 @@ def main_menu():
     #cpu = CPUTemperature()  #test
     #print(cpu.temperature)
 
-
     print()
     print(Fore.CYAN + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print(Fore.LIGHTGREEN_EX + "Options:")
+    # reorder this code in a way that makes sense
     print("1: Start Launch Wizard")     
     print("2: Checklist")
     print("3: Display last launch summary")
@@ -433,7 +468,9 @@ def main_menu():
     print("6. View weather")
     print("7. Test Fire Charges")
     print("9. CSV Flight Data Analyzer")
+    print("10. Rocket Settings NOT IMPLIMENTED, DOESNT FUNCTION")
     print()
+    #print("R: Rocket settings")
     print("S: Software settings")   # disable any wifi code, 
     print("Q: Quit")
   
@@ -471,15 +508,26 @@ def main_menu():
         cc()
         test_pyros_menu()
 
+    elif "10" == which_option:
+        cc()
+        rocket_settings()
+
+    elif "r" == which_option:   
+        cc()
+        rocket_settings()
+
+    elif "s" == which_option:   
+        cc()
+        #settings_menu()
+        main_menu()
+
     elif "d" == which_option:   # d is for development. I can just put whatever I want there to run it quickly
         cc()
-        test_pyros_menu()
+        a()
+        main_menu()
 
     elif "q" == which_option:
         sys.exit()
-    
-    elif "a" == which_option:  # shortcut to current work
-        pass 
 
     else:
         cc()
