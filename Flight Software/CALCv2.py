@@ -1,11 +1,10 @@
-version = "CALC v2.0-alpha.4"
-date = "Febuary 2022"
+version = "CALC v2.0-alpha.5"
+code_revision_date = "Febuary 2022"
 
 """
 import adafruit_bmp3xx
-import adafruit_adxl34x
-import adafruit_pcf8523
-import adafruit_sdcard
+#import adafruit_adxl34x
+#import adafruit_sdcard
 import neopixel
 import board
 import digitalio
@@ -17,7 +16,6 @@ from gpiozero import CPUTemperature
 import time 
 import sys
 import os
-from unittest import main  
 from colorama import init
 init()
 from colorama import Fore, Back, Style
@@ -25,6 +23,15 @@ init(autoreset=True)
 import requests
 from requests.structures import CaseInsensitiveDict
 import math 
+from datetime import datetime
+
+
+# Timestamp
+now = datetime.now()
+time_and_date = now.strftime("%m-%d-%Y  %H:%M")
+current_time = now.strftime("%H:%M")
+current_date = now.strftime("%m-%d-%Y")
+
 
 """
 # Setup Bits
@@ -59,13 +66,10 @@ bmp.temperature_oversampling = 2
 # ADXL345
 accel = adafruit_adxl34x.ADXL345(i2c)
 
-# Real time clock
-#i2c = busio.I2C(board.SCL, board.SDA)
-rtc = adafruit_pcf8523.PCF8523(i2c)
-t = rtc.datetime
+#move time code here
 
-# Relay to deploy chute
-chute_relay = digitalio.DigitalInOut(board.A1)  # NOTE change this pin to whatever pin is good. 
+# TEST IF THIS WORKS WITH A MULTIMETER Relay to deploy chute
+chute_relay = digitalio.DigitalInOut(board.D31)  # NOTE change this pin to whatever pin is good. 
 chute_relay.direction = digitalio.Direction.OUTPUT
 
 # Motor ignition relay
@@ -73,71 +77,86 @@ motor_relay = digitalio.DigitalInOut(board.A0)  # NOTE change this pin to whatev
 motor_relay.direction = digitalio.Direction.OUTPUT
 
 """
-# options
+# general options
 debug = 0
-#bmp.sea_level_pressure = 1024 # NOTE get this from weather data
-launch_countdown = 11    # how long the countdown is in seconds
+launch_countdown = 11    # how long the countdown is in seconds - 1
 
-# storage
+# weather options
+zip_code = "85054"
+use_zip = 0
+city_name = "phoenix"
 weather_api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"
+
+# general storage
 preflight_errors = 0
 
 # rocket storage
-STARTING_ALTITUDE = 1000 #bmp.altitude
 fire_chute_alt = 100    # default value in m, changes based on user input
 arm_chute_alt = fire_chute_alt - 2
+#sea_level_pressure is below all_weather
+
+
 
 def cc():   # shortens this long command to just cc()
     os.system("cls" if os.name == "nt" else "clear")    # clears terminal
 cc()
 
 
-def weather():
+def fetch_weather():  # this fetches weather data but doesnt display it. Used for getting the current pressure
     global current_pressure
+    global current_temperature
+    global current_wind_speed
+    global weather_description
+    global complete_url
+    global x
     base_url = "http://api.openweathermap.org/data/2.5/weather?"
-    zip_code = "85054"
-    use_zip = 0
-    city_name = "phoenix"
-
 
     if use_zip == 0:
         complete_url = base_url + "appid=" + weather_api_key + "&q=" + city_name
     else:
         complete_url = base_url + "appid=" + weather_api_key + "&q=" + zip_code
 
-    print("URL sent: " + complete_url)
-
     response = requests.get(complete_url)
     x = response.json()
 
-    
+    if x["cod"] != "404":
+        y = x["main"]
+        current_temperature = y["temp"]
+        current_pressure = y["pressure"]
+        z = x["weather"]
+        weather_description = z[0]["description"]
+        w = x["wind"]
+        current_wind_speed = w["speed"]
+fetch_weather()
+#bmp.sea_level_pressure = current_pressure
+sea_level_pressure = current_pressure   
+STARTING_ALTITUDE = 1000 #bmp.altitude # needs to be below the calibrated pressure so its accurate
+
+
+def weather():  # this displays the weather data from all_weather()
+    fetch_weather()  # updates info
+    print("URL sent: " + complete_url)
     if x["cod"] != "404":
         if use_zip == 0:
             print("Check weather! Requesting cities can return the wrong info")
             print("Weather in " + city_name)
-
         else:
             print("Weather in " + str(zip_code))
-
-        y = x["main"]
-        current_temperature = y["temp"]
-        z = x["weather"]
-        weather_description = z[0]["description"]
-        current_pressure = y["pressure"]
-        
-
-        print("Temp in Kelvin = " + str(math.trunc(current_temperature)))
-        print("Temp in Celsius = " + str(math.trunc(current_temperature - 273.15)))
-        print("Temp in Fahrenheit = " + str(math.trunc((1.8 * current_temperature) - 459.67)))
-        print("Description = " + str(weather_description))
-        print("Pressure in millibars = " + str(current_pressure))
-        print("Pressure in inches of Hg = " + str(round(current_pressure/33.864, 3)))
-        #print(x) # prints raw json data
-
     else:
         print("City Not Found")
 
-    
+
+    print("Temp in Kelvin = " + str(math.trunc(current_temperature)))
+    print("Temp in Celsius = " + str(math.trunc(current_temperature - 273.15)))
+    print("Temp in Fahrenheit = " + str(math.trunc((1.8 * current_temperature) - 459.67)))
+    print("Description = " + str(weather_description))
+    print("Pressure in millibars = " + str(current_pressure))
+    print("Pressure in inches of Hg = " + str(round(current_pressure / 33.864, 2)))
+    print("Wind Speed in m/s = " + str(round(current_wind_speed, 2)))
+    print("Wind Speed in mph = " + str(round(current_wind_speed * 2.237, 2)))
+    #print(x) # prints raw json data
+
+
     def response_code():
         headers = CaseInsensitiveDict()
         headers["Accept"] = "application/json"
@@ -150,6 +169,7 @@ def weather():
         if resp.status_code == 200:
             print(" = Processed request succsessfully")
     response_code()  
+
 
     input("Press enter to return to the main menu ")
     cc()
@@ -186,6 +206,7 @@ def test_charge(test_type):
         print(Fore.RED + "Test error, test not found: " + test_type)
         main_menu()
 
+
 def rocket_settings():
     global fire_chute_alt
     global arm_chute_alt    
@@ -198,23 +219,36 @@ def rocket_settings():
     arm_chute_alt = fire_chute_alt - 2 # 
     main_menu()
 
-def a():
-    print("Deploy parachute at " + str(fire_chute_alt) + "m")
-    print("Arm parachute at " + str(arm_chute_alt) + "m")
-
-
 
 
 # -------------------------------Main flight code-------------------------------
+def emergency_chute_deploy():   # Not implemented yet
+    """ if the sensors dont see the velocty slowing down after closing the relay for a second
+    it will run this code. It will pulse the relay in order to try to ignite the charge.
+    The chute deploy just used to do this, but it would lose logging data because of the delay.
+
+    Im not sure how to do continuity detection on the Pi. I would just use that if possible """
+    # log emergency deploy
+    #print error. might show up if still connected to WiFi
+    for i in range (5):             # motor ignition (loops to ensure it happens)
+        chute_relay.value = True
+        time.sleep(1)
+        chute_relay.value = False
+        time.sleep(0.5)
+    # if deploy is detected by a reduction in velocity return to the logging code
+    # you can use the same code that triggers this function to do it
+    pass
+
+
 def flight_software():
     cc()
-    # options
+    # logging options
     log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
     log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
-    file_name = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
+    file_name = "launch " + time_and_date + ".csv"  # pure stupidity
     event_comma_count = ",,,,,," # makes sure events go in their own column on the far right 
 
-    # storage
+    # logging storage
     data_cycles = 0
     logged_liftoff = 0
     chute_armed = 0 
@@ -225,12 +259,12 @@ def flight_software():
     # .csv creation and formatting
     with open("/sd/" + file_name, "a") as f: 
         f.write(",,,,,\n")  # creates the right amount of columns 
-        f.write(str("Date: %d/%d/%d" % (t.tm_mon, t.tm_mday, t.tm_year) + ",,,,,\n"))   # The extra commas is so GitHub doesnt get cranky
-        f.write("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + ",,,,,\n")
+        f.write(str("Date: " + current_date + ",,,,,\n"))   # The extra commas is so GitHub doesnt get cranky
+        f.write("Time: " + current_time + ",,,,,\n")
         f.write("Software version: " + version + ",,,,,\n")
         f.write("Starting altitude: " + str(STARTING_ALTITUDE) + ",,,,,\n")
         f.write("Data points cutoff: " + str(log_stop_count) + ",,,,,\n")
-        f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),v_speed (m/s),Elapsed Seconds,Events\n")
+        f.write("Pressure (mbar), Temperature (°c), Altitude (m), Accel on xyz (m/s^2), v_speed (m/s), Elapsed Seconds, Events\n")
 
     with open("/sd/" + file_name, "a") as f:  # ignite motor 
         led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
@@ -246,7 +280,7 @@ def flight_software():
                     f.write("%.2f %.2f %.2f," % accel.acceleration,)
                     f.write(",Liftoff detected\n")
             
-                    led_neo[0] = (0, 0, 255)    # indicates liftoff has been detected and it passed to the logging code.
+                    led_neo[0] = (255, 255, 255)    # indicates liftoff has been detected and it passed to the logging code.
                     # this is for dev purposes, you wont see it because the rocket will be in the air already
 
                 motor_relay.value = False
@@ -255,6 +289,7 @@ def flight_software():
 
     #                          ------------------------ Main data logging code ------------------------
     initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
+    print("Begin Logging")
     while True:   
         t_s_0 = time_stamp
         vert_speed = (bmp.altitude - alt_1) / (t_s_0 - t_s_1)
@@ -341,10 +376,11 @@ def preflight_checks():
     global preflight_errors
     # get weather
     #print("Barometer pressure: " + bmp.altitude)
-    #print("Weather pressure: ")
+    print("Weather pressure: " + str(current_pressure))
     print("Starting Altitude: " + str(STARTING_ALTITUDE))
+    print(now.strftime("Time & date:  %m-%d-%Y %H:%M"))
     print()
-    value_check = input("Are these values corrent? y/n ")
+    value_check = input("Are these values correct? y/n ")
     if value_check == "y":
         pass # autism
     else:
@@ -450,7 +486,7 @@ def main_menu():
     # set LED to rainbow barf RGB 
     print("Chungus Aerospace Logic Controller By Besser and Joe Mamma")
     print(version)
-    print(date)
+    print(code_revision_date)
 
 
     #cpu = CPUTemperature()  #test
@@ -459,7 +495,7 @@ def main_menu():
     print()
     print(Fore.CYAN + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
     print(Fore.LIGHTGREEN_EX + "Options:")
-    # reorder this code in a way that makes sense
+    # reorder this text in an order that makes sense
     print("1: Start Launch Wizard")     
     print("2: Checklist")
     print("3: Display last launch summary")
@@ -523,7 +559,6 @@ def main_menu():
 
     elif "d" == which_option:   # d is for development. I can just put whatever I want there to run it quickly
         cc()
-        a()
         main_menu()
 
     elif "q" == which_option:
