@@ -12,7 +12,7 @@ for better I/O, camera support, and a few other things.
 
 
 """
-version = "v1.10.1"
+version = "v1.10.2"
 date = "Febuary 2022"
 
 
@@ -25,7 +25,6 @@ import board
 import digitalio
 import storage
 import time
-from random import randint
 from rainbowio import colorwheel
 from analogio import AnalogIn
 
@@ -196,7 +195,6 @@ while True:
     chute_armed = 0
     logged_chute_deploy = 0 
 
-
     # open file for append
     with open("/sd/" + file_name, "a") as f:    
         
@@ -212,11 +210,8 @@ while True:
         # This is for when its connected wirelessly through a computer. This way we
         # can get live telem data (for as long as the rocket is in wireless range)
         # Disable if this is running on CALCv1 as it wastes CPU cycles, its only meant for CALCv2
-        print("Alt: " + str(bmp.altitude), end = ",   ")   
-        print("Time:{:5.2f}".format(time_stamp))
-        
-
-        
+        #print("Alt: " + str(bmp.altitude), end = ",   ")   
+        #print("Time:{:5.2f}".format(time_stamp))
         # possible relay code to send power to the parachute charge
         #https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs for relay pin and stuff
         # Arm
@@ -228,24 +223,21 @@ while True:
 
         # Deploy - close relay
         if chute_armed == 1:
-            if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute  BUG adds logging delay
+            if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute
                 DATA_CYCLES_CHUTE = data_cycles 
                 chute_relay.value = True
-                print("Parachute relay on")
 
                 if logged_chute_deploy == 0:
                     f.write(event_comma_count + "Deployed parachute. Current alt: " + str(bmp.altitude) + "m. Current time: " + str(time_stamp) + "\n")
                     logged_chute_deploy +=1
 
-            # Close relay
+            # Open relay
             if logged_chute_deploy == 1:    # this might not work. 
                 if DATA_CYCLES_CHUTE >= 10: # waits 10 data cyles before opening the relay
                     chute_relay.value = False   # this was True before and idk why. Does it actually need to be True?
                     f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
                     print("Parachute relay off")
 
-
-    
 
     # stops the logging of data
     if data_cycles > 50:    
