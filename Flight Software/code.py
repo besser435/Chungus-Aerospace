@@ -12,7 +12,7 @@ for better I/O, camera support, and a few other things.
 
 
 """
-version = "v1.10.2"
+version = "v1.11"
 date = "Febuary 2022"
 
 
@@ -81,11 +81,11 @@ bmp.sea_level_pressure = 1024
 log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
 log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
 log_delay = 11              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
-file_name = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
+FILE_NAME = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
 event_comma_count = ",,,,," # makes sure events go in their own column on the far right 
 
 
-# storage
+# ------------------------- storage ------------------------
 #launched = 0
 STARTING_ALTITUDE = bmp.altitude
 launch_delay_count = 0
@@ -110,8 +110,6 @@ def emergency_chute_deploy():   # Not implemented yet
         time.sleep(0.5)
     # if deploy is detected by a reduction in velocity return to the logging code
     
-
-
 
 if development_mode == 1:
     led_neo.brightness = 0.3  # prevents flashbang   
@@ -145,13 +143,12 @@ days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satur
 if False:   # change to True to write the time. remember to set to false before running the code again
     #                     year, mon, date, hour, min, sec, wday, yday, isdst
     t = time.struct_time((2022,  1,   7,   15,   43,   0,  5,    -1,  -1))
-
     rtc.datetime = t
 """
 
 
 # .csv creation and formatting
-with open("/sd/" + file_name, "a") as f: 
+with open("/sd/" + FILE_NAME, "a") as f: 
     f.write(",,,,,\n")  # creates the right amount of columns 
     f.write(str("Date: %d/%d/%d" % (t.tm_mon, t.tm_mday, t.tm_year) + ",,,,,\n"))   # The extra commas is is GitHub doesnt get cranky
     f.write("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + ",,,,,\n")
@@ -161,7 +158,7 @@ with open("/sd/" + file_name, "a") as f:
     f.write("Data points cutoff: " + str(log_stop_count) + ",,,,,\n")
     f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),Elapsed Seconds,Events\n")
 
-with open("/sd/" + file_name, "a") as f:   
+with open("/sd/" + FILE_NAME, "a") as f:   
     led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
     f.write(event_comma_count + "Motor lit\n")
     motor_relay.value = True    # lauches the rocket 
@@ -173,7 +170,7 @@ if development_mode == 0:
     while True:
         if bmp.altitude >= STARTING_ALTITUDE + 3:
             if logged_liftoff == 0:
-                with open("/sd/" + file_name, "a") as f:
+                with open("/sd/" + FILE_NAME, "a") as f:
                     f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
                     f.write("%.2f %.2f %.2f," % accel.acceleration,)
                     f.write(",Liftoff detected\n")
@@ -186,17 +183,16 @@ if development_mode == 0:
                 logged_liftoff += 1
                 break
 
-
-initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
-
 #                          ------------------------ Main data logging code ------------------------
 led.value = True  # turn on LED to indicate writting has started
+initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
+
 while True:   
     chute_armed = 0
     logged_chute_deploy = 0 
 
     # open file for append
-    with open("/sd/" + file_name, "a") as f:    
+    with open("/sd/" + FILE_NAME, "a") as f:    
         
         current_time = time.monotonic()
         time_stamp = current_time - initial_time
@@ -241,16 +237,15 @@ while True:
 
     # stops the logging of data
     if data_cycles > 50:    
-    # makes sure the code below isnt just executed on the pad   #if data_cycles > 100 and (bmp.altitude <= STARTING_ALTITUDE + 5):# does this work?
-    #if launched == 1:   # possible way of doing the line of code above but more reliable. disabled as its not implimented 
+    # makes sure the code below isnt just executed on the pad
         if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
-            with open("/sd/" + file_name, "a") as f:
+            with open("/sd/" + FILE_NAME, "a") as f:
                 f.write(event_comma_count + "Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
                 break
 
     if data_cycles >= log_stop_count:   # backup to the code above
         if logged_chute_deploy == 1:    # ensures the chute deployed before breaking
-            with open("/sd/" + file_name, "a") as f:
+            with open("/sd/" + FILE_NAME, "a") as f:
                 f.write(event_comma_count + "Stopped logging; writes to file met. (" + str(data_cycles) + " writes) ")
                 f.write(event_comma_count + "This means altitude code did not execute.\n")
                 break
@@ -264,9 +259,6 @@ while True:
 #                          ------------------------ End of main data logging code ------------------------
 led.value = False  # turn off LED to indicate writting is done
 
-
-#with open("/sd/" + file_name, "a") as f:
-    #f.write("Max altitude: " + str(max_altitude) + "\n")
 
 while True:     # indicates that the data recording is done
     i = (i + 1) % 256  # run from 0 to 255
