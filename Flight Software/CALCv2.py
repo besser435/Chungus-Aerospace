@@ -1,18 +1,19 @@
-version = "CALC v2.0-alpha.5"
-code_revision_date = "Febuary 2022"
+version = "CALC v2.0-alpha.6"
+code_revision_date = "March 2022"
 
-"""
-import adafruit_bmp3xx
-#import adafruit_adxl34x
-#import adafruit_sdcard
-import neopixel
+
 import board
-import digitalio
+import adafruit_icm20x
+import adafruit_bmp3xx
+import adafruit_icm20x
+import adafruit_sdcard
+import neopixel
 import storage
 from rainbowio import colorwheel
 from analogio import AnalogIn
 from gpiozero import CPUTemperature
-"""
+from gpiozero import DigitalOutputDevice
+
 import time 
 import sys
 import os
@@ -24,35 +25,22 @@ import requests
 from requests.structures import CaseInsensitiveDict
 import math 
 from datetime import datetime
+#import traceback
 
 
-# Timestamp
-now = datetime.now()
-time_and_date = now.strftime("%m-%d-%Y  %H:%M")
-current_time = now.strftime("%H:%M")
-current_date = now.strftime("%m-%d-%Y")
-
-
-"""
 # Setup Bits
-# I2C
+# I2C Bus
 i2c = board.I2C() 
 
-# Batt voltage
-vbat_voltage = AnalogIn(board.VOLTAGE_MONITOR)
-def get_voltage(pin):
-    return (pin.value * 3.3) / 65536 * 2
-battery_voltage = get_voltage(vbat_voltage)
-
-# pin D10 for Feather M4 Express
-SD_CS = board.D10   
-spi = board.SPI()
-cs = digitalio.DigitalInOut(SD_CS)
+# Low battery alarm pin
 
 # SD mount
-sdcard = adafruit_sdcard.SDCard(spi, cs)
-vfs = storage.VfsFat(sdcard)
-storage.mount(vfs, "/sd")
+#SD_CS = board.D10   
+#spi = board.SPI()
+#cs = digitalio.DigitalInOut(SD_CS)
+#sdcard = adafruit_sdcard.SDCard(spi, cs)
+#vfs = storage.VfsFat(sdcard)
+#storage.mount(vfs, "/sd")
 
 # LED pins and setup
 led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1)     
@@ -63,20 +51,24 @@ bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 bmp.pressure_oversampling = 8
 bmp.temperature_oversampling = 2
 
-# ADXL345
-accel = adafruit_adxl34x.ADXL345(i2c)
+# ICM20649 IMU
+icm =  adafruit_icm20x.ICM20649(i2c)
 
-#move time code here
+# Beeper
+beeper = DigitalOutputDevice(21)
 
-# TEST IF THIS WORKS WITH A MULTIMETER Relay to deploy chute
-chute_relay = digitalio.DigitalInOut(board.D31)  # NOTE change this pin to whatever pin is good. 
-chute_relay.direction = digitalio.Direction.OUTPUT
+# Timestamp
+now = datetime.now()
+time_and_date = now.strftime("%m-%d-%Y  %H:%M")
+current_time = now.strftime("%H:%M")
+current_date = now.strftime("%m-%d-%Y")
+
+# Chute ignition relay
+chute_relay = DigitalOutputDevice(13)
 
 # Motor ignition relay
-motor_relay = digitalio.DigitalInOut(board.A0)  # NOTE change this pin to whatever pin is good. 
-motor_relay.direction = digitalio.Direction.OUTPUT
+motor_relay = DigitalOutputDevice(6)
 
-"""
 # general options
 debug = 0
 launch_countdown = 11    # how long the countdown is in seconds - 1
@@ -89,6 +81,8 @@ weather_api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"
 
 # general storage
 preflight_errors = 0
+locate_cycles = 0
+view_sensor_count = 100
 
 # rocket storage
 fire_chute_alt = 100    # default value in m, changes based on user input
@@ -192,13 +186,17 @@ def test_pyros_menu():
 
 def test_charge(test_type):
     if test_type == "Motor Test":
-        #relay motor pin + load cell logging
         print("motor test")
+        motor_relay.on()
+        time.sleep(1)
+        motor_relay.off()
         main_menu()
 
     elif test_type == "Parachute Test":
-        #relay chute pin
         print("chute test")
+        chute_relay.on()
+        time.sleep(1)
+        chute_relay.off()
         main_menu()
 
     else:
@@ -217,6 +215,9 @@ def rocket_settings():
     ask_chute_alt = input("What is the altitude the parachute should deploy at? (m) ")
     fire_chute_alt = STARTING_ALTITUDE + int(ask_chute_alt)
     arm_chute_alt = fire_chute_alt - 2 # 
+    print("Parachute will deploy at " + str(fire_chute_alt))
+    print("Parachute will arm at " + str(arm_chute_alt))
+    time.sleep(2.5)
     main_menu()
 
 
@@ -231,22 +232,22 @@ def emergency_chute_deploy():   # Not implemented yet
     # log emergency deploy
     #print error. might show up if still connected to WiFi
     for i in range (5):             # motor ignition (loops to ensure it happens)
-        chute_relay.value = True
+        chute_relay.on()
         time.sleep(1)
-        chute_relay.value = False
+        chute_relay.off()
         time.sleep(0.5)
     # if deploy is detected by a reduction in velocity return to the logging code
     # you can use the same code that triggers this function to do it
-    pass
 
 
 def flight_software():
     cc()
+    global current_time
     # logging options
     log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
     log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
-    file_name = "launch " + time_and_date + ".csv"  # pure stupidity
-    event_comma_count = ",,,,,," # makes sure events go in their own column on the far right 
+    FILE_NAME = "launch " + time_and_date + ".csv"  
+    event_comma_count = ",,,,,,," # makes sure events go in their own column on the far right 
 
     # logging storage
     data_cycles = 0
@@ -257,33 +258,34 @@ def flight_software():
     t_s_1 = 0
     
     # .csv creation and formatting
-    with open("/sd/" + file_name, "a") as f: 
-        f.write(",,,,,\n")  # creates the right amount of columns 
+    with open("/sd/" + FILE_NAME, "a") as f: 
+        f.write(",,,,,,\n")  # creates the right amount of columns 
         f.write(str("Date: " + current_date + ",,,,,\n"))   # The extra commas is so GitHub doesnt get cranky
         f.write("Time: " + current_time + ",,,,,\n")
         f.write("Software version: " + version + ",,,,,\n")
         f.write("Starting altitude: " + str(STARTING_ALTITUDE) + ",,,,,\n")
         f.write("Data points cutoff: " + str(log_stop_count) + ",,,,,\n")
-        f.write("Pressure (mbar), Temperature (°c), Altitude (m), Accel on xyz (m/s^2), v_speed (m/s), Elapsed Seconds, Events\n")
+        f.write("Pressure (mbar), Temperature (°c), Altitude (m), Accel on xyz (m/s^2), Gyro on xyz (deg/s), v_speed (m/s), Elapsed Seconds, Events\n")
 
-    with open("/sd/" + file_name, "a") as f:  # ignite motor 
+    with open("/sd/" + FILE_NAME, "a") as f:  # ignite motor 
         led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
         f.write(event_comma_count + "Motor lit\n")
-        motor_relay.value = True    # lauches the rocket 
+        motor_relay.on()    # lauches the rocket 
 
 
     while True: # wait for liftoff then go to logging
         if bmp.altitude >= STARTING_ALTITUDE + 2:
             if logged_liftoff == 0:
-                with open("/sd/" + file_name, "a") as f:
+                with open("/sd/" + FILE_NAME, "a") as f:
                     f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
-                    f.write("%.2f %.2f %.2f," % accel.acceleration,)
+                    f.write("%.2f %.2f %.2f," % (icm.acceleration),)
+                    f.write("%.2f %.2f %.2f," % icm.gyro,)
                     f.write(",Liftoff detected\n")
             
                     led_neo[0] = (255, 255, 255)    # indicates liftoff has been detected and it passed to the logging code.
                     # this is for dev purposes, you wont see it because the rocket will be in the air already
 
-                motor_relay.value = False
+                motor_relay.off()
                 logged_liftoff += 1
                 break
 
@@ -294,33 +296,34 @@ def flight_software():
         t_s_0 = time_stamp
         vert_speed = (bmp.altitude - alt_1) / (t_s_0 - t_s_1)
 
-        with open("/sd/" + file_name, "a") as f:    
+        with open("/sd/" + FILE_NAME, "a") as f:    
             current_time = time.monotonic()
             time_stamp = current_time - initial_time
 
-            f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude, vert_speed,))
-            f.write("%.2f %.2f %.2f," % accel.acceleration,)
+            f.write("{:5.2f},{:5.2f},{:5.2f},{:5.2f}".format(bmp.pressure, bmp.temperature, bmp.altitude, vert_speed,))
+            f.write("%.2f %.2f %.2f," % icm.acceleration,)
+            f.write("%.2f %.2f %.2f," % icm.gyro,)
             f.write("{:5.2f}".format(time_stamp) + ",\n") # logs elapsed time 
+
             # This is for when its connected wirelessly through a computer. This way we
             # can get live telem data (for as long as the rocket is in wireless range)
             print("Alt: " + str(bmp.altitude), end = ",   ")   
             print("Time:{:5.2f}".format(time_stamp))
             #print(vertical_speed)
             
-
-            #https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs for relay pin and stuff
-            # Arm
+            
+            # Arm parachute
             if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that and statements are a thing, but this is easier to read imo
                 if chute_armed == 0: # this is so the event isnt logged repeatedly
                     f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Current time: " + str(time_stamp) + "m\n")
                     chute_armed += 1
                     print("Armed parachute")
 
-            # Deploy - close relay
+            # Deploy parachute - close relay
             if chute_armed == 1:
-                if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute  BUG adds logging delay
+                if bmp.altitude <= STARTING_ALTITUDE + 48:  # once the rocket sinks below 50 meters it fires the chute
                     DATA_CYCLES_CHUTE = data_cycles 
-                    chute_relay.value = True
+                    chute_relay.on()
                     print("Parachute relay on")
 
                     if logged_chute_deploy == 0:
@@ -330,7 +333,7 @@ def flight_software():
                 # Close relay
                 if logged_chute_deploy == 1:    # this might not work. 
                     if DATA_CYCLES_CHUTE >= 10: # waits 10 data cyles before opening the relay
-                        chute_relay.value = False   # this was True before and idk why. Does it actually need to be True?
+                        chute_relay.off()   # this was True before and idk why. Does it actually need to be True?
                         f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
                         print("Parachute relay off")
 
@@ -338,13 +341,12 @@ def flight_software():
         # stops the logging of data
         if data_cycles > 50:    
             if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
-                with open("/sd/" + file_name, "a") as f:
+                with open("/sd/" + FILE_NAME, "a") as f:
                     f.write(event_comma_count + "Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
                     break
 
-
         if data_cycles >= log_stop_count:   # backup to the code above
-            with open("/sd/" + file_name, "a") as f:
+            with open("/sd/" + FILE_NAME, "a") as f:
                 f.write(event_comma_count + "Stopped logging; writes to file met. (" + str(data_cycles) + " writes) ")
                 f.write(event_comma_count + "This means altitude code did not execute.\n")
                 break
@@ -361,23 +363,26 @@ def flight_software():
 
 
 def post_flight():
-    while True:     # indicates that the data recording is done
-        i = (i + 1) % 256  # run from 0 to 255
-        led_neo.fill(colorwheel(i)) # Unicorn barf
-        time.sleep(0.01)
-
-    end_flight = input("Press enter to end the flight")
-    if end_flight:
-        cc()
-        main_menu()
+    global locate_cycles
+    while True:
+        led_neo[0] = (255, 255, 255)
+        beeper.on()
+        time.sleep(0.2)
+        beeper.off()
+        led_neo[0] = (0, 0, 0)
+        time.sleep(2)
+        locate_cycles += 1
 
 
 def preflight_checks():
     global preflight_errors
-    # get weather
-    #print("Barometer pressure: " + bmp.altitude)
-    print("Weather pressure: " + str(current_pressure))
+    print("Acceleration: %.2f %.2f %.2f," % icm.acceleration)
+    print("Gyroscope: %.2f %.2f %.2f," % icm.gyro)
+    print("Barometer altitude: " + bmp.altitude)
+    print("Barometer Pressure: " + bmp.pressure)
+    print("Weather API Pressure: " + str(current_pressure))
     print("Starting Altitude: " + str(STARTING_ALTITUDE))
+
     print(now.strftime("Time & date:  %m-%d-%Y %H:%M"))
     print()
     value_check = input("Are these values correct? y/n ")
@@ -388,9 +393,8 @@ def preflight_checks():
     
     # ----------------------Error checking----------------------
     #if battery voltage is low:
-    #print(Fore.YELLOW + "Low battery voltage! (" + str(1) + ")")
+    #print(Fore.YELLOW + "Low battery!")
         #preflight_errors += 1
-
 
     #if wind > x:
     #print(Fore.YELLOW + "High winds! (" + str(1) + ")")
@@ -429,9 +433,11 @@ def begin_countdown(type):  # The type param is so other code can also use the c
         for i in range(launch_countdown):
             launch_countdown -= 1
             print(Fore.LIGHTYELLOW_EX + str(launch_countdown))
-            #led_neo[0] = (255, 255, 255)
+            led_neo[0] = (255, 255, 255)
+            beeper.on()
             time.sleep(0.5)
-            #led_neo[0] = (0, 0, 0)
+            led_neo[0] = (0, 0, 0)
+            beeper.off()
             time.sleep(0.5)
 
             #check if the connection between my pc and the Pi is active.
@@ -456,29 +462,19 @@ def begin_countdown(type):  # The type param is so other code can also use the c
 
 
 def view_sensors():
-    
-    """while True:
-        print("Voltage: {:.2f}".format(battery_voltage) + "v")
-        print("Time: %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec))
+    global view_sensor_count
+    while view_sensor_count <= 1:
+        print("Low battery warning: ")
+        print("Time: " + time_and_date)
         print("Altitude: {:5.2f}" + bmp.altitude + "m")
-        print("Pressure: {:5.2f}" + bmp.pressure + "mbar")
+        print("Weather Sea Level Pressure: ")
+        print("Current Pressure: {:5.2f}" + bmp.pressure + "mbar")
         print("Temperature: " + bmp.temperature + "°c")
-        print("Acceration: %.2f %.2f %.2f," % accel.acceleration)
-        print("hi")
+        print("Acceration: %.2f %.2f %.2f," % icm.acceleration)
+        print("Gyroscope: %.2f %.2f %.2f," % icm.gyro)
         time.sleep(0.1)
-        cc()"""
-
-    wait = 0
-    while True:
-        print("hi")
-        time.sleep(0.1)
+        view_sensor_count =- 1
         cc()
-        wait += 1
-
-        if wait >= 50:  # after 50 updates the loop ends. maybe try keyboard module to break instead of hard update cap
-            break
-
-    cc()
     main_menu()
 
 
@@ -488,9 +484,8 @@ def main_menu():
     print(version)
     print(code_revision_date)
 
-
-    #cpu = CPUTemperature()  #test
-    #print(cpu.temperature)
+    cpu = CPUTemperature()  #test
+    print(cpu.temperature)
 
     print()
     print(Fore.CYAN + "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
@@ -499,14 +494,14 @@ def main_menu():
     print("1: Start Launch Wizard")     
     print("2: Checklist")
     print("3: Display last launch summary")
-    #print("4. Push last launch folder to GitHub")
+    print("4. Push last launch folder to GitHub")
     print("5. View current sensor data")
     print("6. View weather")
     print("7. Test Fire Charges")
     print("9. CSV Flight Data Analyzer")
-    print("10. Rocket Settings NOT IMPLIMENTED, DOESNT FUNCTION")
+    #print("10. Rocket Settings")
     print()
-    #print("R: Rocket settings")
+    print("R: Rocket settings")
     print("S: Software settings")   # disable any wifi code, 
     print("Q: Quit")
   
@@ -568,6 +563,20 @@ def main_menu():
         cc()
         print(Fore.RED + "Invalid input")
         main_menu()
-
-
 main_menu()
+
+"""
+while True:     # indicates that the data recording is done
+    i = (i + 1) % 256  # run from 0 to 255
+    led_neo.fill(colorwheel(i)) # Unicorn barf
+    time.sleep(0.01)
+    """
+
+
+
+"""try:
+    main()
+except KeyboardInterrupt:
+    cc()
+    print(Fore.RED + "Keyboard Interrupt")
+    main_menu()"""
