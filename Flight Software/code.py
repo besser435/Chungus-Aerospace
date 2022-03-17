@@ -12,8 +12,8 @@ for better I/O, camera support, and a few other things.
 
 
 """
-version = "v1.11"
-date = "Febuary 2022"
+version = "v1.12"
+date = "March 2022"
 
 
 import adafruit_bmp3xx
@@ -74,15 +74,18 @@ chute_relay.direction = digitalio.Direction.OUTPUT
 motor_relay = digitalio.DigitalInOut(board.A0)  # NOTE change this pin to whatever pin is good. 
 motor_relay.direction = digitalio.Direction.OUTPUT
 
+# Beeper
+beeper = digitalio.DigitalInOut(board.D4)
+beeper.direction = digitalio.Direction.OUTPUT
+
 
 # ------------------------- options ------------------------
 development_mode = 0        # edits things like countdown so the code can be tested easier without having to change several other options
-bmp.sea_level_pressure = 1024
+bmp.sea_level_pressure = 1013
 log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
-log_interval = 0.0          # Unlikely to be the actual number due to the polling rate of the sensors
-log_delay = 11              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
+log_delay = 60              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
 FILE_NAME = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
-event_comma_count = ",,,,," # makes sure events go in their own column on the far right 
+event_comma_count = ",,," # makes sure events go in their own column on the far right 
 
 
 # ------------------------- storage ------------------------
@@ -112,7 +115,8 @@ def emergency_chute_deploy():   # Not implemented yet
     
 
 if development_mode == 1:
-    led_neo.brightness = 0.3  # prevents flashbang   
+    print("v" + str(version))
+    led_neo.brightness = 0.05  # prevents flashbang   
     while launch_delay_count <= 2:
         launch_delay_count += 1
         led_neo[0] = (255, 255, 0)
@@ -156,11 +160,13 @@ with open("/sd/" + FILE_NAME, "a") as f:
     f.write("Voltage: {:.2f}".format(battery_voltage) + ",,,,,\n")   # If USB is connected it will read that voltage instead
     f.write("Starting altitude: " + str(STARTING_ALTITUDE) + ",,,,,\n")
     f.write("Data points cutoff: " + str(log_stop_count) + ",,,,,\n")
-    f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),Elapsed Seconds,Events\n")
+    #f.write("Pressure (mbar),Temperature (°c),Altitude (m),Accel on xyz (m/s^2),Elapsed Seconds,Events\n")
+    f.write("Altitude (m),Accel on xyz (m/s^2),Elapsed Seconds,Events\n")
 
 with open("/sd/" + FILE_NAME, "a") as f:   
     led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
     f.write(event_comma_count + "Motor lit\n")
+    beeper.value = True
     motor_relay.value = True    # lauches the rocket 
      
 
@@ -168,17 +174,18 @@ with open("/sd/" + FILE_NAME, "a") as f:
 # this should be in the main loop for now, but should be above it if this works.  
 if development_mode == 0:
     while True:
-        if bmp.altitude >= STARTING_ALTITUDE + 3:
+        if bmp.altitude >= STARTING_ALTITUDE + 4.2:
             if logged_liftoff == 0:
                 with open("/sd/" + FILE_NAME, "a") as f:
-                    f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
+                    #f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
+                    f.write("{:5.2f},".format(bmp.altitude,))
                     f.write("%.2f %.2f %.2f," % accel.acceleration,)
                     f.write(",Liftoff detected\n")
             
 
                     led_neo[0] = (0, 0, 255)    # indicates liftoff has been detected and it passed to the logging code.
                     # this is for dev purposes, you wont see it because the rocket will be in the air already
-
+                beeper.value = False
                 motor_relay.value = False
                 logged_liftoff += 1
                 break
@@ -193,23 +200,15 @@ while True:
 
     # open file for append
     with open("/sd/" + FILE_NAME, "a") as f:    
-        
         current_time = time.monotonic()
         time_stamp = current_time - initial_time
 
-
-        f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,)) #v_speed,))
+        #f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
+        f.write("{:5.2f},".format(bmp.altitude,))
         f.write("%.2f %.2f %.2f," % accel.acceleration,)
         f.write("{:5.2f}".format(time_stamp) + ",\n") # logs elapsed time 
+        """
 
-
-        # This is for when its connected wirelessly through a computer. This way we
-        # can get live telem data (for as long as the rocket is in wireless range)
-        # Disable if this is running on CALCv1 as it wastes CPU cycles, its only meant for CALCv2
-        #print("Alt: " + str(bmp.altitude), end = ",   ")   
-        #print("Time:{:5.2f}".format(time_stamp))
-        # possible relay code to send power to the parachute charge
-        #https://learn.adafruit.com/circuitpython-digital-inputs-and-outputs/digital-outputs for relay pin and stuff
         # Arm
         if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that <and> statements are a thing, but this is easier to read imo
             if chute_armed == 0: # this is so the event isnt logged repeatedly
@@ -232,11 +231,11 @@ while True:
                 if DATA_CYCLES_CHUTE >= 10: # waits 10 data cyles before opening the relay
                     chute_relay.value = False   # this was True before and idk why. Does it actually need to be True?
                     f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
-                    print("Parachute relay off")
+                    print("Parachute relay off")"""
 
 
     # stops the logging of data
-    if data_cycles > 50:    
+    if data_cycles > 200:    
     # makes sure the code below isnt just executed on the pad
         if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
             with open("/sd/" + FILE_NAME, "a") as f:
@@ -250,17 +249,28 @@ while True:
                 f.write(event_comma_count + "This means altitude code did not execute.\n")
                 break
 
-    
     data_cycles += 1 # this seems simple but its crucial to some things so dont mess with it
     #print("Data cycles: " + str(data_cycles)) # for debugging while editing code
 
 
-    time.sleep(log_interval)
 #                          ------------------------ End of main data logging code ------------------------
 led.value = False  # turn off LED to indicate writting is done
 
 
-while True:     # indicates that the data recording is done
-    i = (i + 1) % 256  # run from 0 to 255
+while development_mode == False:
+    led_neo[0] = (255, 255, 255)
+    beeper.value = True
+    time.sleep(0.2)
+
+    beeper.value = False
+    led_neo[0] = (0, 0, 0)
+    time.sleep(1)
+
+while True:   
+    led_neo[0] = (0, 255, 255)  
+
+
+"""while True:     # indicates that the data recording is done
+    i = (i + 1) % 256  
     led_neo.fill(colorwheel(i)) # Unicorn barf
-    time.sleep(0.01)
+    time.sleep(0.01)"""
