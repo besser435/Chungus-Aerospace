@@ -1,8 +1,8 @@
-version = "CALC v2.0-beta.2"
+version = "CALC v2.0-beta.3"
 code_revision_date = "March 2022"
 
 
-from glob import glob
+from random import randint
 import board
 import adafruit_icm20x
 import adafruit_bmp3xx
@@ -24,6 +24,7 @@ import requests
 from requests.structures import CaseInsensitiveDict
 import math 
 from datetime import datetime
+import random
 
 
 # Setup Bits
@@ -52,8 +53,8 @@ low_batt = InputDevice(4, pull_up=True)  # pull_up inverts the reading. it was b
 now = datetime.now()
 time_and_date = now.strftime("%m-%d-%Y  %H:%M")
 TIMEDATE = time_and_date
-current_time = now.strftime("%H:%M")
-current_date = now.strftime("%m-%d-%Y")
+global_current_time = now.strftime("%H:%M")
+global_current_date = now.strftime("%m-%d-%Y")
 
 # Relays
 chute_relay = DigitalOutputDevice(19) 
@@ -72,9 +73,10 @@ weather_api_key = "1392d31baeec1ab9f5d2bd99d5ec04aa"
 
 # general storage
 preflight_errors = 0
-locate_cycles = 300
 view_sensor_count = 50
 LAUNCH_COUNTDOWN_INIT = launch_countdown # resets 
+wrote_to_log_list = 0 # this is so a log write isnt attemped when a keyboard interrupt happens
+ran_launch = 0 # same thing as above
 
 """# rocket storage
 fire_chute_alt = 100    # default value in m, changes based on user input
@@ -82,7 +84,8 @@ arm_chute_alt = fire_chute_alt - 2"""
 
 #sea_level_pressure is below all_weather
 
-
+# this is for dev purposes, it shows the file has been reloaded
+RELOAD_RNG = randint(0, 1000)
 
 def cc():   # shortens this long command to just cc()
     os.system("cls" if os.name == "nt" else "clear")    # clears terminal
@@ -120,9 +123,10 @@ def main():
                 w = x["wind"]
                 current_wind_speed = w["speed"]
         fetch_weather()
-        bmp.sea_level_pressure = current_pressure
+
+        bmp.sea_level_pressure = current_pressure   # calibrates barometer
         sea_level_pressure = current_pressure   
-        STARTING_ALTITUDE = bmp.altitude # needs to be below the calibrated pressure so its accurate
+        STARTING_ALTITUDE = (round(bmp.altitude, 2)) # needs to be below the calibrated pressure so its accurate
 
 
         def weather():  # this displays the weather data from all_weather()
@@ -141,7 +145,7 @@ def main():
             print("Temp in Kelvin = " + str(math.trunc(current_temperature)))
             print("Temp in Celsius = " + str(math.trunc(current_temperature - 273.15)))
             print("Temp in Fahrenheit = " + str(math.trunc((1.8 * current_temperature) - 459.67)))
-            print("Description = " + str(weather_description))
+            print("Description = " + weather_description)
             print("Pressure in millibars = " + str(current_pressure))
             print("Pressure in inches of Hg = " + str(round(current_pressure / 33.864, 2)))
             print("Wind Speed in m/s = " + str(round(current_wind_speed, 2)))
@@ -186,7 +190,7 @@ def main():
             if test_type == "Motor Test":
                 print("motor test")
                 motor_relay.on()
-                beeper.on()
+                #beeper.on()
                 time.sleep(1)
                 motor_relay.off()
                 beeper.off()
@@ -195,7 +199,7 @@ def main():
             elif test_type == "Parachute Test":
                 print("chute test")
                 chute_relay.on()
-                beeper.on()
+                #beeper.on()
                 time.sleep(1)
                 chute_relay.off()
                 beeper.off()
@@ -226,73 +230,58 @@ def main():
 
 
         # -------------------------------Main flight code-------------------------------
-        def emergency_chute_deploy():   # Not implemented yet
-            """ if the sensors dont see the velocty slowing down after closing the relay for a second
-            it will run this code. It will pulse the relay in order to try to ignite the charge.
-            The chute deploy just used to do this, but it would lose logging data because of the delay.
-
-            Im not sure how to do continuity detection on the Pi. I would just use that if possible """
-            # log emergency deploy
-            #print error. might show up if still connected to WiFi
-            for i in range (5):             # motor ignition (loops to ensure it happens)
-                chute_relay.on()
-                time.sleep(1)
-                chute_relay.off()
-                time.sleep(0.5)
-            # if deploy is detected by a reduction in velocity return to the logging code
-            # you can use the same code that triggers this function to do it
-
 
         def flight_software():
             cc()
+            global ran_launch
+            ran_launch += 1
             global current_time
-            global alt_1
-            global t_s_1 
             global file_location
             global FILE_NAME
             global log_list
+            global wrote_to_log_list
 
             # logging options
-            log_stop_count = 200        # when to stop logging after an amount of data points are collected, backup to low altitude condition
+            log_stop_count = 300        # when to stop logging after an amount of data points are collected, backup to low altitude condition
             FILE_NAME = "launch " + TIMEDATE + ".csv" 
             file_location = "/home/pi/Desktop/" 
-            event_comma_count = ",,,,," # makes sure events go in their own column on the far right 
+            event_comma_count = ",,," # makes sure events go in their own column on the far right 
 
             # logging storage
             log_list = []
             data_cycles = 0
             logged_liftoff = 0
             chute_armed = 0 
-            chute_deploy = 0
-            logged_chute_deploy = 1
-            alt_1 = 0
-            t_s_1 = 0
-            
+            chute_deployed = 0
+            logged_chute_deploy = 0
+  
             # .csv creation and formatting
             with open(file_location + FILE_NAME, "a") as f: 
                 f.write(",,,,\n")  # creates the right amount of columns 
-                f.write("Date: " + current_date + ",,,,,\n")   # The extra commas is so GitHub doesnt get cranky
-                f.write("Time: " + current_time + ",,,,,\n")
-                f.write("Temperature: {:5.2f}" + str(format(bmp.temperature)) + ",,,,,\n")
                 f.write("Software version: " + version + ",,,,,\n")
-                f.write("Starting altitude: ,".format(STARTING_ALTITUDE) + ",,,,,\n")
+                f.write("Date: " + global_current_date + ",,,,,\n")   # The extra commas is so GitHub doesnt get cranky
+                f.write("Time: " + global_current_time + ",,,,,\n")
+                f.write("Temperature: {:5.2f}".format(bmp.temperature) + ",,,,,\n")
+                #f.write("Temperature: " + str(bmp.temperature) + ",,,,,\n")
+                f.write("Starting altitude: " + str(STARTING_ALTITUDE) + ",,,,,\n")
+                f.write("Current Barometer pressure: {:5.2f}".format(bmp.pressure) + ",,,,,\n")
+                f.write("Current weather API pressure: " + str(current_pressure) + ",,,,,\n")
                 f.write("Data points cutoff: " + str(log_stop_count) + ",,,,,\n")
+                f.write(",,,,,,\n")
                 f.write("Altitude (m), Accel on xyz (m/s^2), Gyro on xyz (deg/s), Elapsed Seconds, Events\n")
                 led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
 
             print("Motor Lit...")
             motor_relay.on()    # lauches the rocket 
 
-
             while True: # wait for liftoff then go to logging
-                time.sleep(1)
                 if bmp.altitude >= STARTING_ALTITUDE + 0:
                     if logged_liftoff == 0:
                         with open(file_location + FILE_NAME, "a") as f:
                             f.write("{:5.2f},".format(bmp.altitude,))
                             f.write("%.2f %.2f %.2f," % icm.acceleration,)
                             f.write("%.2f %.2f %.2f," % icm.gyro,)
-                            f.write(",Liftoff detected\n")
+                            f.write(",Liftoff detected")
                             print("Liftoff detected")
                     
                             led_neo[0] = (255, 255, 255)    # indicates liftoff has been detected and it passed to the logging code.
@@ -304,91 +293,77 @@ def main():
 
             #                          ------------------------ Main data logging code ------------------------
             initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
-            print("Begin Logging...")
             while True: 
                 current_time = time.monotonic()
                 time_stamp = current_time - initial_time
 
-                t_s_0 = time_stamp
-                #vert_speed = (bmp.altitude - alt_1) / (t_s_0 - t_s_1)
+                #with open(file_location + FILE_NAME, "a") as f: 
+                # if adding back temp and pressure, add ,, to event_comma_count and to the column creation
+                # also add pressure and temp to the column naming
+                log_list.extend([
+                "\n"
+                "{:5.2f}".format(bmp.altitude),
+                "%.2f %.2f %.2f" % (icm.acceleration),
+                "%.2f %.2f %.2f" % (icm.gyro),
+                "{:5.2f}".format(time_stamp),
+                ])
+                # This is for when its connected wirelessly through a computer. This way we
+                # can get live telem data (for as long as the rocket is in wireless range)
+                print("Alt: {:5.2f}".format(bmp.altitude) + "m", end = "   ")   
+                print("Time: {:5.2f}".format(time_stamp) + "s")
+                
 
-                with open(file_location + FILE_NAME, "a") as f: 
-                    # if adding back temp and pressure, add ,, to event_comma_count and to the column creation
-                    # also add pressure and temp to the column naming
-                    #f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
-                    log_list.extend([
-                    "\n"
-                    "{:5.2f}".format(bmp.altitude),
-                    "%.2f %.2f %.2f" % (icm.acceleration),
-                    "%.2f %.2f %.2f" % (icm.gyro),
-                    "{:5.2f}".format(time_stamp),
-                    ])
-                    """                    f.write("{:5.2f},".format(bmp.altitude,))
-                    f.write("%.2f %.2f %.2f," % icm.acceleration,)
-                    f.write("%.2f %.2f %.2f," % icm.gyro,)
-                    f.write("{:5.2f}".format(time_stamp) + ",\n") # logs elapsed time 
-                     """
-                    # This is for when its connected wirelessly through a computer. This way we
-                    # can get live telem data (for as long as the rocket is in wireless range)
-                    print("Alt: {:5.2f}".format(bmp.altitude) + "m", end = ",   ")   
-                    print("Time: {:5.2f}".format(time_stamp) + "s")
-                    #print(vertical_speed)
-                    
-                    # NOTE this parachute code drastically slows down the code. if the Pi isnt controlling the chute comment out this code
-                    # Arm parachute
-                    if bmp.altitude >= STARTING_ALTITUDE + 0.1:  # I know that and statements are a thing, but this is easier to read imo
-                        if chute_armed == 0: # this is so the event isnt logged repeatedly
-                            #f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Time: {:5.2f}".format(time_stamp) + "\n")
-                            print(Fore.MAGENTA + "Armed parachute")
-                            chute_armed += 1
-
+                # NOTE this parachute code drastically slows down the code. if the Pi isnt controlling the chute comment out this code
+                # Arm parachute
+                if chute_armed == 0: # this is so the event isnt logged repeatedly
+                    if bmp.altitude >= STARTING_ALTITUDE + 0: #50  # I know that and statements are a thing, but this is easier to read imo
+                        log_list.extend(["Armed parachute. Current alt: {:5.2f}".format(bmp.altitude) + "m . Time: {:5.2f}".format(time_stamp) + ","])
+                        print(Fore.LIGHTMAGENTA_EX + "Armed parachute")
+                        chute_armed += 1
 
                     # the arm code could just be the deploy code. if bmp.altitude >= STARTING_ALTITUDE + 50: deploy
                     # keep for now for reasons
+                    #f.write(event_comma_count + "Deployed parachute. Current alt: " + str(bmp.altitude) + "m. Time: {:5.2f}".format(time_stamp) + "\n")
 
                     # Deploy parachute
-                    if chute_armed == 1: #if bmp.altitude >= STARTING_ALTITUDE + 50:
-                        if logged_chute_deploy == 0:
-                            if bmp.altitude <= STARTING_ALTITUDE + 0:  # once the rocket sinks below 50 meters it fires the chute
-                                DATA_CYCLES_CHUTE = data_cycles 
-                                chute_relay.on()
-                                #f.write(event_comma_count + "Deployed parachute. Current alt: " + str(bmp.altitude) + "m. Time: {:5.2f}".format(time_stamp) + "\n")
-                                print(Fore.MAGENTA + "Deployed parachute")
-                                chute_deploy +=1
+                if chute_armed == 1: #if bmp.altitude >= STARTING_ALTITUDE + 50:
+                    if chute_deployed == 0: # prevents the event from being ran repeatedly 
+                        if bmp.altitude <= STARTING_ALTITUDE + 0: #47 # once the rocket sinks below this it fires the chute
+                            DATA_CYCLES_CHUTE = data_cycles 
+                            chute_relay.on()
+                            log_list.extend(["Deployed parachute,"])
+                            print(Fore.LIGHTMAGENTA_EX + "Deployed parachute")
+                            chute_deployed +=1
 
-
-                        # Open chute relay
-                        if chute_deploy == 1:     
+                    # Open chute relay
+                    if chute_deployed == 1:   
+                        if logged_chute_deploy == 0:  # prevents the event from being ran repeatedly
                             if data_cycles > DATA_CYCLES_CHUTE + 20:  # waits 20 data cyles before opening the relay. pure autism
                                 chute_relay.off()
+                                log_list.extend(["Parachute relay off,"])
+                                print(Fore.LIGHTMAGENTA_EX + "Parachute relay off")
                                 logged_chute_deploy += 1 
-
-                                if logged_chute_deploy == 0:
-                                     #f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
-                                    print(Fore.MAGENTA + "Parachute relay off")
 
 
                 # stops the logging of data
-                if data_cycles > 500:    
+                if data_cycles > 100:    
                     if bmp.altitude <= STARTING_ALTITUDE + 4:   # + 4 is incase it lands above the starting elevation or the sensor drifts
                         with open(file_location + FILE_NAME, "a") as f:
                             #f.write(event_comma_count + "Stopped logging low alt met ({:5.2f}".format(bmp.altitude) + "m)\n")
-                            print(Fore.LIGHTMAGENTA_EX + "Stopped logging low alt met ({:5.2f}".format(bmp.altitude) + "m)")
+                            print(Fore.LIGHTCYAN_EX + "Stopped logging low alt met ({:5.2f}".format(bmp.altitude) + "m)")
                             break
 
                 """ if data_cycles >= log_stop_count:   # backup to the code above
                     with open(file_location + FILE_NAME, "a") as f:
                         f.write(event_comma_count + "Stopped logging; writes to file met. (" + str(data_cycles) + " writes) ")
                         f.write(event_comma_count + "This means altitude code did not execute.\n")
-                        break
-                """
+                        break"""
                 
-                data_cycles += 1 # this seems simple but its crucial to some things so dont mess with it
-
-                alt_1 = bmp.altitude 
-                t_s_1 = time_stamp
+                
+                data_cycles += 1 # this seems simple but its crucial to some things so dont mess with it 
             with open(file_location + FILE_NAME, "a") as f: 
                 f.write(','.join(log_list))
+                wrote_to_log_list += 1
 
                 
             #                          ------------------------ End of main data logging code ------------------------
@@ -396,26 +371,29 @@ def main():
 
 
         def post_flight():
+            print(Fore.LIGHTGREEN_EX + "Done")
+            main_menu()
             while True:
-                led_neo[0] = (255, 255, 255)
-                print(Fore.LIGHTGREEN_EX + "Done")
-                beeper.on()
-                time.sleep(0.2)
+                r = random.randint(0,255)
+                g = random.randint(0,255)
+                b = random.randint(0,255)
+                led_neo[0] = (r, g, b)  
+                #beeper.on()
+                time.sleep(0.3)
                 beeper.off()
                 led_neo[0] = (0, 0, 0)
                 time.sleep(2)
-                
 
 
         def preflight_checks():
             global preflight_errors
-            print(Fore.LIGHTMAGENTA_EX + now.strftime("Time & date:  %H:%M %m-%d-%Y"))
+            print(Fore.LIGHTMAGENTA_EX + now.strftime("Time & date: %H:%M %m-%d-%Y"))
             if low_batt.is_active == True: print(Fore.RED + "Low battery warning: " + str(low_batt.is_active))
             else: print(Fore.LIGHTMAGENTA_EX + "Low battery warning: " + str(low_batt.is_active)) 
             print(Fore.LIGHTMAGENTA_EX + "Barometer altitude: {:5.2f}".format(bmp.altitude) + "m")
-            print(Fore.LIGHTMAGENTA_EX + "Starting Altitude: " + str(STARTING_ALTITUDE))
+            print(Fore.LIGHTMAGENTA_EX + "Starting Altitude: " + str(STARTING_ALTITUDE) + "m")
             print(Fore.LIGHTMAGENTA_EX + "Barometer pressure: {:5.2f}".format(bmp.pressure) + "mbar")
-            print(Fore.LIGHTMAGENTA_EX + "Weather API pressure = " + str(current_pressure))
+            print(Fore.LIGHTMAGENTA_EX + "Weather API pressure = " + str(current_pressure) + "mbar")
             print()
             print("Temperature: {:5.2f}".format(bmp.temperature) + "°c")
             print("Acceration: %.2f %.2f %.2f" % icm.acceleration + " m/s²")
@@ -434,6 +412,7 @@ def main():
                 print(Fore.YELLOW + "Low battery warning: " + str(low_batt.is_active))
                 preflight_errors += 1
 
+            #if STARTING_ALTITUDE varies from bmp.alt by 2m, throw error
             #if wind > x:
             #print(Fore.YELLOW + "High winds! (" + str(1) + ")")
                 #preflight_errors += 1
@@ -472,7 +451,7 @@ def main():
                     launch_countdown -= 1
                     print(Fore.LIGHTYELLOW_EX + str(launch_countdown))
                     led_neo[0] = (255, 255, 255)
-                    beeper.on()
+                    #beeper.on()
                     time.sleep(0.5)
                     led_neo[0] = (0, 0, 0)
                     beeper.off()
@@ -517,7 +496,7 @@ def main():
 
 
         def main_menu():  
-            beeper.on()
+            #beeper.on()
             time.sleep(0.1)
             beeper.off()  
             led_neo[0] = (0, 255, 0)
@@ -525,6 +504,9 @@ def main():
             print("Chungus Aerospace Logic Controller By Besser and Joe Mamma")
             print(version)
             print(code_revision_date)
+            print("Time: " + global_current_time)
+            print("Confirm reload: " + str(RELOAD_RNG)) # for dev, makes sure the file is reloaded
+            #print(ran_launch)
 
             #cpu = CPUTemperature()  #test
             #print("Pi CPU Temp: " + str(cpu.temperature))
@@ -596,7 +578,20 @@ def main():
                 beeper.off()
                 motor_relay.off()
                 chute_relay.off()
+                led_neo[0] = (0, 0, 0)
                 sys.exit()
+            elif "x" == which_option:
+                cc()
+                beeper.off()
+                motor_relay.off()
+                chute_relay.off()
+                led_neo[0] = (0, 0, 0)
+                shut = input("Are you sure you want to shutdown? y/n")
+                if shut == "y":
+                    os.system("systemctl poweroff") 
+                else:
+                    cc()
+                    main_menu()
             else:
                 cc()
                 print(Fore.RED + "Invalid input")
@@ -610,9 +605,10 @@ def main():
             time.sleep(0.01)
             """
     except KeyboardInterrupt:
-        with open(file_location + FILE_NAME, "a") as f: 
-            f.write(','.join(log_list))
-        #cc()
+        if ran_launch == 1:
+            if wrote_to_log_list == 0:
+                with open(file_location + FILE_NAME, "a") as f: 
+                    f.write(','.join(log_list))
         print()
         print()
         beeper.off()
