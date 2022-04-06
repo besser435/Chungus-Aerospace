@@ -6,14 +6,9 @@ https://github.com/besser435/Chungus-Aerospace
 Flight Software for the CALC flight system by Joe Mama and besser.
 This current code is meant to run on a Feather M4. Thats what the 
 pinouts are configured for.
-
-In the future this might run off of a Raspberry Pi Zero
-for better I/O, camera support, and a few other things.
-
-
 """
-version = "v1.12"
-date = "March 2022"
+version = "v1.13"
+date = "April 2022"
 
 
 import adafruit_bmp3xx
@@ -83,7 +78,7 @@ beeper.direction = digitalio.Direction.OUTPUT
 development_mode = 0        # edits things like countdown so the code can be tested easier without having to change several other options
 bmp.sea_level_pressure = 1013
 log_stop_count = 400        # when to stop logging after an amount of data points are collected, backup to low altitude condition
-log_delay = 60              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
+log_delay = 2              # Waits this many seconds before the logging starts. Delay so the rocket can be set up to launch before logging starts
 FILE_NAME = "launch " + str(t.tm_mon) + "-" + str(t.tm_mday) + "-" + str(t.tm_year) + ".csv"  # pure stupidity
 event_comma_count = ",,," # makes sure events go in their own column on the far right 
 
@@ -94,6 +89,7 @@ STARTING_ALTITUDE = bmp.altitude
 launch_delay_count = 0
 logged_liftoff = 0
 data_cycles = 0
+log_list = []
 i = 0
 
 
@@ -115,7 +111,7 @@ def emergency_chute_deploy():   # Not implemented yet
     
 
 if development_mode == 1:
-    print("v" + str(version))
+    print(version)
     led_neo.brightness = 0.05  # prevents flashbang   
     while launch_delay_count <= 2:
         launch_delay_count += 1
@@ -194,48 +190,33 @@ if development_mode == 0:
 led.value = True  # turn on LED to indicate writting has started
 initial_time = time.monotonic() # needs to be here and not in the time set ups bits code for reasons
 
+
+
+chute_armed = 0
+logged_chute_deploy = 0 
 while True:   
-    chute_armed = 0
-    logged_chute_deploy = 0 
 
-    # open file for append
-    with open("/sd/" + FILE_NAME, "a") as f:    
-        current_time = time.monotonic()
-        time_stamp = current_time - initial_time
+ 
+    current_time = time.monotonic()
+    time_stamp = current_time - initial_time
 
-        #f.write("{:5.2f},{:5.2f},{:5.2f},".format(bmp.pressure, bmp.temperature, bmp.altitude,))
-        f.write("{:5.2f},".format(bmp.altitude,))
-        f.write("%.2f %.2f %.2f," % accel.acceleration,)
-        f.write("{:5.2f}".format(time_stamp) + ",\n") # logs elapsed time 
-        """
+    log_list.extend([
+    "\n"
+    #"{:5.2f}".format(bmp.temperature),
+    "{:5.2f}".format(bmp.altitude),
+    "%.2f %.2f %.2f" % (accel.acceleration),
+    "{:5.2f}".format(time_stamp)
+    ])
 
-        # Arm
-        if bmp.altitude >= STARTING_ALTITUDE + 50:  # I know that <and> statements are a thing, but this is easier to read imo
-            if chute_armed == 0: # this is so the event isnt logged repeatedly
-                f.write(event_comma_count + "Armed parachute. Current alt: " + str(bmp.altitude) +  "m . Current time: " + str(time_stamp) + "m\n")
-                chute_armed += 1
-                print("Armed parachute")
-
-        # Deploy - close relay
-        if chute_armed == 1:
-            if bmp.altitude <= STARTING_ALTITUDE + 49:  # once the rocket sinks below 50 meters it fires the chute
-                DATA_CYCLES_CHUTE = data_cycles 
-                chute_relay.value = True
-
-                if logged_chute_deploy == 0:
-                    f.write(event_comma_count + "Deployed parachute. Current alt: " + str(bmp.altitude) + "m. Current time: " + str(time_stamp) + "\n")
-                    logged_chute_deploy +=1
-
-            # Open relay
-            if logged_chute_deploy == 1:    # this might not work. 
-                if DATA_CYCLES_CHUTE >= 10: # waits 10 data cyles before opening the relay
-                    chute_relay.value = False   # this was True before and idk why. Does it actually need to be True?
-                    f.write(event_comma_count + "Parachute relay off. Current time: " + str(time_stamp) + "\n")
-                    print("Parachute relay off")"""
+    
+    """
+    CALCv1 isnt capable of this yet, it lacks the relay
+    Get the most current parachute code from CALCv2
+    """
 
 
     # stops the logging of data
-    if data_cycles > 200:    
+    if data_cycles > 100:    
     # makes sure the code below isnt just executed on the pad
         if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
             with open("/sd/" + FILE_NAME, "a") as f:
@@ -253,6 +234,8 @@ while True:
     #print("Data cycles: " + str(data_cycles)) # for debugging while editing code
 
 
+with open("/sd/" + FILE_NAME, "a") as f: 
+    f.write(','.join(log_list))
 #                          ------------------------ End of main data logging code ------------------------
 led.value = False  # turn off LED to indicate writting is done
 
