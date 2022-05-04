@@ -27,18 +27,17 @@ import random
 # I2C Bus
 i2c = board.I2C() 
 
-# BMP390
+# BMP390 (Main)
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 bmp.pressure_oversampling = 2   #NOTE This was 8 by default
 bmp.temperature_oversampling = 2
 bmp._wait_time = 0
 
-
+# BMP 388 (Aux)
 bmp_chute = adafruit_bmp3xx.BMP3XX_I2C(i2c, address=0x76)
 bmp_chute.pressure_oversampling = 8   #NOTE This was 8 by default
 bmp_chute.temperature_oversampling = 2
 bmp_chute._wait_time = 0
-
 
 # ICM20649
 icm = adafruit_icm20x.ICM20649(i2c)
@@ -47,8 +46,6 @@ adafruit_icm20x.ICM20649.gyro_range = 500
 
 adafruit_icm20x.gyro_data_rate = 5000
 adafruit_icm20x.accelerometer_data_rate = 5000
-
-
 
 # Low battery alarm
 low_batt = InputDevice(4, pull_up=True)  # pull_up inverts the reading. it was backwards before
