@@ -9,7 +9,7 @@ or RAM.
 
 
 """
-version = "v1.1"
+version = "v1.1.1"
 
 
 import time
@@ -19,10 +19,10 @@ import touchio
 import adafruit_dotstar
 from rainbowio import colorwheel
 import digitalio
+from digitalio import DigitalInOut, Direction, Pull
 
 
-     
-"""# Setup
+"""# Setup, ruler specific
 # LED for capacitive button setup. There is probably a better way of doing this
 led4 = digitalio.DigitalInOut(board.LED4)   # Ω
 led4.direction = digitalio.Direction.OUTPUT    
@@ -36,6 +36,7 @@ led6.direction = digitalio.Direction.OUTPUT
 led7 = digitalio.DigitalInOut(board.LED7)   # Digikey
 led7.direction = digitalio.Direction.OUTPUT
 """
+
 # RGB goodness
 led_dotstar = adafruit_dotstar.DotStar(board.APA102_SCK, board.APA102_MOSI, 1)
 
@@ -44,18 +45,18 @@ motor_relay = digitalio.DigitalInOut(board.A0)  # NOTE change this pin to whatev
 motor_relay.direction = digitalio.Direction.OUTPUT
 
 # BMP388
-i2c = board.I2C() 
+i2c = board.I2C(board.SCL1, board.SDA1) 
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 bmp.pressure_oversampling = 8
 bmp.temperature_oversampling = 2
 
 
 # ------------------------- options ------------------------
-launch_delay = 2
-#led_dotstar.brightness = 0.07
-file_name = "RULER ROCKET.csv"  
-bmp.sea_level_pressure = 1024
-log_stop_count = 400         # when to stop logging after an amount of data points are collected, backup to low altitude condition
+launch_delay = 25
+led_dotstar.brightness = 1
+file_name = "RULER_ROCKET.csv"  
+bmp.sea_level_pressure = 1016
+log_stop_count = 300         # when to stop logging after an amount of data points are collected, backup to low altitude condition
 event_comma_count = ",,,," # makes sure events go in their own column on the far right 
 
 # storage
@@ -99,10 +100,9 @@ for i in range(launch_delay):   # countdown
     time.sleep(0.5)"""
 
 
-print("Ready")
-
 for i in range(launch_delay):   # countdown
     led_dotstar[0] = (255, 255, 0)
+    launch_delay -= 1
     print("T- " + str(launch_delay))
     time.sleep(0.5)
     led_dotstar[0] = (0, 0, 0)
@@ -115,7 +115,7 @@ with open(file_name, "a") as f:     # might need to be with open("/" + file_name
     f.write("Data points cutoff: " + str(log_stop_count) + "\n")
     f.write("Starting altitude: " + str(STARTING_ALTITUDE) + "\n")
     f.write("Pressure (mbar),Temperature (°c),Altitude (m),Elapsed Seconds,Events\n")
-    motor_relay.value = True    # lauches the rocket    
+    motor_relay.value = True    # launches the rocket    
     f.write(event_comma_count + "Motor lit\n")
     
 
@@ -150,26 +150,20 @@ while True:
         f.write("{:5.2f}".format(time_stamp) + "\n") # logs elapsed time 
 
         # stops the logging of data
-        if data_cycles > 50 and (bmp.altitude <= STARTING_ALTITUDE + 5): 
-            """if this and statement works, implent into main code"""
-    # makes sure the code below isnt just executed on the pad  
-        #if bmp.altitude <= STARTING_ALTITUDE + 5:   # + 5 is incase it lands above the starting elevation or the sensor drifts
-            f.write("Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
-            break
+        if data_cycles > 50:
+            if bmp.altitude <= STARTING_ALTITUDE + 4: 
+                f.write("Stopped logging; low altitude met. (" + str(bmp.altitude) + "m)\n")
+                break
 
-        if data_cycles >= log_stop_count:   # backup to the code above  
+            """        if data_cycles >= log_stop_count:   # backup to the code above  
                 f.write("Stopped logging; writes to file met. (" + str(data_cycles) + " writes) ")
                 f.write("This means altitude code did not execute.\n")
                 break
+            """
 
-    
     data_cycles += 1 
-    print("Data cycles: " + str(data_cycles)) # for debugging while editing code
-    
-    
+    #print("Data cycles: " + str(data_cycles)) # for debugging while editing code
 #                          ------------------------ End of main data logging code ------------------------
-
-
 
 
 while True:     # indicates that the data recording is done

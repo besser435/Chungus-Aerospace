@@ -1,23 +1,26 @@
-version = "CALC v2.0-beta.4"
-code_revision_date = "April 2022"
+version = "CALC v2.0-beta.5"
+code_revision_date = "May 2022"
+
 
 from random import randint
+from tkinter.tix import Tree
 import board
 import adafruit_icm20x
 import adafruit_bmp3xx
 import neopixel
+import numpy as np
 from rainbowio import colorwheel
 from gpiozero import CPUTemperature
 from gpiozero import DigitalOutputDevice
 from gpiozero import InputDevice
-import numpy as np
-import time 
+import time
+from picamera import PiCamera
 import threading
 import sys
 import os
 from colorama import init
 init()
-from colorama import Fore, Back, Style
+from colorama import Fore
 init(autoreset=True)
 import requests
 from requests.structures import CaseInsensitiveDict
@@ -33,18 +36,35 @@ i2c = board.I2C()
 # LED pins and setup
 led_neo = neopixel.NeoPixel(board.D12, 1)     # NeoPixel on D12
 
-# BMP388
+# BMP390 (Main)
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
 bmp.pressure_oversampling = 2   #NOTE This was 8 by default
+bmp._wait_time = 0
 bmp.temperature_oversampling = 2
+
+# BMP388 (Aux)
+bmp_chute = adafruit_bmp3xx.BMP3XX_I2C(i2c, address=0x76)
+bmp_chute.pressure_oversampling = 8   #NOTE This was 8 by default
+bmp_chute.temperature_oversampling = 2
+bmp_chute._wait_time = 0
 
 # ICM20649
 icm = adafruit_icm20x.ICM20649(i2c)
 adafruit_icm20x.ICM20649.accelerometer_range = 16
 adafruit_icm20x.ICM20649.gyro_range = 500
 
+adafruit_icm20x.gyro_data_rate = 5000
+adafruit_icm20x.accelerometer_data_rate = 5000
+
 # Beeper
 beeper = DigitalOutputDevice(21)
+
+# Camera
+"""camera = PiCamera()
+camera.resolution = (1280, 720)
+camera.framerate = 60
+camera.awb_mode = "auto"""
+#camera.exposure_mode = "antishake"
 
 # Low battery alarm
 low_batt = InputDevice(4, pull_up=True)  # pull_up inverts the reading. it was backwards before
@@ -61,14 +81,11 @@ chute_relay = DigitalOutputDevice(19)
 motor_relay = DigitalOutputDevice(26)
 # note that the LEDs on the shield are to the left of the relays
 
-def options_storage():  # put all the options and storage here. makes for neater code, and is easier to find
-    pass
-
 # general options
 #debug = 0
-led_neo.brightness = 1
-launch_countdown = 11 # also acts as storage
-mute_beeper = 0
+led_neo.brightness = 0.1
+launch_countdown = 2 # also acts as storage
+mute_beeper = 1
 
 # weather options
 zip_code = "85054"
@@ -92,8 +109,8 @@ loop_parachute = 1
 did_deploy = 0
 
 # this is for dev purposes, it shows the file has been reloaded
-
 RELOAD_RNG = Fore.LIGHTMAGENTA_EX + str(randint(0, 1000))
+
 
 def cc():   # shortens this long command to just cc()
     os.system("cls" if os.name == "nt" else "clear")    # clears terminal
@@ -135,7 +152,8 @@ def main():
                 current_wind_speed = w["speed"]
         fetch_weather()
 
-        bmp.sea_level_pressure = current_pressure    # calibrates barometer 
+        bmp.sea_level_pressure = current_pressure    # calibrates main barometer 
+        bmp_chute.sea_level_pressure = current_pressure # calibrates parachute barometer 
         STARTING_ALTITUDE = (round(bmp.altitude, 2)) # needs to be below the calibrated pressure so its accurate
 
 
@@ -252,43 +270,96 @@ def main():
             main_menu()
 
 
-        # ------------------------------- Main flight code -------------------------------
-        def camera():
-            print("Camera")
-            
+        """def display_alt():
+            i = 0
+            while i <200:
+                print("Alt: {:5.2f}".format(bmp_chute.altitude) + "m")
+                i += 1"""
 
-        def parachute():
+        # ------------------------------- Main flight code -------------------------------
+
+        def camera_func():
+            """ print(Fore.LIGHTGREEN_EX + "Starting camera")
+            camera.start_preview()
+            time.sleep(3)
+            countdown_cam_check = 1 # camera is ready to record
+            # this probably adds a race condition when threaded rip
+            print(Fore.LIGHTGREEN_EX + "Camera recording")
+            camera.start_recording("/home/pi/Desktop/video.h264")
+            time.sleep(60)
+            print(Fore.LIGHTGREEN_EX + "Stopped camera recording")
+            #camera.wait_recording(5) 
+            # https://picamera.readthedocs.io/en/release-1.13/recipes1.html#:~:text=start_recording(%27my_video.h264%27)-,camera.wait_recording(60),-camera.stop_recording()
+            camera.stop_recording()
+            camera.stop_preview()
+            """
+            pass
+
+
+        """def parachute(): # this works when there is no altitude comparison, only "if bmp.altitude:"
+
+
+            armed_chute = 0
+            deployed_chute = 0
+            LOCAL_STARTING_ALT = bmp.altitude # threaded bullshit. keeps this local to this thread
+            while True:
+                if bmp.altitude >= LOCAL_STARTING_ALT + 0:
+                    armed_chute = 1
+                    print("Parachute armed")
+
+                if armed_chute == 1 and deployed_chute == 0:
+                    if bmp.altitude <= LOCAL_STARTING_ALT + 0:
+                        chute_relay.on()
+                        print("Parachute deployed")
+
+                        time.sleep(1)
+                        chute_relay.off()
+                        print("Parachute disarmed")
+                        deployed_chute += 1
+                        break
+                time.sleep(0.02)"""
+
+        """def parachute():
             global loop_parachute
             global did_deploy
-            #time.sleep(3)
             print(Fore.LIGHTGREEN_EX + "Parachute thread created")
-            while loop_parachute == 1:
+            chute_armed = 0
+
+            #while loop_parachute == 1: # race condition? maybe just use below while True:
+            while True:
+                #print("Alt: {:5.2f}".format(bmp_chute.altitude) + "m") 
+                if chute_armed == 0: # this is so the event isnt logged repeatedly
+#NOTE
+                    if bmp_chute.altitude >= STARTING_ALTITUDE + 50:  # 50 # I know that and statements are a thing, but this is easier to read imo
+                        #log_list.extend(["Armed parachute,"])
+                        #print(Fore.LIGHTMAGENTA_EX + "Armed parachute")
+                        chute_armed += 1
+                    # the arm code could just be the deploy code. if bmp.altitude >= STARTING_ALTITUDE + 50: deploy
+                    # keep for now for reasons
+#NOTE 
+                if chute_armed == 1:
+                    if bmp_chute.altitude < STARTING_ALTITUDE + 47:
+                        if did_deploy == 0:
+                            #chute_relay.on()
+                            #print(Fore.LIGHTMAGENTA_EX + "Deployed parachute")
+                            #log_list.extend(["Deployed parachute,"])
+                            did_deploy = 1
+                            time.sleep(1)
+
+                            #chute_relay.off()
+                            #print(Fore.LIGHTMAGENTA_EX + "Parachute relay off")
+                            #log_list.extend(["Parachute relay off,"]) 
+                            loop_parachute = 0
+                            #print(Fore.LIGHTMAGENTA_EX + "Chute loop state: " + str(loop_parachute))
+                time.sleep(0.01)"""
 
 
-
-
-                #if bmp.altitude < STARTING_ALTITUDE + 3: #NOTE race condition?
-
-
-
-
-
-                if did_deploy == 0:
-                    chute_relay.on()
-                    print(Fore.LIGHTMAGENTA_EX + "Deployed parachute")
-                    log_list.extend(["Deployed parachute,"])
-                    did_deploy = 1
-                    time.sleep(1)
-
-                    chute_relay.off()
-                    print(Fore.LIGHTMAGENTA_EX + "Parachute relay off")
-                    log_list.extend(["Parachute relay off,"]) 
-                    loop_parachute = 0
-                    print(Fore.LIGHTMAGENTA_EX + "Chute loop state: " + str(loop_parachute))
 
 
         def flight_software():
-            cc()
+            # https://en.wikipedia.org/wiki/Code_refactoring
+            # https://en.wikipedia.org/wiki/Spaghetti_code
+#NOTE            #cc()
             global ran_launch
             ran_launch = 1
             global current_time
@@ -312,9 +383,6 @@ def main():
             chute_deployed = 0
             logged_chute_deploy = 0
         
-  
-            #t_cam = threading.Thread(target=camera)
-            #t_cam.start()
 
             # .csv creation and formatting
             with open(file_location + FILE_NAME, "a") as f: 
@@ -331,14 +399,15 @@ def main():
                 f.write(",,,,,,\n")
                 f.write("Altitude (m), Accel on xyz (m/s^2), Gyro on xyz (deg/s), Time (s), Events\n")
                 
-            
+
+            t_parachute = threading.Thread(target=parachute)
+            t_parachute.start()
+
+
             led_neo[0] = (20, 235, 35) # indicates the motor has been fired and is waiting for liftoff detection to run log code 
             print(Fore.LIGHTGREEN_EX + "Motor Lit")
             motor_relay.on()    # launches the rocket 
 
-            loop_parachute = 1
-            t_parachute = threading.Thread(target=parachute)
-            t_parachute.start()
 
             while True: # wait for liftoff then go to logging
                 motor_start_time += 1
@@ -351,7 +420,8 @@ def main():
                         main_menu()
                         break
 
-                    if bmp.altitude >= STARTING_ALTITUDE + 3:
+#NOTE
+                    if bmp.altitude >= STARTING_ALTITUDE + 0:
                         log_list.extend(["Liftoff detected,"])
                         print(Fore.LIGHTGREEN_EX + "Liftoff detected")
                         print(Fore.LIGHTGREEN_EX + "Starting altitude: " + str(STARTING_ALTITUDE))
@@ -360,6 +430,35 @@ def main():
                         motor_relay.off()
                         logged_liftoff += 1
                         break
+
+
+############################### Test code ###############################
+            """            initial_time_d = time.monotonic()
+            motor_lit_d = 0
+            while True: # wait for liftoff then go to logging
+                current_time_d = time.monotonic()
+                time_stamp = current_time_d - initial_time_d
+
+                if motor_lit_d == 0:
+                    led_neo[0] = (20, 235, 35) # indicates the motor has been fired and is waiting for liftoff detection to run log code 
+                    print(Fore.LIGHTGREEN_EX + "Motor Lit")
+                    motor_relay.on()  
+                    log_list.extend([",,,Motor lit,"])
+                    log_list.extend([str(time_stamp) + ","])
+                    motor_lit_d = 1
+
+
+                if bmp.altitude >= STARTING_ALTITUDE + 3:
+                    log_list.extend([",,,Liftoff detected,"])
+                    log_list.extend([str(time_stamp) + ","])
+                    print(Fore.LIGHTGREEN_EX + "Liftoff detected")
+                    print(Fore.LIGHTGREEN_EX + "Starting altitude: " + str(STARTING_ALTITUDE))
+                    led_neo[0] = (255, 255, 255)    # indicates liftoff has been detected and it passed to the logging code.
+                    motor_relay.off()
+                    logged_liftoff += 1
+                    break
+                """         
+###############################
 
 
             #                          ------------------------ Main data logging code ------------------------
@@ -371,19 +470,21 @@ def main():
                 log_list.extend([
                 "\n"
                 "{:5.2f}".format(bmp.altitude),
-                "%.2f %.2f %.2f" % (icm.acceleration),
+                #"%.2f %.2f %.2f" % (icm.acceleration),
                 "%.2f %.2f %.2f" % (icm.gyro),
                 "{:5.2f}".format(time_stamp),
                 ])
 
-                print("Alt: {:5.2f}".format(bmp.altitude) + "m", end = "   ")   
-                print("Time: {:5.2f}".format(time_stamp) + "s")
+                # FOR DEBUGGING ONLY, COMMENT OUT FOR LAUNCH
+                #print("Alt: {:5.2f}".format(bmp_chute.altitude) + "m", end = "   ")   
+                #print("Alt: {:5.2f}".format(bmp_chute.altitude) + "m")   
+                #print("Time: {:5.2f}".format(time_stamp) + "s")
                 
 
-                """# NOTE this parachute code drastically slows down the code. if the Pi isnt controlling the chute comment out this code
+# NOTE this parachute code drastically slows down the code. if the Pi isnt controlling the chute comment out this code
                 # Arm parachute
                 if chute_armed == 0: # this is so the event isnt logged repeatedly
-                    if bmp.altitude >= STARTING_ALTITUDE + 0:  # 50 # I know that and statements are a thing, but this is easier to read imo
+                    if bmp_chute.altitude >= STARTING_ALTITUDE + 50:  # 50 # I know that and statements are a thing, but this is easier to read imo
                         log_list.extend(["Armed parachute,"])
                         print(Fore.LIGHTMAGENTA_EX + "Armed parachute")
                         chute_armed += 1
@@ -393,7 +494,7 @@ def main():
                 # Deploy parachute
                 if chute_armed == 1: #if bmp.altitude >= STARTING_ALTITUDE + 50:
                     if chute_deployed == 0: # prevents the event from being ran repeatedly 
-                        if bmp.altitude <= STARTING_ALTITUDE + 0:  #47 # once the rocket sinks below this it fires the chute
+                        if bmp_chute.altitude <= STARTING_ALTITUDE + 47:  #47 # once the rocket sinks below this it fires the chute
                             DATA_CYCLES_CHUTE = data_cycles 
                             chute_relay.on()
                             log_list.extend(["Deployed parachute,"])
@@ -407,12 +508,12 @@ def main():
                                 chute_relay.off()
                                 log_list.extend(["Parachute relay off,"])
                                 print(Fore.LIGHTMAGENTA_EX + "Parachute relay off")
-                                logged_chute_deploy += 1 """
-               
+                                logged_chute_deploy += 1 
 
-                # stops the logging of data
-                if data_cycles > 100:  # ensures that the logging is not stopped on the pad  
-                    if bmp.altitude <= STARTING_ALTITUDE + 3:   # + 4 is incase it lands above the starting elevation or the sensor drifts
+
+#NOTE           # stops the logging of data
+                if data_cycles > 300:  # ensures that the logging is not stopped on the pad  
+                    if bmp.altitude <= STARTING_ALTITUDE + 4:   # + 4 is incase it lands above the starting elevation or the sensor drifts
                         log_list.extend(["Stopped logging low alt met,"])
                         loop_parachute = 0
                         print(Fore.LIGHTCYAN_EX + "Stopped logging low alt met {:5.2f}".format(bmp.altitude) + "m")
@@ -420,8 +521,13 @@ def main():
                         print(Fore.LIGHTGREEN_EX + "RESTART SOFTWARE TO LOG AGAIN")
                         break
 
-                
-                data_cycles += 1 # this seems simple but its crucial to some things so dont mess with it 
+                    """if data_cycles > 500:
+                        log_list.extend(["Data cycles > 500 stopping logging,"])
+                        log_list.extend(["This means altitude code did not execute. Fix this,"])
+                        break"""
+
+    
+                data_cycles += 1 
             with open(file_location + FILE_NAME, "a") as f: 
                 f.write(','.join(log_list))
                 wrote_to_log_list += 1
@@ -434,6 +540,7 @@ def main():
         def post_flight():
             global kill_rgb
             kill_rgb = 1
+            #stop camera
             while True: 
                 r = random.randint(50,255)
                 g = random.randint(50,255)
@@ -475,11 +582,16 @@ def main():
             global preflight_errors
             print(Fore.LIGHTMAGENTA_EX + now.strftime("Time & date: %H:%M %m-%d-%Y"))
             print(Fore.LIGHTBLUE_EX + "Low battery warn: " + str(low_batt.is_active))
+
+            print("fix parachute code")
+            
+            print(Fore.LIGHTGREEN_EX + "Countdown time: " + str(launch_countdown))
             print(Fore.LIGHTWHITE_EX + "Weather location: " + city_name)
-            print(Fore.LIGHTCYAN_EX + "Barometer altitude: {:5.2f}".format(bmp.altitude) + "m")
+            print(Fore.LIGHTCYAN_EX + "Main barometer altitude: {:5.2f}".format(bmp.altitude) + "m")
+            print(Fore.LIGHTCYAN_EX + "Aux barometer altitude: {:5.2f}".format(bmp_chute.altitude) + "m")
             #print(Fore.LIGHTMAGENTA_EX + "Fire chute altitude: " + fire_chute_alt + "m")
             print(Fore.LIGHTCYAN_EX + "Starting Altitude: " + str(STARTING_ALTITUDE) + "m")
-            print(Fore.LIGHTMAGENTA_EX + "Barometer pressure: {:5.2f}".format(bmp.pressure) + "mbar")
+            print(Fore.LIGHTMAGENTA_EX + "Main barometer pressure: {:5.2f}".format(bmp.pressure) + "mbar")
             print(Fore.LIGHTGREEN_EX + "Weather API pressure = " + str(current_pressure) + "mbar")
             print(Fore.LIGHTGREEN_EX + "Barometer calibration pressure = " + str(bmp.sea_level_pressure) + "mbar")
             print() # below is less important stuff that doesnt really need to be confirmed
@@ -495,7 +607,7 @@ def main():
             if value_check == "y":
                 pass # autism
             else:
-                preflight_errors =+ 1
+                preflight_errors += 1
                 #error_list.append("Preflight not confirmed")
 
 
@@ -505,6 +617,8 @@ def main():
                 preflight_errors += 1
                 #error_list.append("Low batt = true")
             
+            #if camera == read_bytes
+
             if bmp.sea_level_pressure != current_pressure:
                 print(Fore.YELLOW + "Barometer calibration pressure does not match weather API pressure")
                 preflight_errors += 1
@@ -518,6 +632,11 @@ def main():
                 print(Fore.YELLOW + "Starting altitude does not match barometer altitude")
                 preflight_errors += 1
                 #error_list.append("Starting altitude != barometer altitude")
+
+            if launch_countdown <= 5:
+                print(Fore.YELLOW + "Low countdown time (" + str(launch_countdown) + ")")
+                preflight_errors += 1      
+                #error_list.append("Low countdown time")         
 
             if  ran_launch == 1:
                 print(Fore.YELLOW + "Software not rebooted after last launch")
@@ -541,9 +660,10 @@ def main():
 
             elif preflight_errors == 0:
                 begin_countdown("Launch")
-
-
+       
         # ------------------------------- End Main flight code -------------------------------
+
+
 
 
         def begin_countdown(type):  # The type param is so other code can also use the countdown
@@ -558,6 +678,10 @@ def main():
             if confirm_countdown == "y":
                 cc()
                 print(Fore.CYAN + "Starting " + type + " Countdown. Press CTRL + C to cancel")   
+                print()
+            
+                t_cam = threading.Thread(target=camera_func)
+                t_cam.start()
                 print()
 
                 for i in range(launch_countdown):
@@ -574,7 +698,6 @@ def main():
                     #that way if the connection stops it automatically stops the countdown
                     #this is incase we need to cancel the countdown
                 launch_countdown = LAUNCH_COUNTDOWN_INIT  # resets count
- 
             else:
                 cc()
                 print(Fore.YELLOW + "Countdown aborted")
@@ -607,6 +730,7 @@ def main():
                 print("Gyroscope: %.2f %.2f %.2f" % icm.gyro + " deg/s")
                 time.sleep(0.1)
                 view_sensor_count -= 1
+            view_sensor_count = 50
             main_menu()
 
 
@@ -696,7 +820,7 @@ def main():
                 calibrate_sensors()
                 main_menu()
             elif "l" == which_option:
-                print(Fore.GREEN + "Rebooting...")
+                print(Fore.GREEN + "Reloading...")
                 os.execl(sys.executable, sys.executable, *sys.argv)
             elif "q" == which_option:
                 cc()
@@ -716,7 +840,7 @@ def main():
                 loop_parachute = 0
                 led_neo[0] = (0, 0, 0)
                 shut = input("Are you sure you want to shutdown? y/n ")
-                if shut == "y":
+                if shut == "y" or "x":
                     cc()
                     os.system("systemctl poweroff") 
                 else:
@@ -736,7 +860,7 @@ def main():
                 with open(file_location + FILE_NAME, "a") as f: 
                     f.write(','.join(log_list))
             
-            print(Fore.GREEN + " Rebooting...")
+            print(Fore.GREEN + " Reloading...")
             os.execl(sys.executable, sys.executable, *sys.argv)
 
         print()
@@ -747,7 +871,8 @@ def main():
         beeper(0)
         motor_relay.off()
         chute_relay.off()
-        #stop video recording
+        """camera.stop_recording()
+        camera.stop_preview()"""
         print(Fore.YELLOW + "Keyboard Interrupt")
         main()                
 main()
