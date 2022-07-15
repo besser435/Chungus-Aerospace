@@ -1,5 +1,5 @@
 #Simple timer-based program for a flight computer
-#v0.1, made for education purposes by Joe Mama
+#v0.2, made for education purposes by Joe Mama
 
 import time
 import board
@@ -24,6 +24,7 @@ relay.direction = digitalio.Direction.OUTPUT
 #Delay logic
 while True:
     led0[0] = (0, 0, 255)
+    
     if bmp.altitude > START_ALT + 3:
         led0[0] = (0, 255, 0)
         time.sleep(6) #Seconds delay after launch
@@ -31,3 +32,4 @@ while True:
         time.sleep(3)
         relay.value = False
         break
+    time.sleep(0.01)
