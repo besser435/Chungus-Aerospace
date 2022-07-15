@@ -23,10 +23,9 @@ relay.direction = digitalio.Direction.OUTPUT
 
 #Delay logic
 while True:
-    led0[0] = (0, 255, 0)
-
+    led0[0] = (0, 0, 255)
     if bmp.altitude > START_ALT + 3:
-        led0[0] = (0, 0, 255)
+        led0[0] = (0, 255, 0)
         time.sleep(6) #Seconds delay after launch
         relay.value = True
         time.sleep(3)
