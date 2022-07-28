@@ -1,7 +1,7 @@
 """
 This is the flight software for the QT Py RP2040
 """
-version = "v1.1"
+version = "v1.2"
 
 import time
 import board
@@ -33,7 +33,7 @@ button.direction = Direction.INPUT
 
 """
 How to set up filesystem:
-For launch: Uncomment prep_files(), press button, and you are ready
+For launch: set dev mode to 0, press button, and you are ready
 
 For REPL viewing and code execution: set dev mode to true, upload that to the drive, 
 then plug into computer with with pin A0 jumped to ground
@@ -49,11 +49,11 @@ For editing code/changing files on the drive: just plug in and do whatever
 
 # ------------------------- options ------------------------
 launch_delay = 20
-development_mode = 1
+development_mode = 0
 led_neo.brightness = 1
 file_name = "launch.csv"  
-bmp.sea_level_pressure = 1014       
-event_comma_count = ",,,," # makes sure events go in their own column on the far right 
+bmp.sea_level_pressure = 1010       
+#event_comma_count = ",,,," # makes sure events go in their own column on the far right 
 
 # ------------------------- storage ------------------------
 STARTING_ALTITUDE = bmp.altitude
@@ -71,6 +71,7 @@ def prep_files():
     storage.remount("/", False)
 if development_mode == 0:
     prep_files()
+    pass
 
 
 while True: # press button to start the countdown
@@ -114,7 +115,7 @@ print("Waiting for liftoff...")
 
 if development_mode == 0:
     while True:
-        if bmp.altitude >= STARTING_ALTITUDE + 2:
+        if bmp.altitude >= STARTING_ALTITUDE + 2.5:
             break
 
 led_neo[0] = (0, 0, 255) # this is for dev purposes, you wont see it because the rocket will be in the air already
@@ -166,4 +167,7 @@ print("write done")
 
 while True:
     led_neo[0] = (0, 255, 0)
+    time.sleep(0.5)
+    led_neo[0] = (0, 0, 0)
+    time.sleep(0.5)
     
