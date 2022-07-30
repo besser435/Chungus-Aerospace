@@ -1,7 +1,7 @@
 """
 This is the flight software for the QT Py RP2040
 """
-version = "v1.2"
+version = "v1.2.1"
 
 import time
 import board
@@ -25,7 +25,6 @@ bmp.pressure_oversampling = 2
 bmp.temperature_oversampling = 2
 
 
-
 # On board button (its the boot select one, in front of the I2C port)
 button = DigitalInOut(board.BUTTON)
 button.direction = Direction.INPUT
@@ -40,11 +39,6 @@ then plug into computer with with pin A0 jumped to ground
 
 For editing code/changing files on the drive: just plug in and do whatever
 """
-
-# Be able to write to storage
-# Needs to be disableed when connect to a computer in order to allow code to execute
-
-
 
 
 # ------------------------- options ------------------------
@@ -82,7 +76,7 @@ while True: # press button to start the countdown
         break
 
 
-with open(file_name, "a") as f:     # might need to be with open("/" + file_name, "a") as f:
+with open(file_name, "a") as f: 
     f.write(",,,,\n")
     f.write("Software version: " + version + "\n")
     f.write("Starting altitude: " + str(STARTING_ALTITUDE) + "\n")
@@ -90,6 +84,7 @@ with open(file_name, "a") as f:     # might need to be with open("/" + file_name
     f.write("Temperature: {:5.2f},".format(bmp.temperature) + "\n")
     #f.write("Pressure (mbar),Temperature (°c),Altitude (m),Time (s)\n")   
     f.write("Altitude (m),Time (s)\n") 
+
 
 # Countdown
 if development_mode == 0:
@@ -129,6 +124,7 @@ try:
         current_time = time.monotonic()
         time_stamp = current_time - initial_time
         bmp_alt = bmp.altitude
+
         log_list.extend([
         "\n"
         #"{:5.2f},".format(bmp.pressure),
@@ -136,12 +132,13 @@ try:
         "{:5.2f}".format(bmp_alt),
         "{:5.2f}".format(time_stamp)
         ])
+
         # stops the logging of data
         if data_cycles > 300:
             if bmp_alt <= STARTING_ALTITUDE + 8: 
                 with open(file_name, "a") as f: 
                     f.write("Stopped logging; low altitude met.\n")
-                    break
+                break
 
         remainder = data_cycles % 120
         is_divisible = remainder == 0
@@ -150,12 +147,15 @@ try:
                 f.write(','.join(log_list))
             #gc.collect()
             log_list.clear()
+            log_list.extend([",RAM flushed\n"])
             print("RAM flushed")
 
 
         data_cycles += 1 
         print("Data cycles: " + str(data_cycles)) # for debugging while editing code
     #                          ------------------------ End of main data logging code ------------------------
+
+
 except MemoryError: 
     #gc.collect()
     pass # log data incase there is an error that stopped the data logging
