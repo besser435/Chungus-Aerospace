@@ -31,8 +31,8 @@ import traceback
 # general options
 enable_camera = 0
 led_neo_brightness = 1
-launch_countdown = 5 # also acts as storage
-mute_beeper = 1
+launch_countdown = 10 # also acts as storage
+mute_beeper = 0
 
 # weather options
 zip_code = "85050"
