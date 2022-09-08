@@ -3,7 +3,7 @@ Flight system to send and receive GPS coords and flight data using
 a LoRa RFM95 radio
 """
 
-version = "Tax Fraud v0.2 (Host)"
+version = "Tax Fraud v1.0 (Host)"
 print(version)
 
 from colorama import init
@@ -61,9 +61,9 @@ prev_packet = None
 # File stuff
 now = datetime.datetime.now()
 time_and_date = now.strftime("%m-%d-%Y  %H:%M")
-#TIMEDATE = time_and_date
-TIMEDATE = "no"
-FILE_NAME = "tf data " + TIMEDATE + ".csv"
+TIMEDATE = time_and_date
+FILE_NAME = "tf_data " + TIMEDATE + ".csv"
+FILE_NAME_ALT = "tf _data_backup " + TIMEDATE + ".csv"
 #FILE_NAME = "tf data.csv"
 file_location = "/home/pi/Desktop/" 
 
@@ -74,20 +74,19 @@ file_location = "/home/pi/Desktop/"
 # storage
 start_launch = bytes("start_launch\r\n", "utf-8")
 log_list = []
-last_lat = None
-last_lon = None
 has_logged = False
 
-with open(file_location + FILE_NAME, "a") as f: 
-    f.write("\n")
 
 try:
-    def recovery(): # Flight has ended
+    def recovery(): # should probably make sure that mode = "recovery". if not, return to main()
+        global last_lat
+        global last_lon
         # log the data to the file
-        """with open(file_location + FILE_NAME, "a") as f: 
-        f.write(+ str(time_date) + "\n")"""
+        with open(file_location + FILE_NAME_ALT, "a") as f:
+            f.write(','.join(log_list))
+            print(Fore.GREEN + "Logged data to file (backup)")
         while True:
-            #
+            
             """
             rfm9x SEND enter recovery mode 
             make it do TF can enter recovery mode manually via a
@@ -97,10 +96,10 @@ try:
             packet = None
             packet = rfm9x.receive(keep_listening=True)
             if packet is None:
-                #print("Received nothing! Listening again...")
+                print("Received nothing! Listening again... (recovery())")
                 #print("SoC Temp: " + str(cpu.temperature))
                 pass
-            else:
+            else: # should probably make sure that mode = "recovery". if not, return to main()
                 packet_text = str(packet, "ascii")
 
                 mode = packet_text.split(",")[0]
@@ -111,8 +110,8 @@ try:
                 sat_count = packet_text.split(",")[5]
                 tf_batt = packet_text.split(",")[6]
 
+                #"Raw packet: " + packet_text + "\n" # formatted
                 print(
-                    #"Raw packet: " + packet_text + "\n" # formatted
                     "Mode: " + str(mode) + "\n"
                     "Latitude: " + lat + "\n"
                     "Longitude: " + lon + "\n"
@@ -122,11 +121,37 @@ try:
                     "Batt Voltage: " + tf_batt + "\n"
                     "RSSI: " + str(rfm9x.last_rssi) + "\n"  # dBm
                     )
-            #time.sleep(1)
- 
+
+                last_lat = packet_text.split(",")[1]
+                last_lon = packet_text.split(",")[2]
+
+                with open(file_location + "tf_recovery", "a") as f:
+                    f.write("UTC " + str(gps_time) + ", \n")
+                    f.write(str(lat) + ", \n")
+                    f.write(str(lon) + ", \n")
+                    f.write(str(gps_alt) + ", \n")
+                    f.write("\n")
+
+                display.fill(0)
+                display.text(lat, 0, 0, 1)
+                display.text(lon, 0, 13, 1)
+                display.text(gps_time, 0, 25, 1)
+                display.show()
+                
+    
+    def csv_setup():
+        with open(FILE_NAME, "a") as f: 
+            f.write(("," * 9) + "\n")
+            f.write("Software version: " + version + "\n"),
+            f.write("Time and Date: " + TIMEDATE + "\n"),
+            f.write("Log_mode, Baro_alt, Lat, Lon, GPS_alt, GPS_knots, GPS_time, Sats, Batt_voltage, loop_time \n")
+    csv_setup()    
+
 
     def main():     # Logic
         global has_logged
+        global last_lat
+        global last_lon
         while True:
             display.fill(0)
             display.text(version, 0, 0, 1)
@@ -154,29 +179,38 @@ try:
                 packet_text = str(packet, "ascii")
                 mode = packet_text.split(",")[0]
 
+
+                # ----------- wait for GPS mode -----------
+                if mode == "gps_fix_wait":
+                    print("Waiting for GPS fix...")
+
                 # ----------- pad mode -----------          (waiting for liftoff)
-                if mode == "pad_mode":  
+                elif mode == "pad_mode":  
                     has_fix = packet_text.split(",")[1]
                     sat_count = packet_text.split(",")[2]
                     print("Waiting for liftoff...")
-                    if has_fix == "False": print("Has GPS fix: " + Fore.RED + "False, DO NOT LAUNCH!")
-                    elif has_fix == "True": print("Has GPS fix: " + Fore.GREEN + "True")
-                    else: print("some kind of error")
+
+                    if has_fix == "False": 
+                        print("Has GPS fix: " + Fore.RED + "False, DO NOT LAUNCH!")
+                    elif has_fix == "True": 
+                        print("Has GPS fix: " + Fore.GREEN + "True")
+                    else: 
+                        print(Fore.RED + "Some kind of error")
+
                     print("Sat count: " + str(sat_count))   
                     print()                     
 
                 # ----------- launch mode -----------       (logging data)
-                if mode == "launch_mode":
-                    
+                elif mode == "log_mode":
                     dt_time = datetime.datetime.now()
                     time_date = dt_time.strftime("%m-%d-%Y, %H:%M:%S") 
 
                     # returned data
                     """this might not be needed, just log packet_text"""
-                    all_data = (
+                    """all_data = (
                         packet_text.split(",")[1],  # bmp_alt
                         packet_text.split(",")[2],  # lat
-                        packet_text.split(",")[3],  # long
+                        packet_text.split(",")[3],  # lon
                         packet_text.split(",")[4],  # gps_alt
                         packet_text.split(",")[5],  # gps_speed
                         packet_text.split(",")[6],  # gps_time
@@ -184,9 +218,13 @@ try:
                         packet_text.split(",")[8],  # tf_batt
                         packet_text.split(",")[9],  # time_stamp
                     )
-                    log_list.extend([all_data])
+                    log_list.extend([all_data])"""
 
-                    """bmp_alt = packet_text.split(",")[1]
+                    last_lat = packet_text.split(",")[2]
+                    last_lon = packet_text.split(",")[3]
+
+
+                    bmp_alt = packet_text.split(",")[1]
                     lat = packet_text.split(",")[2]
                     lon = packet_text.split(",")[3]
                     gps_alt = packet_text.split(",")[4]
@@ -195,11 +233,24 @@ try:
                     sat_count = packet_text.split(",")[7]
                     tf_batt = packet_text.split(",")[8]
                     time_stamp = packet_text.split(",")[9]
-                    
+
+                    log_list.extend([
+                        #mode,  
+                        bmp_alt,
+                        lat,
+                        lon,
+                        gps_alt,
+                        gps_speed,
+                        gps_time,
+                        sat_count,
+                        tf_batt,
+                        time_stamp,
+                    ])
+
                     print()
                     print(
-                        "Local Time: " + str(time_date) + "\n"
                         "Mode: " + str(mode) + "\n"
+                        "Local Time: " + str(time_date) + "\n"
                         "Baro Alt: " + bmp_alt + "\n"
                         "GPS Alt: " + gps_alt +"\n"
                         "Latitude: " + lat + "\n"
@@ -209,13 +260,11 @@ try:
                         "Sat Count: " + sat_count + "\n"
                         "Batt Voltage: " + tf_batt + "\n"
                         "Loop time: " + time_stamp + "\n"
-                        "RSSI: " + str(rfm9x.last_rssi) + "\n"  # dBm
-                        "SoC Temp: " + str(cpu.temperature)
+                        "RSSI: " + str(rfm9x.last_rssi)# + "\n"  # dBm
+                        #"SoC Temp: " + str(cpu.temperature)
                         )
-                    """
-
-
-                    print(
+                    
+                    """print(
                         "Local Time: " + str(time_date) + "\n"
                         "Mode: " + str(mode) + "\n"
                         "Baro Alt: " + all_data[0] + "\n"
@@ -228,39 +277,71 @@ try:
                         "Batt Voltage: " + all_data[7] + "\n"
                         "Loop time: " + all_data[8] + "\n"
                         "RSSI: " + str(rfm9x.last_rssi) + "\n"  # dBm
-                        "SoC Temp: " + str(cpu.temperature))
+                        #"SoC Temp: " + str(cpu.temperature)
+                        )"""
 
                 # ----------- recovery mode -----------     (goes to recovery func)
-                if mode == "recovery_mode" and has_logged == False:
-                    with open(file_location + FILE_NAME, "a") as f: 
-                        f.write(str(all_data) + "\n")
+                elif mode == "recovery_mode" and has_logged == False:
+                    with open(file_location + FILE_NAME, "a") as f:
+                        f.write(','.join(log_list))
+                        print(Fore.GREEN + "Logged data to file (main)")
                     has_logged = True
-
                     recovery()
-                
-                # ----------- wait for GPS mode -----------
-                if mode == "gps_fix_wait":
-                    print("Waiting for GPS fix...")
-                    print()
 
+                elif mode == "recovery_mode" and has_logged == True:
+                    recovery()
+
+                # ----------- unknown mode -----------   (shows and handles error)
+                else:
+                    print('Error unknown mode:  "' + mode + '"')
+                    print("Packet received:" + packet_text)
+                    
+                    with open("tf_error.txt", "a") as f: 
+                        f.write(time_and_date)
+                        f.write('Error unknown mode:  "' + mode + '"\n')
+                        f.write("Packet received: " + packet_text + "\n")
+                        f.write("\n" * 2)
+
+                    print("Going to recovery mode in one minute...")
+                    time.sleep(60)
+                    recovery()
+                                    
 
             display.show()
     main()
 
 
+except UnicodeDecodeError:
+     # sometimes the radio receives its own request for some reason
+    # make a print command that diplsays the error message
+    print(Fore.YELLOW + traceback.format_exc())   
+    print(Fore.YELLOW + "UnicodeDecodeError, going to recovery mode in 10 seconds")
+    print("Last known lat: " + str(last_lat))
+    print("Last known lon: " + str(last_lon))
+
+    with open("tf_error.txt", "a") as f: 
+        f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
+        f.write("\n" * 2)
+
+    time.sleep(10)
+    recovery()
+
 except Exception:
     # sometimes the radio receives its own request for some reason
     # make a print command that diplsays the error message
     print(Fore.YELLOW + traceback.format_exc())   
-    print(Fore.YELLOW + "Error, going to recovery mode in 3 seconds")
+    print(Fore.YELLOW + "Exception Error, going to recovery mode in 10 seconds")
     print("Last known lat: " + str(last_lat))
     print("Last known lon: " + str(last_lon))
 
-    with open(file_location + FILE_NAME, "a") as f: 
-        f.write(str(log_list) + "\n")
+    with open("tf_error.txt", "a") as f: 
+        f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
+        f.write("\n" * 2)
 
-    time.sleep(3)
+    time.sleep(10)
     recovery()
+
+
 
 
 
