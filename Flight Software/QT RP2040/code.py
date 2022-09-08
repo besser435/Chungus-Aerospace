@@ -171,3 +171,18 @@ while True:
     led_neo[0] = (0, 0, 0)
     time.sleep(0.5)
     
+
+import gc
+# add other imports
+
+gc.collect()
+start_mem = gc.mem_free()
+print( "Point 1 Available memory: {} bytes".format(start_mem) ) 
+
+# add code here to be measured for memory use
+# the log_list
+gc.collect()
+end_mem = gc.mem_free()
+
+print( "Point 2 Available memory: {} bytes".format(end_mem) )
+print( "Code section 1-2 used {} bytes".format(start_mem - end_mem) )
