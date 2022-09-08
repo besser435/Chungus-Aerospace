@@ -7,13 +7,13 @@ Flight Software for the CALC flight system by Joe Mama and besser.
 This current code is meant to run on a Feather M4. Thats what the 
 pinouts are configured for.
 """
-version = "v1.13"
-date = "April 2022"
+version = "v1.14"
+date = "May 2022"
 
 
 import adafruit_bmp3xx
-import adafruit_adxl34x
-import adafruit_pcf8523
+#import adafruit_adxl34x
+#import adafruit_pcf8523
 import adafruit_sdcard
 import neopixel
 import board
@@ -51,7 +51,7 @@ led.direction = digitalio.Direction.OUTPUT
 
 # BMP388
 bmp = adafruit_bmp3xx.BMP3XX_I2C(i2c)
-bmp.pressure_oversampling = 8
+bmp.pressure_oversampling = 4 # 8 by default
 bmp.temperature_oversampling = 2
 
 # ADXL345
@@ -94,9 +94,9 @@ i = 0
 
 
 def emergency_chute_deploy():   # Not implemented yet
-    # The feather might be too weak to do the math on the fly for determing a changng velocity,
+    # The feather might be too weak to do the math on the fly for determing a change velocity,
     # but hopefully the Pi wont.
-    """ if the sensors dont see the velocty slowing down after closing the relay for a second
+    """ if the sensors dont see the velocity slowing down after closing the relay for a second
     it will run this code. It will pulse the relay in order to try to ignite the charge.
     The chute deploy just used to do this, but it would lose logging data because of the delay.
 
@@ -138,7 +138,7 @@ else:  # shows that the code is running
     
 
 """
-# Sets the real time clock if enabled. Maybe make this a seperate script to clean up this one and so the time isnt reset by accident
+# Sets the real time clock if enabled. Maybe make this a separate script to clean up this one and so the time isnt reset by accident
 days = ("Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday")
 if False:   # change to True to write the time. remember to set to false before running the code again
     #                     year, mon, date, hour, min, sec, wday, yday, isdst
@@ -163,7 +163,7 @@ with open("/sd/" + FILE_NAME, "a") as f:
     led_neo[0] = (20, 235, 35)    # indicates the motor has been fired and is waiting for liftoff detection to run log code
     f.write(event_comma_count + "Motor lit\n")
     beeper.value = True
-    motor_relay.value = True    # lauches the rocket 
+    motor_relay.value = True    # launches the rocket 
      
 
 # potential way of starting the logging in the future. needs to be proven to work tho, which is what this is
@@ -195,7 +195,7 @@ initial_time = time.monotonic() # needs to be here and not in the time set ups b
 chute_armed = 0
 logged_chute_deploy = 0 
 while True:   
-
+    bmp_alt = bmp.altitude
  
     current_time = time.monotonic()
     time_stamp = current_time - initial_time
@@ -203,16 +203,61 @@ while True:
     log_list.extend([
     "\n"
     #"{:5.2f}".format(bmp.temperature),
-    "{:5.2f}".format(bmp.altitude),
+    "{:5.2f}".format(bmp_alt),
     "%.2f %.2f %.2f" % (accel.acceleration),
     "{:5.2f}".format(time_stamp)
     ])
 
+
+    new code below, fix it and remove old stuff
+    fix memory overflow error by storing the list every so often
     
-    """
-    CALCv1 isnt capable of this yet, it lacks the relay
-    Get the most current parachute code from CALCv2
-    """
+    # Deploy parachute
+    if chute_armed == 1: 
+        if chute_deployed == 0: # prevents the event from being ran repeatedly 
+            if bmp_alt <= STARTING_ALTITUDE + 37:  #47 - deploy altitude
+                DATA_CYCLES_CHUTE = data_cycles 
+                chute_relay.on()
+                log_list.extend(["Deployed parachute,"])
+                print(Fore.LIGHTMAGENTA_EX + "Deployed parachute")
+                chute_deployed +=1
+
+        # Open chute relay
+        if chute_deployed == 1:   
+            if logged_chute_deploy == 0:  # prevents the event from being ran repeatedly
+                if data_cycles > DATA_CYCLES_CHUTE + 80:  # waits about a second before opening the relay. pure autism
+                    chute_relay.off()
+                    log_list.extend(["Parachute relay off,"])
+                    print(Fore.LIGHTMAGENTA_EX + "Parachute relay off")
+                    logged_chute_deploy += 1 
+        
+
+#NOTE           # stops the logging of data
+    if data_cycles > 600:  # ensures that the logging is not stopped on the pad  
+        if bmp_alt <= STARTING_ALTITUDE + 4:   # + 4 is incase it lands above the starting elevation or the sensor drifts
+            log_list.extend(["Stopped logging low alt met,"])
+            print(Fore.LIGHTCYAN_EX + "Stopped logging low alt met {:5.2f}".format(bmp.altitude) + "m")
+            print(Fore.LIGHTCYAN_EX + "Starting altitude: " + str(STARTING_ALTITUDE) + "m")
+            print(Fore.LIGHTGREEN_EX + "RESTART SOFTWARE TO LOG AGAIN")
+            break
+
+        if data_cycles >= 1000: # Backup to the code above
+            log_list.extend(["Data cycles > 1000 stopping logging,"])
+            log_list.extend(["This means altitude code did not execute. Fix this,"])
+            print(Fore.LIGHTGREEN_EX + "Data cycles > 1000 stopping logging. This means altitude code did not execute.")
+            print(Fore.LIGHTGREEN_EX + "INVESTIGATE ISSUE BEFORE RESTARTING SOFTWARE")
+            break
+
+
+
+
+
+
+
+
+
+
+
 
 
     # stops the logging of data
