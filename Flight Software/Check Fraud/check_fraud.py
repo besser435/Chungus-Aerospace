@@ -11,9 +11,11 @@ https://github.com/besser435?tab=repositories
 version = "v0.1"
 date = "September 2022" 
 
-import mailcap
-import random, time, sys, os
-#import neopixel, board
+debug = 1
+
+import time, sys, os
+if debug == False: import neopixel, board
+
 from colorama import init   # pip install colorama
 init()
 from colorama import Fore, Back, Style
@@ -30,7 +32,7 @@ init(autoreset=True)
 ign_relay = None
 
 # options
-debug = 1
+#debug is above the imports
 launch_countdown = 2
 ignition_time = 1
 
@@ -115,7 +117,7 @@ def ignite_now():
 
 
 def main_menu():    
-    print("Check Fraud")
+    print("Check Fraud Launchpad Software")
     print(version)
     print(date)
     if debug == True: print(Fore.LIGHTRED_EX + "DEBUG MODE")
@@ -132,19 +134,15 @@ def main_menu():
         delay_countdown()
         cc()
         
-        
     elif "2" == which_option:
         cc()
-        
 
     elif "3" == which_option:
         cc()
 
-
     elif "q" == which_option:
         sys.exit()
     
-
     elif "a" == which_option:  # shortcut to current work
         pass 
 
