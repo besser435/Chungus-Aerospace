@@ -10,11 +10,11 @@ switch.direction = digitalio.Direction.INPUT
 switch.pull = digitalio.Pull.UP
 
 
-en_pin = digitalio.DigitalInOut(board.D9)
+en_pin = digitalio.DigitalInOut(board.D5)
 en_pin.direction = digitalio.Direction.OUTPUT
 #pin = digitalio.DigitalInOut(board.D13)
 
-# If D13 ia pulled high with a wire CircuitPython can write to the drive
+# If D13 (board 11) is pulled high with D5 (board 33) CircuitPython can write to the drive
 storage.remount("/", switch.value)
 
 # if the write test is successful, the LED
