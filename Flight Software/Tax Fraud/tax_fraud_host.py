@@ -3,7 +3,7 @@ Flight system to send and receive GPS coords and flight data using
 a LoRa RFM95 radio
 """
 
-version = "Tax Fraud v1.0 (Host)"
+version = "Tax Fraud v1.1 (Host)"
 print(version)
 
 from colorama import init
@@ -63,7 +63,7 @@ now = datetime.datetime.now()
 time_and_date = now.strftime("%m-%d-%Y  %H:%M")
 TIMEDATE = time_and_date
 FILE_NAME = "tf_data " + TIMEDATE + ".csv"
-FILE_NAME_ALT = "tf _data_backup " + TIMEDATE + ".csv"
+FILE_NAME_ALT = "tf_data_backup " + TIMEDATE + ".csv"
 #FILE_NAME = "tf data.csv"
 file_location = "/home/pi/Desktop/" 
 
@@ -72,13 +72,15 @@ file_location = "/home/pi/Desktop/"
 
 
 # storage
-start_launch = bytes("start_launch\r\n", "utf-8")
+#start_launch = bytes("start_launch\r\n", "utf-8")
 log_list = []
 has_logged = False
 
 
 try:
-    def recovery(): # should probably make sure that mode = "recovery". if not, return to main()
+    def recovery(): # should probably make sure that mode = "recovery". if not, return to main(),
+                    # incase we somehow get here. an error would be thrown if we are here, but got
+                    # something that isnt a recovery packet
         global last_lat
         global last_lon
         # log the data to the file
@@ -152,6 +154,9 @@ try:
         global has_logged
         global last_lat
         global last_lon
+        last_lat = None # incase this isn't known, an error wont be thrown
+        last_lon = None
+
         while True:
             display.fill(0)
             display.text(version, 0, 0, 1)
@@ -179,23 +184,27 @@ try:
                 packet_text = str(packet, "ascii")
                 mode = packet_text.split(",")[0]
 
-
                 # ----------- wait for GPS mode -----------
                 if mode == "gps_fix_wait":
-                    print("Waiting for GPS fix...")
+                    print(Fore.GREEN + "Waiting 10s for GPS fix...")
 
                 # ----------- pad mode -----------          (waiting for liftoff)
                 elif mode == "pad_mode":  
                     has_fix = packet_text.split(",")[1]
                     sat_count = packet_text.split(",")[2]
+                    starting_alt = packet_text.split(",")[3]
+                    #current_alt = packet_text.split(",")[4]
                     print("Waiting for liftoff...")
+                    print("Starting alt: " + starting_alt)
+                    # print("Current alt: " + current_alt)
 
                     if has_fix == "False": 
                         print("Has GPS fix: " + Fore.RED + "False, DO NOT LAUNCH!")
                     elif has_fix == "True": 
                         print("Has GPS fix: " + Fore.GREEN + "True")
                     else: 
-                        print(Fore.RED + "Some kind of error")
+                        print(Fore.RED + "has_fix has some kind of error")
+                        time.sleep(5)
 
                     print("Sat count: " + str(sat_count))   
                     print()                     
@@ -260,7 +269,7 @@ try:
                         "Sat Count: " + sat_count + "\n"
                         "Batt Voltage: " + tf_batt + "\n"
                         "Loop time: " + time_stamp + "\n"
-                        "RSSI: " + str(rfm9x.last_rssi)# + "\n"  # dBm
+                        "RSSI: " + str(rfm9x.last_rssi) + "\n"  # dBm
                         #"SoC Temp: " + str(cpu.temperature)
                         )
                     
@@ -287,9 +296,13 @@ try:
                         print(Fore.GREEN + "Logged data to file (main)")
                     has_logged = True
                     recovery()
-
                 elif mode == "recovery_mode" and has_logged == True:
                     recovery()
+
+                # ----------- TF error -----------    (shows and handles error)        
+                elif mode == "error_state":
+                    tf_error = packet_text.split(",")[1]
+                    raise Exception("Error state received from TF rocket: " + tf_error)
 
                 # ----------- unknown mode -----------   (shows and handles error)
                 else:
@@ -302,8 +315,8 @@ try:
                         f.write("Packet received: " + packet_text + "\n")
                         f.write("\n" * 2)
 
-                    print("Going to recovery mode in one minute...")
-                    time.sleep(60)
+                    print("Going to recovery mode in 15 seconds...")
+                    time.sleep(15)
                     recovery()
                                     
 
@@ -312,10 +325,9 @@ try:
 
 
 except UnicodeDecodeError:
-     # sometimes the radio receives its own request for some reason
-    # make a print command that diplsays the error message
+    # sometimes the radio receives its own request for some reason
     print(Fore.YELLOW + traceback.format_exc())   
-    print(Fore.YELLOW + "UnicodeDecodeError, going to recovery mode in 10 seconds")
+    print(Fore.YELLOW + "UnicodeDecodeError, going to recovery mode in 15 seconds")
     print("Last known lat: " + str(last_lat))
     print("Last known lon: " + str(last_lon))
 
@@ -323,14 +335,13 @@ except UnicodeDecodeError:
         f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
         f.write("\n" * 2)
 
-    time.sleep(10)
+    time.sleep(15)
     recovery()
 
 except Exception:
     # sometimes the radio receives its own request for some reason
-    # make a print command that diplsays the error message
     print(Fore.YELLOW + traceback.format_exc())   
-    print(Fore.YELLOW + "Exception Error, going to recovery mode in 10 seconds")
+    print(Fore.YELLOW + "Exception Error, going to recovery mode in 15 seconds")
     print("Last known lat: " + str(last_lat))
     print("Last known lon: " + str(last_lon))
 
@@ -338,8 +349,23 @@ except Exception:
         f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
         f.write("\n" * 2)
 
-    time.sleep(10)
+    time.sleep(15)
     recovery()
+
+except KeyboardInterrupt:
+    print(Fore.YELLOW + traceback.format_exc())   
+    print(Fore.YELLOW + "KeyboardInterrupt, logging data then stopping program")
+    print("Last known lat: " + str(last_lat))
+    print("Last known lon: " + str(last_lon))
+
+    with open("tf_error.txt", "a") as f: 
+        f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
+        f.write("\n" * 2)
+
+    with open(file_location + FILE_NAME_ALT, "a") as f:
+        f.write(','.join(log_list))
+        print(Fore.GREEN + "Logged data to file (backup)")
+
 
 
 

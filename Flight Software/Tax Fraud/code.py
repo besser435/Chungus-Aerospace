@@ -5,7 +5,7 @@ import adafruit_bmp3xx, analogio, traceback, adafruit_gps, gc
 
 # https://github.com/UnexpectedMaker/esp32s3/tree/main/code/circuitpython/shipping%20files/feathers3
 
-version = "Tax Fraud v1.0 (Rocket)"
+version = "Tax Fraud v1.1 (Rocket)"
 print(version)
 
 
@@ -80,7 +80,6 @@ with open(FILE_NAME, "a") as f:
     f.write("\n")
 
 
-
 """
 for some reason, the except statements cant access the regular
 recovery function, so I have this here as a last resort.
@@ -132,6 +131,15 @@ def backup_recovery():
         led_neo[0] = (0, 0, 0)
 
 
+def broadcast_error(error):
+    for i in range(10): # ensures the pi gets the error (not great, I know)
+        send_data = bytes("error_state,\n" + str(error), "\r\n","utf-8")
+        rfm9x.send(send_data)
+        print("Sent error: ")
+        print(error)
+        time.sleep(0.05)
+
+
 try:
     def get_fix():
         while True:
@@ -163,13 +171,13 @@ try:
         get_battery_voltage()
         gps.update()
         # this will be the time the fix was achieved, not the current time
-        if gps.has_fix:
+        if gps.has_fix == True:
             gps_time = "{}/{}/{} {:02}:{:02}:{:02}".format(
-                gps.timestamp_utc.tm_mon,  
-                gps.timestamp_utc.tm_mday,  
-                gps.timestamp_utc.tm_year,  
-                gps.timestamp_utc.tm_hour,  
-                gps.timestamp_utc.tm_min, 
+                gps.timestamp_utc.tm_mon,  # Grab parts of the time from the
+                gps.timestamp_utc.tm_mday,  # struct_time object that holds
+                gps.timestamp_utc.tm_year,  # the fix time.  Note you might
+                gps.timestamp_utc.tm_hour,  # not get all data like year, day,
+                gps.timestamp_utc.tm_min,  # month!
                 gps.timestamp_utc.tm_sec,)
         else:
             gps_time = None
@@ -181,7 +189,7 @@ try:
             f.write("BMP Altitude: " + str(bmp.altitude) + "\n")
             f.write("Temperature: " + str(bmp.temperature) + "\n")
             f.write("Batt Voltage: {:.2f}".format(battery_voltage) + "\n")
-            f.write("GPS Time: ".format(gps_time) + "\n")
+            f.write("GPS Time: " + gps_time + "\n")
             f.write("Satellites: {}".format(gps.satellites) + "\n")
             f.write("GPS Altitude: {} meters".format(gps.altitude_m) + "\n")
             f.write("Speed: {} knots".format(gps.speed_knots) + "\n")
@@ -243,37 +251,34 @@ try:
 
         # Liftoff detection
         STARTING_ALT = bmp.altitude
-        #if debug_mode == 0: 
-        if True:
-            # add method od manually bypassing this via a radio command incase this gets stuck somehow
+        if debug_mode == 0: 
+        #if True:
+            # add method of manually bypassing this via a radio command incase this gets stuck somehow
             # that command would go to recovery()
-            #it = 0 # debug 
             while True: # liftoff detection
                 gps.update()
                 has_fix = gps.has_fix
                 sat_count = gps.satellites
 
-                #it += 1
+                send_data = bytes("pad_mode," + str(has_fix) + "," + str(sat_count) + "," + str(STARTING_ALT), "\r\n","utf-8")
+                #send_data = bytes("pad_mode," + str(has_fix) + "," + str(sat_count), "\r\n","utf-8")
 
-                send_data = bytes("pad_mode," + str(has_fix) + "," + str(sat_count), "\r\n","utf-8")
+
                 rfm9x.send(send_data)
                 led_neo[0] = (0, 0, 255)
 
                 print()
                 print("Waiting for liftoff...")
                 print("Has GPS fix: " + str(has_fix))
-                """add starting alt"""
+                print("Starting alt: " + str(STARTING_ALT))
                 print("Sat count: " + str(sat_count))
                 
-                #if it > 10: break # debug 
                 if bmp.altitude >= STARTING_ALT + 5:
                     break
 
         
-        initial_time = time.monotonic()
         led_neo[0] = (0, 255, 0)
-
-        
+        initial_time = time.monotonic()
         while True: # main flight loop
             get_battery_voltage()
             gps.update()
@@ -301,10 +306,9 @@ try:
                 str(gps.satellites) + "," +
                 str("%0.2f" % battery_voltage) + "," +
                 str("%0.3f" % time_stamp) + "\n"
-                """add data cycle count"""
                 )
-                
-                # write data
+                """add data cycle count to data"""
+                # log data
                 log_list.extend([data])
 
                 # send data
@@ -314,16 +318,18 @@ try:
                 print(send_data)
                 print("Data cycle: " + str(data_cycles))
                 print("Free RAM: " + str(gc.mem_free()))
-
+            #else:
+                # if no GPS fix, log no fix, along with other non-GPS data
             
             # and never go to the recovery function
             # stops the logging of data
             #if True:
-            if debug_mode == 0:
-                if data_cycles > 30:
-                    if bmp_alt <= STARTING_ALT + 20: 
-                        recovery()
-                        break  
+            # if free RAM is less than 3mb, go to recovery
+            #if debug_mode == 0:
+            if data_cycles > 30:
+                if bmp_alt <= STARTING_ALT + 20: 
+                    recovery()
+                    break  
             data_cycles += 1 # out of the if gps.has_fix == True: bit incase it never happens. then it would be stuck  
     main()
 
@@ -331,11 +337,13 @@ try:
 except OSError as e: # sometimes the GPS module doesn't work, this is a failsafe
     print("OSError, trying again in a bit")
     print(e)
-    #rfm send error
+
+
     led_neo.fill((255, 0, 0))
     with open("OSError.csv", "a") as f:
         f.write(str(e) + "\n")
-        
+    broadcast_error(e)
+
     if debug_mode == 0:
         time.sleep(10)
     backup_recovery()
@@ -344,11 +352,12 @@ except OSError as e: # sometimes the GPS module doesn't work, this is a failsafe
 except Exception as e:
     print("Exception, trying again in a bit")
     print(e)
-    #rfm send error
-    with open("Exception.csv", "a") as f:
-        f.write(str(e) + "\n")
 
     led_neo.fill((255, 0, 0))
+    with open("Exception.csv", "a") as f:
+        f.write(str(e) + "\n")
+    broadcast_error(e)
+
     if debug_mode == 0:
         time.sleep(10)
     backup_recovery()
