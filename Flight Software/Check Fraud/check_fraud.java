@@ -52,7 +52,8 @@ public class check_fraud {
       System.out.println("Are you sure you want to start the countdown? y/n ");
 
       
-      String whichOption = scnr.nextLine();
+      //String whichOption = scnr.nextLine();
+      String whichOption = scnr.next();
       //scnr.close();
       if (whichOption.equals("y")) {
          System.out.println("Starting Countdown. Press CTRL + C to cancel");
@@ -68,7 +69,7 @@ public class check_fraud {
          System.out.println("Countdown Cancelled");
          mainMenu();
       }
-      scnr.close(); // FUCK YOU ORACLE
+      scnr.close(); 
    }
 
 
@@ -79,7 +80,8 @@ public class check_fraud {
       System.out.println("2. Ignite Now");
       System.out.print("Enter an option: ");
 
-      int whichOption = scnr.nextInt();  
+      int whichOption = scnr.nextInt(); 
+      //int whichOption = scnr.next();
       //scnr.close();
       switch (whichOption) {
          case 1:
@@ -93,6 +95,6 @@ public class check_fraud {
             mainMenu();
             break;
       }
-      scnr.close();  // FUCK YOU
+      scnr.close();
    }
 }
