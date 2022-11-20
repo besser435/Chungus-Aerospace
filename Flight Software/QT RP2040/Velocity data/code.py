@@ -51,11 +51,12 @@ while True: #accel_mag > 30 or v0 > 10:
         accel_sign = 1
     accel_1 = accel_mag * accel_sign
     vel_1 = vel_0 + (accel_1 + accel_0 - 2 * g) * (time_1 - time_0) * 0.5
+    delta_v = vel_1 - vel_0
     time_0 = time_1
     vel_0 = vel_1
     accel_0 = accel_1
 
-    print("accel data: " + str(icm_accel) + " " + str(accel_mag) + " " + str(vel_1) + " " + str(vel_1 - vel_0) + " " + str(time_1))
+    print("accel data: " + str(icm_accel) + " " + str(accel_mag) + " " + str(vel_1) + " " + str(delta_v) + " " + str(time_1))
     
     
 """with open("data.csv", "a") as f:
