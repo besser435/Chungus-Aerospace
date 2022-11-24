@@ -27,4 +27,4 @@ try:
         
 except Exception:
     led_neo[0] = (255, 0, 0)
-    time.sleep(3)
+    time.sleep(1)
