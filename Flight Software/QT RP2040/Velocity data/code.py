@@ -14,11 +14,8 @@ time.sleep(5)
 
 # Accelerometer g calibration (finds average g measurements to account for accelerometer fuckiness)
 for i in range(2000):
-    icm_accel = icm.acceleration
-    accel_x = icm_accel[0]
-    accel_y = icm_accel[1]
-    accel_z = icm_accel[2]
-
+    accel_x, accel_y, accel_z = icm.acceleration
+    
     accel_mag = math.sqrt(pow(accel_x, 2) + pow(accel_y, 2) + pow(accel_z, 2))
     cum_g += accel_mag
     g = cum_g / g_divisor
@@ -36,12 +33,10 @@ accel_0 = g
 
 # Ascent mode
 while True: #accel_mag > 30 or v0 > 10:
-    icm_accel = icm.acceleration
     current_time = time.monotonic()
     time_1 = current_time - initial_time
-    accel_x = icm_accel[0]
-    accel_y = icm_accel[1]
-    accel_z = icm_accel[2]
+    accel_x, accel_y, accel_z = icm.acceleration
+    
     accel_mag = math.sqrt(pow(accel_x, 2) + pow(accel_y, 2) + pow(accel_z, 2))
     # USE WITH Z AXIS FACING (UP) OR ACCELEROMETER WILL GET CONFUSED
 
