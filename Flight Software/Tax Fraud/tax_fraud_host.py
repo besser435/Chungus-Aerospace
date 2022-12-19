@@ -243,6 +243,9 @@ try:
                     tf_batt = packet_text.split(",")[8]
                     time_stamp = packet_text.split(",")[9]
 
+                    # tuple unpacking
+                    #bmp_alt, lat, lon, gps_alt, gps_speed, gps_time, sat_count, tf_batt, time_stamp = packet_text.split(",")
+
                     log_list.extend([
                         #mode,  
                         bmp_alt,
