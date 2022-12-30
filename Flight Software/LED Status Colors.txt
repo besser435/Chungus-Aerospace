@@ -1,0 +1,7 @@
+The goal is to have all computers have the same colors. 
+
+For CALC (Init boot sequence not included):
+Flashing red (255, 0, 0) - File setup success and now in countdown
+Solid orange (255, 69, 0) - Waiting for liftoff, only when dev_ode is 0
+Solid blue (0, 0, 255) - In main logging function
+Flashing white (255, 255, 255) - All done, in recovery mode
