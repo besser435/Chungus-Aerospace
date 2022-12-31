@@ -27,7 +27,7 @@ storage.remount("/", not switch.value) # Pull switch to ground to enable onboard
 #led_neo.brightness = 0.02
 try:
     with open("write_test.txt", "a") as f: 
-        f.write("write test success at " + "%d-%d-%d" % (t.tm_mon, t.tm_mday, t.tm_year) + " %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + "\n")
+        f.write("write test success in boot.py at " + "%d-%d-%d" % (t.tm_mon, t.tm_mday, t.tm_year) + " %d:%02d:%02d" % (t.tm_hour, t.tm_min, t.tm_sec) + "\n")
     led_neo[0] = (0, 255, 0)
     time.sleep(1)
 
