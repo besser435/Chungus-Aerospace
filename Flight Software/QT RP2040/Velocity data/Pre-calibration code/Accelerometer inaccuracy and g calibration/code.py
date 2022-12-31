@@ -29,7 +29,7 @@ for i in range(2000):
 
 #z calibration setup and timer
 led0[0] = (0, 255, 0)
-print("Z/g delay")
+print("Z/G delay")
 time.sleep(20)
 cum_z = 0
 i = 1
@@ -43,7 +43,7 @@ for i in range(2000):
     print("x: " + str(avg_x) + "y: " + str(avg_y) + "z: " + str(avg_z) + "g: ")
 
 #g calibration
-print("Running Z calibration")
+print("Running G calibration")
 i = 1
 cum_g = 0
 for i in range(2000):
