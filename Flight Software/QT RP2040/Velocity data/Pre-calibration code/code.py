@@ -6,10 +6,10 @@ icm = adafruit_icm20x.ICM20649(i2c)
 adafruit_icm20x.ICM20649.accelerometer_range = 30
 adafruit_icm20x.accelerometer_data_rate = 5000
 #Manually insert calibration values here (This fucking sucks)
-x_adjust = 
-y_adjust = 
-z_adjust = 
-g = 
+x_adjust = None
+y_adjust = None
+z_adjust = None
+g = None
 
 #Measurement setup
 adafruit_icm20x.ICM20649.accelerometer_range = 30
