@@ -3,8 +3,7 @@
 https://github.com/besser435/Chungus-Aerospace
 
 Huffing Glue flight Software for a modified version of the CALC flight system by Joe Mama and besser.
-This current code is meant to run on a Feather M4. Thats what the 
-pinouts are configured for.
+This current code is meant to run on a Feather M4. Thats what the pinouts are configured for.
 
 #NOTE This code doesnt work currently. The log list will also fill up the memory, causing an unhandled exception.
 """
@@ -270,8 +269,8 @@ def main_logging():
                 if bmp_alt <= STARTING_ALTITUDE + 45:  # barometer deploy altitude, this is a backup to the velocity code
                     chute_deploy_timestamp = time_stamp
                     chute_relay.value = True
-                    log_list.extend(["Deployed parachute from baromter,"])
-                    print("Deployed parachute from baromter")
+                    log_list.extend(["Deployed parachute from barometer,"])
+                    print("Deployed parachute from barometer")
                     chute_deployed +=1
 
 
