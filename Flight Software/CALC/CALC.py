@@ -6,10 +6,9 @@ Flight Software for the CALC flight system by Joe Mama and besser.
 This current code is meant to run on a Feather M4. Thats what the 
 pinouts are configured for.
 
-#NOTE This code doesnt work currently. The log list will also fill up the memory, causing an unhandled exception.
 """
-version = "v1.15"
-date = "December 2022"
+version = "v1.15.1"
+date = "January 2023"
 
 #import adafruit_adxl34x
 import adafruit_bmp3xx, adafruit_pcf8523, adafruit_sdcard
@@ -221,25 +220,23 @@ def main_logging():
                 chute_armed += 1
 #NOTE 
         # Deploy parachute
-        if chute_armed: 
-            if not chute_deployed: # prevents the event from being ran repeatedly 
-                if bmp_alt <= STARTING_ALTITUDE + 45:  # deploy altitude
-                    chute_deploy_timestamp = time_stamp
-                    chute_relay.value = True
-                    log_list.extend(["Deployed parachute,"])
-                    print("Deployed parachute")
-                    chute_deployed +=1
+        if chute_armed and not chute_deployed:   # prevents the event from being ran repeatedly 
+            if bmp_alt <= STARTING_ALTITUDE + 45:  # deploy altitude
+                chute_deploy_timestamp = time_stamp
+                chute_relay.value = True
+                log_list.extend(["Deployed parachute,"])
+                print("Deployed parachute")
+                chute_deployed +=1
 
             # Open chute relay
             # This needs to be a thing, because when the chute deploys, the power source for the relay
             # might still be connected after the chute deploys. This dead short in the battery is obviously not great.
-            if chute_deployed:   
-                if not logged_chute_deploy:  # prevents the event from being ran repeatedly
-                    if time_stamp >= chute_deploy_timestamp + chute_trigger_time: 
-                        chute_relay.value = False
-                        log_list.extend(["Parachute relay off,"])
-                        print("Parachute relay off")
-                        logged_chute_deploy += 1 
+            if chute_deployed and not logged_chute_deploy:   # prevents the event from being ran repeatedly
+                if time_stamp >= chute_deploy_timestamp + chute_trigger_time: 
+                    chute_relay.value = False
+                    log_list.extend(["Parachute relay off,"])
+                    print("Parachute relay off")
+                    logged_chute_deploy += 1 
             
 #NOTE
         # stops the logging of data
@@ -257,7 +254,8 @@ def main_logging():
                 break
        
         # this prevents the RAM from running out
-        remainder = data_cycles % 70
+#TODO de-bung this, make it more reliable
+        remainder = data_cycles % 60
         is_divisible = remainder == 0
         if is_divisible:   
             #with open(FILE_NAME , "a") as f:
