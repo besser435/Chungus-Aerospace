@@ -8,8 +8,8 @@ import java.util.Date;
  */
 
 public class check_fraud {
-   public static boolean debugMode = false;
-   public static int launchCountdown = 10;
+   public static final boolean debugMode = false;
+   public static final int launchCountdown = 10;
 
    public static void main(String[] args) {
       mainMenu();
