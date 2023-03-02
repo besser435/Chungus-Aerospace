@@ -909,6 +909,16 @@ design rules under a new name.</description>
 <wire x1="24.765" y1="25.4" x2="25.24" y2="25.4" width="0.2032" layer="1"/>
 <wire x1="17.145" y1="10.16" x2="16.52" y2="10.16" width="0.2032" layer="1"/>
 <wire x1="15.24" y1="10.16" x2="15.24" y2="35.56" width="0.2032" layer="16"/>
+<polygon width="0.254" layer="1">
+<vertex x="1.27" y="1.27"/>
+<vertex x="0" y="2.54"/>
+<vertex x="0" y="71.12"/>
+<vertex x="1.27" y="72.39"/>
+<vertex x="29.21" y="72.39"/>
+<vertex x="30.48" y="71.12"/>
+<vertex x="30.48" y="2.54"/>
+<vertex x="29.21" y="1.27"/>
+</polygon>
 </signal>
 <signal name="VBUS">
 <contactref element="U2" pad="P$40"/>
@@ -967,10 +977,10 @@ design rules under a new name.</description>
 <signal name="BEEP">
 <contactref element="LS1" pad="P"/>
 <contactref element="U2" pad="P$29"/>
-<wire x1="23.495" y1="31.115" x2="23.495" y2="10.16" width="0.2032" layer="16"/>
-<wire x1="22.86" y1="31.75" x2="23.495" y2="31.115" width="0.2032" layer="16"/>
-<wire x1="22.86" y1="39.37" x2="22.86" y2="31.75" width="0.2032" layer="1"/>
-<wire x1="24.13" y1="40.64" x2="22.86" y2="39.37" width="0.2032" layer="1"/>
+<wire x1="23.495" y1="31.115" x2="23.495" y2="10.16" width="0.254" layer="16"/>
+<wire x1="22.86" y1="31.75" x2="23.495" y2="31.115" width="0.254" layer="16"/>
+<wire x1="22.86" y1="39.37" x2="22.86" y2="31.75" width="0.254" layer="1"/>
+<wire x1="24.13" y1="40.64" x2="22.86" y2="39.37" width="0.254" layer="1"/>
 <wire x1="25.24" y1="40.64" x2="24.13" y2="40.64" width="0.2032" layer="1"/>
 <wire x1="23.495" y1="10.16" x2="24.12" y2="10.16" width="0.2032" layer="16"/>
 <via x="22.86" y="31.75" extent="1-16" drill="0.508"/>
@@ -1002,9 +1012,9 @@ design rules under a new name.</description>
 <contactref element="U2" pad="P$36"/>
 <contactref element="U1" pad="13"/>
 <wire x1="8.89" y1="41.91" x2="7.62" y2="41.91" width="0.2032" layer="16"/>
-<wire x1="22.86" y1="55.88" x2="8.89" y2="41.91" width="0.2032" layer="16"/>
-<wire x1="22.86" y1="57.15" x2="22.86" y2="55.88" width="0.2032" layer="16"/>
-<wire x1="24.13" y1="58.42" x2="22.86" y2="57.15" width="0.2032" layer="1"/>
+<wire x1="22.86" y1="55.88" x2="8.89" y2="41.91" width="0.254" layer="16"/>
+<wire x1="22.86" y1="57.15" x2="22.86" y2="55.88" width="0.254" layer="16"/>
+<wire x1="24.13" y1="58.42" x2="22.86" y2="57.15" width="0.254" layer="1"/>
 <wire x1="25.24" y1="58.42" x2="24.13" y2="58.42" width="0.2032" layer="1"/>
 <wire x1="7.62" y1="41.91" x2="7.54" y2="41.64" width="0.2032" layer="16"/>
 <via x="22.86" y="57.15" extent="1-16" drill="0.508"/>
@@ -1012,14 +1022,26 @@ design rules under a new name.</description>
 <signal name="VCC">
 <contactref element="CN1" pad="1"/>
 <contactref element="U2" pad="P$39"/>
-<wire x1="23.495" y1="64.77" x2="24.765" y2="66.04" width="0.2032" layer="1"/>
-<wire x1="22.225" y1="64.77" x2="23.495" y2="64.77" width="0.2032" layer="1"/>
-<wire x1="22.225" y1="64.135" x2="22.225" y2="64.77" width="0.2032" layer="1"/>
-<wire x1="8.89" y1="64.135" x2="22.225" y2="64.135" width="0.2032" layer="16"/>
-<wire x1="7.62" y1="65.405" x2="8.89" y2="64.135" width="0.2032" layer="16"/>
+<wire x1="23.495" y1="64.77" x2="24.765" y2="66.04" width="0.254" layer="1"/>
+<wire x1="22.225" y1="64.77" x2="23.495" y2="64.77" width="0.254" layer="1"/>
+<wire x1="22.225" y1="64.135" x2="22.225" y2="64.77" width="0.254" layer="1"/>
+<wire x1="8.89" y1="64.135" x2="22.225" y2="64.135" width="0.254" layer="16"/>
+<wire x1="7.62" y1="65.405" x2="8.89" y2="64.135" width="0.254" layer="16"/>
 <wire x1="24.765" y1="66.04" x2="25.24" y2="66.04" width="0.2032" layer="1"/>
-<wire x1="7.62" y1="65.405" x2="7.35" y2="65.93" width="0.2032" layer="16"/>
+<wire x1="7.62" y1="65.405" x2="7.35" y2="65.93" width="0.254" layer="16"/>
 <via x="22.225" y="64.135" extent="1-16" drill="0.508"/>
+</signal>
+<signal name="GNC">
+<polygon width="0.254" layer="16">
+<vertex x="1.27" y="1.27"/>
+<vertex x="0" y="2.54"/>
+<vertex x="0" y="71.12"/>
+<vertex x="1.27" y="72.39"/>
+<vertex x="29.21" y="72.39"/>
+<vertex x="30.48" y="71.12"/>
+<vertex x="30.48" y="2.54"/>
+<vertex x="29.21" y="1.27"/>
+</polygon>
 </signal>
 </signals>
 <mfgpreviewcolors>
