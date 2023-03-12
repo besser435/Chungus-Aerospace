@@ -20,15 +20,15 @@ but we might as well try.
 
 This is the ground station code, it will help us find the rocket.
 """
-version = "Autism Ray v0.2 (Ground)"
+version = "Autism Ray v1.0 (Ground)"
 
 # I2C
 i2c = busio.I2C(board.SCL, board.SDA)
 
 # RFM95
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
-cs = digitalio.DigitalInOut(board.D18)
-reset = digitalio.DigitalInOut(board.D19)
+cs = digitalio.DigitalInOut(board.CE1)
+reset = digitalio.DigitalInOut(board.D25)
 rfm = adafruit_rfm9x.RFM9x(spi, cs, reset, 900.0) # NOTE 900MHz
 rfm.tx_power = 23
 prev_packet = None
@@ -43,8 +43,8 @@ height = display.height
 
 # Buzzer
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(4, GPIO.OUT)  # PWM pin 4 on the Pi
-buzz = GPIO.PWM(4, 1000) 
+GPIO.setup(12, GPIO.OUT)  # PWM pin 4 on the Pi
+buzz = GPIO.PWM(12, 1000) 
 GPIO.setwarnings(False)
 
 # date and file path
@@ -52,9 +52,8 @@ now = datetime.datetime.now()
 time_and_date = now.strftime("%m-%d-%Y %H:%M")
 FILE_LOCATION = "/home/pi/Desktop/" 
 
-
-try:
-    while True:
+while True:
+    try:   
         packet = None   # this is to reset the vars for the next loop iteration
         rssi = None
         packet = rfm.receive()
@@ -75,6 +74,10 @@ try:
 
             # +900 makes the pitch higher as the signal gets stronger. *4 shifts it to more comfy frequencies
             print("DEBUG RSSI buzzer freq: ", rssi * 5 + 900)
+            from gpiozero import CPUTemperature
+            cpu = CPUTemperature()
+            print("Pi CPU Temp: " + str(cpu.temperature))
+
            
             display.fill(0)
             display.text(packet_text[11:], 0, 0, 1)
@@ -83,18 +86,18 @@ try:
             display.show()
         time.sleep(0.4)
 
-except Exception as e:
-    print("Error occurred: \n")
-    print(Fore.LIGHTRED_EX + str(traceback.format_exc()))
-    buzz.start(0)
-    display.fill(0)
-    display.show()
-    with open(FILE_LOCATION + "beacon_receiver_error.txt", "a") as f: 
-        f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
-        f.write("\n" * 2)
+    except Exception as e:
+        print("Error occurred: \n")
+        print(Fore.LIGHTRED_EX + str(traceback.format_exc()))
+        buzz.start(0)
+        display.fill(0)
+        display.show()
+        with open(FILE_LOCATION + "beacon_receiver_error.txt", "a") as f: 
+            f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
+            f.write("\n" * 2)
 
-except KeyboardInterrupt:
-    print("KeyboardInterrupt")
-    buzz.start(0)
-    display.fill(0)
-    display.show()
+    except KeyboardInterrupt:
+        print("KeyboardInterrupt")
+        buzz.start(0)
+        display.fill(0)
+        display.show()

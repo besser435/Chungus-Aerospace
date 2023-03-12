@@ -1,6 +1,5 @@
 from digitalio import DigitalInOut
 import time, busio, digitalio, board, neopixel, adafruit_rfm9x
-
 """
 Authored by besser435, March 2023
 
@@ -15,20 +14,24 @@ but we might as well try.
 This is the rocket code. It will broadcast the radio signal, and
 will also beep for when we get close to finding it.
 """
-version = "Autism Ray v0.2 (Rocket)"
+version = "Autism Ray v1.0 (Rocket)"
 
-# Neopixel
+
 """TODO Pin numbers are not set correctly."""
+# LEDs
 led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=1)
+led = digitalio.DigitalInOut(board.LED_GREEN)
+led.direction = digitalio.Direction.OUTPUT
+led.value = True
 
 
 # RFM95
-"""spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
+spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 cs = digitalio.DigitalInOut(board.D7)
 reset = digitalio.DigitalInOut(board.D0)
 rfm = adafruit_rfm9x.RFM9x(spi, cs, reset, 900.0) # NOTE 900MHz
 rfm.tx_power = 23
-prev_packet = None"""
+prev_packet = None
 
 # Beeper
 mute_beeper = 0
@@ -40,6 +43,8 @@ def beep(state):
             beeper.value = True 
         elif state == 1:
             beeper.value = False
+    else:
+        led_neo.brightness = 0.01
 
 
 def error(e):
@@ -57,20 +62,19 @@ def error(e):
 
     while True:
         send_data = bytes("Error occurred: \n" + e + "\r\n","utf-8")
-        #rfm.send(send_data)
+        rfm.send(send_data)
         print("Sent the message: " + str(send_data))
         time.sleep(1)
 
-
-try:
-    heartbeat = 0
-    while True:
+heartbeat = 0
+while True:
+    try:
         time.sleep(0.2)
         led_neo.fill((255, 255, 255))
         beep(1)
 
         send_data = bytes(version + " Beacon. Heartbeat: " + str(heartbeat) + "\r\n","utf-8")
-        #rfm.send(send_data)
+        rfm.send(send_data)
         print("Sent the message: " + str(send_data))
 
         time.sleep(0.2)
@@ -78,5 +82,6 @@ try:
         beep(0)
         heartbeat += 1
             
-except Exception as e:
-    error(e)
+    except Exception as e:
+        error(e)
+        microcontroller.reset()
