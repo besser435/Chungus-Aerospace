@@ -6,6 +6,7 @@ init()
 from colorama import Fore
 init(autoreset=True)
 import RPi.GPIO as GPIO
+from gpiozero import CPUTemperature
 
 """
 Authored by besser435, March 2023
@@ -20,7 +21,7 @@ but we might as well try.
 
 This is the ground station code, it will help us find the rocket.
 """
-version = "Autism Ray v1.0 (Ground)"
+version = "Autism Ray v1.1 (Ground)"
 
 # I2C
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -43,14 +44,15 @@ height = display.height
 
 # Buzzer
 GPIO.setmode(GPIO.BCM)
-GPIO.setup(12, GPIO.OUT)  # PWM pin 4 on the Pi
+GPIO.setup(12, GPIO.OUT)  
 buzz = GPIO.PWM(12, 1000) 
 GPIO.setwarnings(False)
 
-# date and file path
+# other stuff
 now = datetime.datetime.now()
 time_and_date = now.strftime("%m-%d-%Y %H:%M")
 FILE_LOCATION = "/home/pi/Desktop/" 
+cpu = CPUTemperature()
 
 while True:
     try:   
@@ -61,6 +63,7 @@ while True:
 
         if packet is None:
             print(Fore.YELLOW + "Received nothing! Listening again...")
+            print("Pi CPU Temp: " + str(cpu.temperature))
             buzz.start(0)
             display.fill(0)
             display.text("Received nothing!", 0, 0, 1)
@@ -69,16 +72,12 @@ while True:
             packet_text = str(packet, 'utf-8') 
             print("Received (UTF-8): {0}".format(packet_text))
             print(Fore.CYAN + "RSSI:", rssi, "dB", "   at", time_and_date)
+            print("Pi CPU Temp: " + str(cpu.temperature))
             buzz.start(50)
             buzz.ChangeFrequency((rssi * 4 + 900))
-
             # +900 makes the pitch higher as the signal gets stronger. *4 shifts it to more comfy frequencies
-            print("DEBUG RSSI buzzer freq: ", rssi * 5 + 900)
-            from gpiozero import CPUTemperature
-            cpu = CPUTemperature()
-            print("Pi CPU Temp: " + str(cpu.temperature))
-
-           
+            #print("DEBUG RSSI buzzer freq: ", rssi * 5 + 900)
+            
             display.fill(0)
             display.text(packet_text[11:], 0, 0, 1)
             display.text("RSSI: " + str(rssi), 0, 13, 1)
