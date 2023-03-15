@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE eagle SYSTEM "eagle.dtd">
+<eagle>
+    <drawing>
+        <grid unitdist="mm" unit="mm"/>
+        <layers>
+            <layer name="Top" color="4" number="1" visible="yes" active="yes" fill="1"/>
+            <layer name="tKeepout" color="0" number="4" visible="yes" active="yes" fill="1"/>
+            <layer name="Bottom" color="4" number="16" visible="yes" active="yes" fill="1"/>
+            <layer name="tPlace" color="7" number="21" visible="yes" active="yes" fill="1"/>
+            <layer name="bPlace" color="7" number="22" visible="yes" active="yes" fill="1"/>
+            <layer name="tNames" color="7" number="25" visible="yes" active="yes" fill="1"/>
+            <layer name="bNames" color="7" number="26" visible="yes" active="yes" fill="1"/>
+            <layer name="tValues" color="7" number="27" visible="yes" active="yes" fill="1"/>
+            <layer name="bValues" color="7" number="28" visible="yes" active="yes" fill="1"/>
+            <layer name="tStop" color="7" number="29" visible="yes" active="yes" fill="1"/>
+            <layer name="bStop" color="7" number="30" visible="yes" active="yes" fill="1"/>
+            <layer name="tCream" color="7" number="31" visible="yes" active="yes" fill="1"/>
+            <layer name="bCream" color="7" number="32" visible="yes" active="yes" fill="1"/>
+            <layer name="bKeepout" color="0" number="40" visible="yes" active="yes" fill="1"/>
+            <layer name="tRestrict" color="4" number="41" visible="yes" active="yes" fill="1"/>
+            <layer name="bRestrict" color="4" number="42" visible="yes" active="yes" fill="1"/>
+            <layer name="tDocu" color="7" number="51" visible="yes" active="yes" fill="1"/>
+            <layer name="bDocu" color="7" number="52" visible="yes" active="yes" fill="1"/>
+            <layer name="Nets" color="2" number="91" visible="yes" active="yes" fill="1"/>
+            <layer name="Busses" color="1" number="92" visible="yes" active="yes" fill="1"/>
+            <layer name="Pins" color="2" number="93" visible="yes" active="yes" fill="1"/>
+            <layer name="Symbols" color="4" number="94" visible="yes" active="yes" fill="1"/>
+            <layer name="Names" color="7" number="95" visible="yes" active="yes" fill="1"/>
+            <layer name="Values" color="7" number="96" visible="yes" active="yes" fill="1"/>
+            <layer name="Info" color="7" number="97" visible="yes" active="yes" fill="1"/>
+            <layer name="Guide" color="6" number="98" visible="yes" active="yes" fill="1"/>
+        </layers>
+        <library name="Upverter Library">
+            <description>Upverter Parts Library
+
+Created by Upverter.com</description>
+            <packages>
+                <package name="ADAFRUIT_INDUSTRIES_3966_0">
+                    <description>BMP388 series Pressure Sensor Evaluation Board</description>
+                    <wire layer="51" y2="8.89" width="0.15" x2="-12.7" y1="-8.89" x1="-12.7"/>
+                    <wire layer="51" y2="8.89" width="0.15" x2="12.7" y1="8.89" x1="-12.7"/>
+                    <wire layer="51" y2="-8.89" width="0.15" x2="12.7" y1="8.89" x1="12.7"/>
+                    <wire layer="51" y2="-8.89" width="0.15" x2="-12.7" y1="-8.89" x1="12.7"/>
+                    <wire layer="21" y2="8.89" width="0.15" x2="12.7" y1="8.89" x1="-12.7"/>
+                    <wire layer="21" y2="8.89" width="0.15" x2="12.7" y1="-8.89" x1="12.7"/>
+                    <wire layer="21" y2="-8.89" width="0.15" x2="12.7" y1="-8.89" x1="-12.7"/>
+                    <wire layer="21" y2="8.89" width="0.15" x2="-12.7" y1="-8.89" x1="-12.7"/>
+                    <wire layer="41" y2="8.99" width="0.1" x2="-12.8" y1="-8.99" x1="-12.8"/>
+                    <wire layer="41" y2="8.99" width="0.1" x2="12.8" y1="8.99" x1="-12.8"/>
+                    <wire layer="41" y2="-8.99" width="0.1" x2="12.8" y1="8.99" x1="12.8"/>
+                    <wire layer="41" y2="-8.99" width="0.1" x2="-12.8" y1="-8.99" x1="12.8"/>
+                    <text layer="25" align="bottom-left" y="9.19" x="-12.7" rot="R0" size="1.0">&gt;NAME</text>
+                    <circle y="-6.35" x="-13.3" layer="21" radius="0.25" width="0.0"/>
+                    <pad diameter="1.78" name="1" shape="square" drill="1.0" y="-6.35" x="-8.89" rot="R0"/>
+                    <pad diameter="1.78" name="2" shape="round" drill="1.0" y="-6.35" x="-6.35" rot="R0"/>
+                    <pad diameter="1.78" name="3" shape="round" drill="1.0" y="-6.35" x="-3.81" rot="R0"/>
+                    <pad diameter="1.78" name="4" shape="round" drill="1.0" y="-6.35" x="-1.27" rot="R0"/>
+                    <pad diameter="1.78" name="5" shape="round" drill="1.0" y="-6.35" x="1.27" rot="R0"/>
+                    <pad diameter="1.78" name="6" shape="round" drill="1.0" y="-6.35" x="3.81" rot="R0"/>
+                    <pad diameter="1.78" name="7" shape="round" drill="1.0" y="-6.35" x="6.35" rot="R0"/>
+                    <pad diameter="1.78" name="8" shape="round" drill="1.0" y="-6.35" x="8.89" rot="R0"/>
+                </package>
+            </packages>
+            <symbols>
+                <symbol name="ADAFRUIT_INDUSTRIES_3966_0_0">
+                    <description>BMP388 series Pressure Sensor Evaluation Board</description>
+                    <wire layer="94" y2="-5.08" width="0.254" x2="2.54" y1="-22.86" x1="2.54"/>
+                    <wire layer="94" y2="-5.08" width="0.254" x2="30.48" y1="-5.08" x1="2.54"/>
+                    <wire layer="94" y2="-22.86" width="0.254" x2="30.48" y1="-5.08" x1="30.48"/>
+                    <wire layer="94" y2="-22.86" width="0.254" x2="2.54" y1="-22.86" x1="30.48"/>
+                    <wire layer="94" y2="-7.62" width="0.15" x2="2.54" y1="-7.62" x1="2.54"/>
+                    <wire layer="94" y2="-7.62" width="0.15" x2="30.48" y1="-7.62" x1="30.48"/>
+                    <wire layer="94" y2="-20.32" width="0.15" x2="2.54" y1="-20.32" x1="2.54"/>
+                    <wire layer="94" y2="-12.7" width="0.15" x2="30.48" y1="-12.7" x1="30.48"/>
+                    <wire layer="94" y2="-12.7" width="0.15" x2="2.54" y1="-12.7" x1="2.54"/>
+                    <wire layer="94" y2="-15.24" width="0.15" x2="2.54" y1="-15.24" x1="2.54"/>
+                    <wire layer="94" y2="-17.78" width="0.15" x2="2.54" y1="-17.78" x1="2.54"/>
+                    <wire layer="94" y2="-20.32" width="0.15" x2="30.48" y1="-20.32" x1="30.48"/>
+                    <text layer="95" align="top-left" y="-2.54" x="2.54" rot="R0" size="2.54">&gt;NAME</text>
+                    <text layer="95" align="top-left" y="-25.4" x="2.54" rot="R0" size="2.54">3966</text>
+                    <pin direction="pwr" name="VIN" visible="both" length="middle" y="-7.62" x="-2.54"/>
+                    <pin direction="pwr" name="3VO" visible="both" length="middle" y="-7.62" x="35.56" rot="R180"/>
+                    <pin direction="in" name="!CS!" visible="both" length="middle" y="-20.32" x="-2.54"/>
+                    <pin direction="out" name="INT" visible="both" length="middle" y="-12.7" x="35.56" rot="R180"/>
+                    <pin direction="in" name="SCK/SCL" visible="both" length="middle" y="-12.7" x="-2.54"/>
+                    <pin direction="io" name="SDI/SDA" visible="both" length="middle" y="-15.24" x="-2.54"/>
+                    <pin direction="io" name="SDO/ADR" visible="both" length="middle" y="-17.78" x="-2.54"/>
+                    <pin direction="pwr" name="GND" visible="both" length="middle" y="-20.32" x="35.56" rot="R180"/>
+                </symbol>
+            </symbols>
+            <devicesets>
+                <deviceset prefix="MD" name="ADAFRUIT_INDUSTRIES_3966">
+                    <description>BMP388 series Pressure Sensor Evaluation Board</description>
+                    <gates>
+                        <gate name="G$0" symbol="ADAFRUIT_INDUSTRIES_3966_0_0" x="0"/>
+                    </gates>
+                    <devices>
+                        <device name="ADAFRUIT_INDUSTRIES_3966_0_0" package="ADAFRUIT_INDUSTRIES_3966_0">
+                            <connects>
+                                <connect gate="G$0" pad="1" pin="VIN"/>
+                                <connect gate="G$0" pad="2" pin="3VO"/>
+                                <connect gate="G$0" pad="3" pin="GND"/>
+                                <connect gate="G$0" pad="4" pin="SCK/SCL"/>
+                                <connect gate="G$0" pad="5" pin="SDO/ADR"/>
+                                <connect gate="G$0" pad="6" pin="SDI/SDA"/>
+                                <connect gate="G$0" pad="7" pin="!CS!"/>
+                                <connect gate="G$0" pad="8" pin="INT"/>
+                            </connects>
+                            <technologies>
+                                <technology>
+                                    <attribute name="mouser_part_number" value="485-3966"/>
+                                    <attribute name="prefix" value="MD"/>
+                                    <attribute name="mfg_package_ident_rev" value="0"/>
+                                    <attribute name="mfg_package_ident_date" value="0"/>
+                                    <attribute name="MPN" value="3966"/>
+                                    <attribute name="device_class_L3" value="unset"/>
+                                    <attribute name="device_class_L1" value="Sensors"/>
+                                    <attribute name="digikey_part_number" value="1528-2733-ND"/>
+                                    <attribute name="verification_version" value="0.0.0.3"/>
+                                    <attribute name="datasheet" value="https://cdn-learn.adafruit.com/downloads/pdf/adafruit-bmp388-bmp390-bmp3xx.pdf?timestamp=1628517945"/>
+                                    <attribute name="sensor_output" value="I2C,SPI"/>
+                                    <attribute name="lead_free" value="Yes"/>
+                                    <attribute name="automotive" value="No"/>
+                                    <attribute name="mfg_package_ident" value="0"/>
+                                    <attribute name="footprint_variant_name_0" value="Recommended_Land_Pattern"/>
+                                    <attribute name="device_class_L2" value="Pressure Sensors"/>
+                                    <attribute name="digikey_description" value="BMP388 - PRECISION BAROMETRIC PR"/>
+                                    <attribute name="rohs" value="Yes"/>
+                                    <attribute name="centroid_not_specified" value="No"/>
+                                    <attribute name="MF" value="Adafruit Industries"/>
+                                    <attribute name="package" value="MODULE_25MM40_17MM78"/>
+                                    <attribute name="pin_0_0_4_inside_edge" value="clock"/>
+                                </technology>
+                            </technologies>
+                        </device>
+                    </devices>
+                </deviceset>
+            </devicesets>
+        </library>
+    </drawing>
+</eagle>
