@@ -1,7 +1,9 @@
 from digitalio import DigitalInOut
 import time, busio, digitalio, board, neopixel, adafruit_rfm9x
 """
-Authored by besser435, March 2023
+Authored by besser435
+Created February 2023
+Revised March 2023
 
 Autism Ray is Chungus Aerospace's system to locate a rocket
 using LoRa 915MHz radios. Once the rocket lands, we will
@@ -14,7 +16,7 @@ but we might as well try.
 This is the rocket code. It will broadcast the radio signal, and
 will also beep for when we get close to finding it.
 """
-version = "Autism Ray v1.0 (Rocket)"
+version = "Autism Ray v1.0.1 (Rocket)"
 
 
 """TODO Pin numbers are not set correctly."""
@@ -84,4 +86,3 @@ while True:
             
     except Exception as e:
         error(e)
-        microcontroller.reset()
