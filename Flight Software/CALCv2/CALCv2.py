@@ -1,34 +1,27 @@
-version = "CALC v2.0-beta.6"
-code_revision_date = "May 2022"
+version = "CALC v2.0-beta.7"
+code_revision_date = "November 2022"
 
-from random import randint
-import board
-import adafruit_icm20x
-import adafruit_bmp3xx
-import neopixel
-import numpy as np
+
 from rainbowio import colorwheel
 from gpiozero import CPUTemperature
 from gpiozero import DigitalOutputDevice
 from gpiozero import InputDevice
-import time
 from picamera import PiCamera
-import threading
-import sys
-import os
 from colorama import init
 init()
 from colorama import Fore
 init(autoreset=True)
-import requests
-from requests.structures import CaseInsensitiveDict
-import math 
+from requests.structures import CaseInsensitiveDict  # for weather API
 from datetime import datetime
-import random
-import traceback
+from random import randint
+import numpy as np
+import board, neopixel, time, threading, sys, os, math, requests, traceback, random
+import adafruit_icm20x, adafruit_bmp3xx
+import CALCv2_options
 
 
 # general options
+# https://www.youtube.com/watch?v=m_a0fN48Alw
 enable_camera = 0
 led_neo_brightness = 1
 launch_countdown = 10 # also acts as storage
@@ -69,7 +62,8 @@ adafruit_icm20x.ICM20649.accelerometer_range = 16
 adafruit_icm20x.ICM20649.gyro_range = 500
 
 adafruit_icm20x.gyro_data_rate = 5000
-adafruit_icm20x.accelerometer_data_rate = 5000
+#adafruit_icm20x.accelerometer_data_rate = 5000
+adafruit_icm20x.ICM20649.accelerometer_data_rate = 5000
 
 # Beeper
 beeper = DigitalOutputDevice(21)
@@ -112,7 +106,7 @@ def cc():   # shortens this long command to just cc()
 cc()
 
 
-def kr():  # kill RGB rainbow loop
+def kr():  # kill RGB rainbow loop. This function is a mess but it somehow works lol
     global kill_rgb
     kill_rgb = 1
 kr()  # incase it was somehow still on before starting the program
@@ -330,7 +324,7 @@ def main():
             #t_parachute.start()
 
 
-            led_neo.fill((20, 235, 35)) # indicates the motor has been fired and is waiting for liftoff detection to run log code 
+            led_neo.fill((255, 69, 0)) # indicates the motor has been fired and is waiting for liftoff detection to run log code 
             print(Fore.LIGHTGREEN_EX + "Motor Lit")
             motor_relay.on()    # launches the rocket 
 
@@ -413,9 +407,15 @@ def main():
                 "{:5.2f}".format(time_stamp),
                 ])
 
-                print("Alt: {:5.2f}".format(bmp_alt) + "m", end = "   ")   
+                """                print("Alt: {:5.2f}".format(bmp_alt) + "m", end = "   ")   
                 print("Time: {:5.2f}".format(time_stamp) + "s", end = "   ")
-                print("Data cycles: " + str(data_cycles))
+                print("Data cycles: " + str(data_cycles))"""
+
+                print(
+                    "Alt: {:5.2f}".format(bmp_alt) + "m", end = "   "
+                    "Time: {:5.2f}".format(time_stamp) + "s", end = "   "
+                    "Data cycles: " + str(data_cycles)
+                )
                 
 #NOTE
                 # Arm parachute
@@ -428,7 +428,7 @@ def main():
                 # Deploy parachute
                 if chute_armed == 1: 
                     if chute_deployed == 0: # prevents the event from being ran repeatedly 
-                        if bmp_alt <= STARTING_ALTITUDE + 37:  #47 - deploy altitude
+                        if bmp_alt <= STARTING_ALTITUDE + 35:  #47 - deploy altitude
                             DATA_CYCLES_CHUTE = data_cycles 
                             chute_relay.on()
                             log_list.extend(["Deployed parachute,"])
@@ -436,6 +436,7 @@ def main():
                             chute_deployed +=1
 
                     # Open chute relay
+                    #TODO this uses the old delay method of DATA_CYCLES_CHUTE. change to the method used in CALC
                     if chute_deployed == 1:   
                         if logged_chute_deploy == 0:  # prevents the event from being ran repeatedly
                             if data_cycles > DATA_CYCLES_CHUTE + 80:  # waits about a second before opening the relay. pure autism
@@ -447,17 +448,17 @@ def main():
 
 #NOTE           # stops the logging of data
                 if data_cycles > 300:  # ensures that the logging is not stopped on the pad  
-                    if bmp_alt <= STARTING_ALTITUDE + 20:   # + 4 is incase it lands above the starting elevation or the sensor drifts
+                    if bmp_alt <= STARTING_ALTITUDE + 15:   # + 15 is incase it lands above the starting elevation or the sensor drifts
                         log_list.extend(["Stopped logging low alt met,"])
                         print(Fore.LIGHTCYAN_EX + "Stopped logging low alt met {:5.2f}".format(bmp.altitude) + "m")
                         print(Fore.LIGHTCYAN_EX + "Starting altitude: " + str(STARTING_ALTITUDE) + "m")
                         print(Fore.LIGHTGREEN_EX + "RESTART SOFTWARE TO LOG AGAIN")
                         break
 
-                    if data_cycles >= 700: # Backup to the code above
-                        log_list.extend(["Data cycles > 1000 stopping logging,"])
+                    if data_cycles >= 800: # Backup to the code above
+                        log_list.extend(["Data cycles > 800 stopping logging,"])
                         log_list.extend(["This means altitude code did not execute. Fix this,"])
-                        print(Fore.LIGHTGREEN_EX + "Data cycles > 700 stopping logging. This means altitude code did not execute.")
+                        print(Fore.LIGHTGREEN_EX + "Data cycles > 800 stopping logging. This means altitude code did not execute.")
                         print(Fore.LIGHTGREEN_EX + "INVESTIGATE ISSUE BEFORE RESTARTING SOFTWARE")
                         break
 
@@ -679,7 +680,7 @@ def main():
                 print("Weather API pressure = " + str(current_pressure) + "mbar")   # this should match the baro calibration pressure
                 print("Barometer calibration pressure = " + str(bmp.sea_level_pressure) + "mbar")
                 print("Temperature: {:5.2f}".format(bmp.temperature) + "°c")
-                print("Acceration: %.2f %.2f %.2f" % icm.acceleration + " m/s²")
+                print("Acceleration: %.2f %.2f %.2f" % icm.acceleration + " m/s²")
                 print("Gyroscope: %.2f %.2f %.2f" % icm.gyro + " deg/s")
                 time.sleep(0.1)
                 view_sensor_count -= 1
@@ -727,6 +728,7 @@ def main():
             import datetime
             file = "CALCv2.py"
             print("last modified: %s" % time.ctime(os.path.getmtime(file)))
+            print("Python version: " + sys.version)
             #import os.path
             #print("Created: %s" % time.ctime(os.path.getctime("CALCv2.py")))
 
