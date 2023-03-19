@@ -9,7 +9,9 @@ import RPi.GPIO as GPIO
 from gpiozero import CPUTemperature
 
 """
-Authored by besser435, March 2023
+Authored by besser435
+Created February 2023
+Revised March 2023
 
 Autism Ray is Chungus Aerospace's system to locate a rocket
 using LoRa 915MHz radios. Once the rocket lands, we will
@@ -21,7 +23,7 @@ but we might as well try.
 
 This is the ground station code, it will help us find the rocket.
 """
-version = "Autism Ray v1.1 (Ground)"
+version = "Autism Ray v1.1.1 (Ground)"
 
 # I2C
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -30,13 +32,13 @@ i2c = busio.I2C(board.SCL, board.SDA)
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
 cs = digitalio.DigitalInOut(board.CE1)
 reset = digitalio.DigitalInOut(board.D25)
-rfm = adafruit_rfm9x.RFM9x(spi, cs, reset, 900.0) # NOTE 900MHz
+rfm = adafruit_rfm9x.RFM9x(spi, cs, reset, 900.0) # NOTE 900MHz, not 915
 rfm.tx_power = 23
 prev_packet = None
 
 # 128x32 OLED Display
 reset_pin = DigitalInOut(board.D4)
-display = adafruit_ssd1306.SSD1306_I2C(128, 32, i2c, reset=reset_pin) # OLD
+display = adafruit_ssd1306.SSD1306_I2C(128, 32, i2c, reset=reset_pin) # OLD LIB
 display.fill(0)
 display.show()
 width = display.width
