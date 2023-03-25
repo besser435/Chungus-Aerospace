@@ -1,14 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.6.2">
+<eagle version="9.5.1">
 <drawing>
 <settings>
-<setting alwaysvectorfont="no"/>
+<setting alwaysvectorfont="yes"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="50" unitdist="mil" unit="inch" style="lines" multiple="1" display="no" altdistance="5" altunitdist="mil" altunit="mil"/>
+<grid distance="50" unitdist="mil" unit="mil" style="lines" multiple="1" display="no" altdistance="5" altunitdist="mil" altunit="mil"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
+<layer number="2" name="Route2" color="16" fill="1" visible="no" active="yes"/>
+<layer number="3" name="Route3" color="17" fill="1" visible="no" active="yes"/>
+<layer number="4" name="Route4" color="18" fill="1" visible="no" active="yes"/>
+<layer number="5" name="Route5" color="19" fill="1" visible="no" active="yes"/>
+<layer number="6" name="Route6" color="25" fill="1" visible="no" active="yes"/>
+<layer number="7" name="Route7" color="26" fill="1" visible="no" active="yes"/>
+<layer number="8" name="Route8" color="27" fill="1" visible="no" active="yes"/>
+<layer number="9" name="Route9" color="28" fill="1" visible="no" active="yes"/>
+<layer number="10" name="Route10" color="29" fill="1" visible="no" active="yes"/>
+<layer number="11" name="Route11" color="30" fill="1" visible="no" active="yes"/>
+<layer number="12" name="Route12" color="20" fill="1" visible="no" active="yes"/>
+<layer number="13" name="Route13" color="21" fill="1" visible="no" active="yes"/>
+<layer number="14" name="Route14" color="22" fill="1" visible="no" active="yes"/>
+<layer number="15" name="Route15" color="23" fill="1" visible="no" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
 <layer number="17" name="Pads" color="2" fill="1" visible="yes" active="yes"/>
 <layer number="18" name="Vias" color="2" fill="1" visible="yes" active="yes"/>
@@ -172,15 +186,63 @@
 </layers>
 <board>
 <plain>
-<wire x1="-2.54" y1="0" x2="31.42" y2="0" width="0" layer="20"/>
-<wire x1="31.42" y1="0" x2="31.42" y2="69.078" width="0" layer="20"/>
-<wire x1="31.42" y1="69.078" x2="-2.54" y2="69.078" width="0" layer="20"/>
-<wire x1="-2.54" y1="69.078" x2="-2.54" y2="0" width="0" layer="20"/>
-<text x="21.082" y="45.847" size="1.016" layer="26" rot="MR0">GND</text>
-<text x="11.811" y="31.877" size="1.016" layer="26" rot="MR0">ANT</text>
-<text x="7.112" y="19.177" size="1.016" layer="25" rot="R90">TinyPICO NANO</text>
+<wire x1="0" y1="29.21" x2="73.33" y2="29.21" width="0" layer="20"/>
+<wire x1="73.33" y1="29.21" x2="73.33" y2="60.95" width="0" layer="20"/>
+<wire x1="73.33" y1="60.95" x2="0" y2="60.95" width="0" layer="20"/>
+<wire x1="0" y1="60.95" x2="0" y2="29.21" width="0" layer="20"/>
 </plain>
 <libraries>
+<library name="buzzer">
+<packages>
+<package name="XDCR_AI-1223-TWT-12V-R">
+<circle x="0" y="0" radius="6" width="0.127" layer="21"/>
+<circle x="0" y="0" radius="6" width="0.127" layer="51"/>
+<circle x="0" y="0" radius="6.25" width="0.05" layer="39"/>
+<text x="-10.1741" y="8.2879" size="1.27" layer="25">&gt;NAME</text>
+<text x="-10.1684" y="7.5977" size="1.27" layer="27" align="top-left">&gt;VALUE</text>
+<wire x1="-0.635" y1="7.62" x2="0.635" y2="7.62" width="0.127" layer="21"/>
+<wire x1="0" y1="8.255" x2="0" y2="6.985" width="0.127" layer="21"/>
+<wire x1="-0.635" y1="-6.985" x2="0.635" y2="-6.985" width="0.127" layer="21"/>
+<wire x1="-0.635" y1="7.62" x2="0.635" y2="7.62" width="0.127" layer="51"/>
+<wire x1="0" y1="8.255" x2="0" y2="6.985" width="0.127" layer="51"/>
+<wire x1="-0.635" y1="-6.985" x2="0.635" y2="-6.985" width="0.127" layer="51"/>
+<pad name="P" x="0" y="3.8" drill="0.85"/>
+<pad name="N" x="0" y="-3.8" drill="0.85"/>
+</package>
+</packages>
+</library>
+<library name="BMP388 Breakout">
+<description>Upverter Parts Library
+
+Created by Upverter.com</description>
+<packages>
+<package name="ADAFRUIT_INDUSTRIES_3966_0">
+<description>BMP388 series Pressure Sensor Evaluation Board</description>
+<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="51"/>
+<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="51"/>
+<wire x1="12.7" y1="8.89" x2="12.7" y2="-8.89" width="0.15" layer="51"/>
+<wire x1="12.7" y1="-8.89" x2="-12.7" y2="-8.89" width="0.15" layer="51"/>
+<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
+<wire x1="12.7" y1="-8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
+<wire x1="-12.7" y1="-8.89" x2="12.7" y2="-8.89" width="0.15" layer="21"/>
+<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="21"/>
+<wire x1="-12.8" y1="-8.99" x2="-12.8" y2="8.99" width="0.1" layer="41"/>
+<wire x1="-12.8" y1="8.99" x2="12.8" y2="8.99" width="0.1" layer="41"/>
+<wire x1="12.8" y1="8.99" x2="12.8" y2="-8.99" width="0.1" layer="41"/>
+<wire x1="12.8" y1="-8.99" x2="-12.8" y2="-8.99" width="0.1" layer="41"/>
+<text x="-12.7" y="9.19" size="1" layer="25">&gt;NAME</text>
+<circle x="-13.3" y="-6.35" radius="0.25" width="0" layer="21"/>
+<pad name="1" x="-8.89" y="-6.35" drill="1" diameter="1.78" shape="square"/>
+<pad name="2" x="-6.35" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="3" x="-3.81" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="4" x="-1.27" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="5" x="1.27" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="6" x="3.81" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="7" x="6.35" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="8" x="8.89" y="-6.35" drill="1" diameter="1.78"/>
+</package>
+</packages>
+</library>
 <library name="adafruit" urn="urn:adsk.eagle:library:420">
 <packages>
 <package name="JST-PH-2-SMT-RA" urn="urn:adsk.eagle:footprint:6240046/1" library_version="2">
@@ -210,6 +272,42 @@
 <text x="-2.54" y="-7.62" size="1.27" layer="27" font="vector">&gt;Value</text>
 <text x="2.286" y="-6.096" size="1.4224" layer="21" ratio="12">+</text>
 <text x="-3.429" y="-6.096" size="1.4224" layer="21" ratio="12">-</text>
+</package>
+<package name="FGPMMOPA6H" urn="urn:adsk.eagle:footprint:6240255/1" library_version="2">
+<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="21"/>
+<wire x1="8" y1="-8" x2="-8" y2="-8" width="0.127" layer="21"/>
+<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="51"/>
+<wire x1="8" y1="8" x2="8" y2="-8" width="0.127" layer="51"/>
+<wire x1="8" y1="-8" x2="-8" y2="-8" width="0.127" layer="51"/>
+<wire x1="-8" y1="-8" x2="-8" y2="8" width="0.127" layer="51"/>
+<wire x1="8" y1="6" x2="8" y2="-6" width="0.127" layer="21"/>
+<wire x1="8" y1="-7.5" x2="8" y2="-8" width="0.127" layer="21"/>
+<wire x1="8" y1="8" x2="8" y2="7.5" width="0.127" layer="21"/>
+<circle x="0.5" y="0.85" radius="0.5" width="0.8128" layer="51"/>
+<circle x="-9.1" y="8.4" radius="0.3162" width="0.8128" layer="21"/>
+<smd name="P$1" x="-7.5" y="6.75" dx="2" dy="1" layer="1"/>
+<smd name="P$2" x="-7.5" y="5.25" dx="2" dy="1" layer="1"/>
+<smd name="P$3" x="-7.5" y="3.75" dx="2" dy="1" layer="1"/>
+<smd name="P$4" x="-7.5" y="2.25" dx="2" dy="1" layer="1"/>
+<smd name="P$5" x="-7.5" y="0.75" dx="2" dy="1" layer="1"/>
+<smd name="P$6" x="-7.5" y="-0.75" dx="2" dy="1" layer="1"/>
+<smd name="P$7" x="-7.5" y="-2.25" dx="2" dy="1" layer="1"/>
+<smd name="P$8" x="-7.5" y="-3.75" dx="2" dy="1" layer="1"/>
+<smd name="P$9" x="-7.5" y="-5.25" dx="2" dy="1" layer="1"/>
+<smd name="P$10" x="-7.5" y="-6.75" dx="2" dy="1" layer="1"/>
+<smd name="P$11" x="7.5" y="-6.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$12" x="7.5" y="-5.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$13" x="7.5" y="-3.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$14" x="7.5" y="-2.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$15" x="7.5" y="-0.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$16" x="7.5" y="0.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$17" x="7.5" y="2.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$18" x="7.5" y="3.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$19" x="7.5" y="5.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$20" x="7.5" y="6.75" dx="2" dy="1" layer="1" rot="R180"/>
+<text x="-8" y="8.5" size="0.8128" layer="25" ratio="18">&gt;NAME</text>
+<text x="-8" y="-9.5" size="0.4064" layer="27" ratio="10">&gt;VALUE</text>
+<hole x="0.5" y="0.85" drill="3"/>
 </package>
 <package name="U.FL" urn="urn:adsk.eagle:footprint:6240300/1" library_version="2">
 <wire x1="1.3" y1="0.7" x2="1.3" y2="2.1" width="0.2032" layer="21"/>
@@ -241,12 +339,122 @@
 <packageinstance name="JST-PH-2-SMT-RA"/>
 </packageinstances>
 </package3d>
+<package3d name="FGPMMOPA6H" urn="urn:adsk.eagle:package:6240898/1" type="box" library_version="2">
+<packageinstances>
+<packageinstance name="FGPMMOPA6H"/>
+</packageinstances>
+</package3d>
 <package3d name="U.FL" urn="urn:adsk.eagle:package:6240943/1" type="box" library_version="2">
 <packageinstances>
 <packageinstance name="U.FL"/>
 </packageinstances>
 </package3d>
 </packages3d>
+</library>
+<library name="TinyPICO_NANO_Eagle">
+<packages>
+<package name="TINYPICO-NANO-CONNECTOR">
+<smd name="GND$4" x="17.9705" y="6.4135" dx="2.54" dy="2.54" layer="1" rot="R45" cream="no"/>
+<rectangle x1="16.383" y1="6.6548" x2="17.145" y2="7.4168" layer="31" rot="R45"/>
+<wire x1="0" y1="0" x2="0" y2="12.54" width="0.127" layer="51"/>
+<wire x1="0" y1="12.54" x2="26.9875" y2="12.54" width="0.127" layer="51"/>
+<wire x1="26.9875" y1="12.54" x2="26.9875" y2="0" width="0.127" layer="51"/>
+<wire x1="26.9875" y1="0" x2="0" y2="0" width="0.127" layer="51"/>
+<rectangle x1="23.495" y1="0.381" x2="26.67" y2="7.366" layer="51"/>
+<smd name="IO23" x="4.7752" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO19" x="6.0452" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO18" x="7.3152" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO5" x="8.5852" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO22" x="9.8552" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO21" x="11.1252" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO0" x="12.3952" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO9" x="13.6652" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="RX" x="14.9352" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="TX" x="16.2052" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO39" x="17.4752" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO38" x="18.7452" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO37" x="20.0152" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="IO36" x="21.2852" y="0.1" dx="1" dy="1.2" layer="1"/>
+<smd name="VBAT" x="4.7639" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO2" x="6.0339" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO4" x="7.3039" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO12" x="8.5739" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO13" x="9.8439" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO14" x="11.1139" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO15" x="12.3839" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO27" x="13.6539" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO26" x="14.9239" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO25" x="16.1939" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO32" x="17.4639" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO33" x="18.7339" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO34" x="20.0039" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="IO35" x="21.2739" y="12.44" dx="1" dy="1.2" layer="1"/>
+<smd name="3V3" x="0.1" y="10.725" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="EN" x="0.1" y="9.455" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="D+" x="0.1" y="8.185" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="D-" x="0.1" y="6.915" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="5V" x="0.1" y="5.645" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="RESET" x="0.1" y="4.375" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="GND$1" x="0.1" y="3.105" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="STAT" x="0.1" y="1.835" dx="1" dy="1.2" layer="1" rot="R270"/>
+<smd name="GND$2" x="17.642840625" y="7.08151875" dx="3" dy="3" layer="1" rot="R45" cream="no"/>
+<smd name="GND$3" x="19.43608125" y="6.746240625" dx="0.6604" dy="0.670559375" layer="1" cream="no"/>
+<rectangle x1="17.3228" y1="7.62" x2="18.0848" y2="8.382" layer="31" rot="R45"/>
+<rectangle x1="17.4244" y1="5.5372" x2="18.1864" y2="6.2992" layer="31" rot="R45"/>
+<rectangle x1="18.4404" y1="6.5532" x2="19.2024" y2="7.3152" layer="31" rot="R45"/>
+<wire x1="22.225" y1="8.89" x2="28.067" y2="8.89" width="0.127" layer="51"/>
+<wire x1="28.067" y1="8.89" x2="28.067" y2="-1.27" width="0.127" layer="51"/>
+<wire x1="28.067" y1="-1.27" x2="22.225" y2="-1.27" width="0.127" layer="51"/>
+<wire x1="22.225" y1="-1.27" x2="22.225" y2="8.89" width="0.127" layer="51"/>
+<text x="28.575" y="-1.27" size="0.762" layer="51">Antenna
+GND
+Clearance</text>
+</package>
+</packages>
+</library>
+<library name="RFM95W-915S2">
+<packages>
+<package name="XCVR_RFM95W-915S2">
+<wire x1="-8" y1="-8" x2="-8" y2="8" width="0.127" layer="51"/>
+<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="51"/>
+<wire x1="8" y1="8" x2="8" y2="-8" width="0.127" layer="51"/>
+<wire x1="8" y1="-8" x2="-8" y2="-8" width="0.127" layer="51"/>
+<wire x1="-8.25" y1="8.25" x2="8.25" y2="8.25" width="0.05" layer="39"/>
+<wire x1="8.25" y1="8.25" x2="8.25" y2="7.95" width="0.05" layer="39"/>
+<wire x1="8.25" y1="7.95" x2="9.45" y2="7.95" width="0.05" layer="39"/>
+<wire x1="9.45" y1="7.95" x2="9.45" y2="-7.95" width="0.05" layer="39"/>
+<wire x1="9.45" y1="-7.95" x2="8.25" y2="-7.95" width="0.05" layer="39"/>
+<wire x1="8.25" y1="-7.95" x2="8.25" y2="-8.25" width="0.05" layer="39"/>
+<wire x1="8.25" y1="-8.25" x2="-8.25" y2="-8.25" width="0.05" layer="39"/>
+<wire x1="-8.25" y1="-8.25" x2="-8.25" y2="-7.95" width="0.05" layer="39"/>
+<wire x1="-8.25" y1="-7.95" x2="-9.45" y2="-7.95" width="0.05" layer="39"/>
+<wire x1="-9.45" y1="-7.95" x2="-9.45" y2="7.95" width="0.05" layer="39"/>
+<wire x1="-9.45" y1="7.95" x2="-8.25" y2="7.95" width="0.05" layer="39"/>
+<wire x1="-8.25" y1="7.95" x2="-8.25" y2="8.25" width="0.05" layer="39"/>
+<text x="-9.805790625" y="8.905259375" size="1.27" layer="25">&gt;NAME</text>
+<text x="-10.1033" y="-10.2033" size="1.27" layer="27">&gt;VALUE</text>
+<circle x="-10.15" y="7.05" radius="0.1" width="0.2" layer="21"/>
+<circle x="-10.15" y="7.05" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="21"/>
+<wire x1="-8" y1="-8" x2="8" y2="-8" width="0.127" layer="21"/>
+<smd name="1" x="-7.7" y="7" dx="3" dy="1.4" layer="1"/>
+<smd name="2" x="-7.7" y="5" dx="3" dy="1.4" layer="1"/>
+<smd name="3" x="-7.7" y="3" dx="3" dy="1.4" layer="1"/>
+<smd name="4" x="-7.7" y="1" dx="3" dy="1.4" layer="1"/>
+<smd name="5" x="-7.7" y="-1" dx="3" dy="1.4" layer="1"/>
+<smd name="6" x="-7.7" y="-3" dx="3" dy="1.4" layer="1"/>
+<smd name="7" x="-7.7" y="-5" dx="3" dy="1.4" layer="1"/>
+<smd name="8" x="-7.7" y="-7" dx="3" dy="1.4" layer="1"/>
+<smd name="9" x="7.7" y="-7" dx="3" dy="1.4" layer="1"/>
+<smd name="10" x="7.7" y="-5" dx="3" dy="1.4" layer="1"/>
+<smd name="11" x="7.7" y="-3" dx="3" dy="1.4" layer="1"/>
+<smd name="12" x="7.7" y="-1" dx="3" dy="1.4" layer="1"/>
+<smd name="13" x="7.7" y="1" dx="3" dy="1.4" layer="1"/>
+<smd name="14" x="7.7" y="3" dx="3" dy="1.4" layer="1"/>
+<smd name="15" x="7.7" y="5" dx="3" dy="1.4" layer="1"/>
+<smd name="16" x="7.7" y="7" dx="3" dy="1.4" layer="1"/>
+</package>
+</packages>
 </library>
 <library name="USB-C Adafruit USB4105-GF-A">
 <packages>
@@ -369,179 +577,29 @@ CONN_04
 </package3d>
 </packages3d>
 </library>
-<library name="buzzer">
+<library name="5050 NeoPixel">
 <packages>
-<package name="XDCR_AI-1223-TWT-12V-R">
-<circle x="0" y="0" radius="6" width="0.127" layer="21"/>
-<circle x="0" y="0" radius="6" width="0.127" layer="51"/>
-<circle x="0" y="0" radius="6.25" width="0.05" layer="39"/>
-<text x="-10.1741" y="8.2879" size="1.27" layer="25">&gt;NAME</text>
-<text x="-10.1684" y="7.5977" size="1.27" layer="27" align="top-left">&gt;VALUE</text>
-<wire x1="-0.635" y1="7.62" x2="0.635" y2="7.62" width="0.127" layer="21"/>
-<wire x1="0" y1="8.255" x2="0" y2="6.985" width="0.127" layer="21"/>
-<wire x1="-0.635" y1="-6.985" x2="0.635" y2="-6.985" width="0.127" layer="21"/>
-<wire x1="-0.635" y1="7.62" x2="0.635" y2="7.62" width="0.127" layer="51"/>
-<wire x1="0" y1="8.255" x2="0" y2="6.985" width="0.127" layer="51"/>
-<wire x1="-0.635" y1="-6.985" x2="0.635" y2="-6.985" width="0.127" layer="51"/>
-<pad name="P" x="0" y="3.8" drill="0.85"/>
-<pad name="N" x="0" y="-3.8" drill="0.85"/>
-</package>
-</packages>
-</library>
-<library name="BMP388 Breakout">
-<description>Upverter Parts Library
-
-Created by Upverter.com</description>
-<packages>
-<package name="ADAFRUIT_INDUSTRIES_3966_0">
-<description>BMP388 series Pressure Sensor Evaluation Board</description>
-<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="51"/>
-<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="51"/>
-<wire x1="12.7" y1="8.89" x2="12.7" y2="-8.89" width="0.15" layer="51"/>
-<wire x1="12.7" y1="-8.89" x2="-12.7" y2="-8.89" width="0.15" layer="51"/>
-<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
-<wire x1="12.7" y1="-8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
-<wire x1="-12.7" y1="-8.89" x2="12.7" y2="-8.89" width="0.15" layer="21"/>
-<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="21"/>
-<wire x1="-12.8" y1="-8.99" x2="-12.8" y2="8.99" width="0.1" layer="41"/>
-<wire x1="-12.8" y1="8.99" x2="12.8" y2="8.99" width="0.1" layer="41"/>
-<wire x1="12.8" y1="8.99" x2="12.8" y2="-8.99" width="0.1" layer="41"/>
-<wire x1="12.8" y1="-8.99" x2="-12.8" y2="-8.99" width="0.1" layer="41"/>
-<text x="-12.7" y="9.19" size="1" layer="25">&gt;NAME</text>
-<circle x="-13.3" y="-6.35" radius="0.25" width="0" layer="21"/>
-<pad name="1" x="-8.89" y="-6.35" drill="1" diameter="1.78" shape="square"/>
-<pad name="2" x="-6.35" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="3" x="-3.81" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="4" x="-1.27" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="5" x="1.27" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="6" x="3.81" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="7" x="6.35" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="8" x="8.89" y="-6.35" drill="1" diameter="1.78"/>
-</package>
-</packages>
-</library>
-<library name="resis CR1206-JW-512ELF">
-<packages>
-<package name="RESC3216X75N">
-<text x="-2.33" y="-1.23" size="0.5" layer="27" align="top-left">&gt;VALUE</text>
-<text x="-2.33" y="1.23" size="0.5" layer="25">&gt;NAME</text>
-<wire x1="1.73" y1="-0.88" x2="-1.73" y2="-0.88" width="0.127" layer="51"/>
-<wire x1="1.73" y1="0.88" x2="-1.73" y2="0.88" width="0.127" layer="51"/>
-<wire x1="1.73" y1="-0.88" x2="1.73" y2="0.88" width="0.127" layer="51"/>
-<wire x1="-1.73" y1="-0.88" x2="-1.73" y2="0.88" width="0.127" layer="51"/>
-<wire x1="-0.59" y1="0.88" x2="0.59" y2="0.88" width="0.127" layer="21"/>
-<wire x1="-0.59" y1="-0.88" x2="0.59" y2="-0.88" width="0.127" layer="21"/>
-<wire x1="-2.331" y1="-1.135" x2="2.331" y2="-1.135" width="0.05" layer="39"/>
-<wire x1="-2.331" y1="1.135" x2="2.331" y2="1.135" width="0.05" layer="39"/>
-<wire x1="-2.331" y1="-1.135" x2="-2.331" y2="1.135" width="0.05" layer="39"/>
-<wire x1="2.331" y1="-1.135" x2="2.331" y2="1.135" width="0.05" layer="39"/>
-<smd name="1" x="-1.494" y="0" dx="1.17" dy="1.77" layer="1"/>
-<smd name="2" x="1.494" y="0" dx="1.17" dy="1.77" layer="1"/>
-</package>
-</packages>
-</library>
-<library name="TinyPICO_NANO_Eagle">
-<packages>
-<package name="TINYPICO-NANO-CONNECTOR">
-<smd name="GND$4" x="17.9705" y="6.4135" dx="2.54" dy="2.54" layer="1" rot="R45" cream="no"/>
-<rectangle x1="16.383" y1="6.6548" x2="17.145" y2="7.4168" layer="31" rot="R45"/>
-<wire x1="0" y1="0" x2="0" y2="12.54" width="0.127" layer="51"/>
-<wire x1="0" y1="12.54" x2="26.9875" y2="12.54" width="0.127" layer="51"/>
-<wire x1="26.9875" y1="12.54" x2="26.9875" y2="0" width="0.127" layer="51"/>
-<wire x1="26.9875" y1="0" x2="0" y2="0" width="0.127" layer="51"/>
-<rectangle x1="23.495" y1="0.381" x2="26.67" y2="7.366" layer="51"/>
-<smd name="IO23" x="4.7752" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO19" x="6.0452" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO18" x="7.3152" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO5" x="8.5852" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO22" x="9.8552" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO21" x="11.1252" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO0" x="12.3952" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO9" x="13.6652" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="RX" x="14.9352" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="TX" x="16.2052" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO39" x="17.4752" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO38" x="18.7452" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO37" x="20.0152" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="IO36" x="21.2852" y="0.1" dx="1" dy="1.2" layer="1"/>
-<smd name="VBAT" x="4.7639" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO2" x="6.0339" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO4" x="7.3039" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO12" x="8.5739" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO13" x="9.8439" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO14" x="11.1139" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO15" x="12.3839" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO27" x="13.6539" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO26" x="14.9239" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO25" x="16.1939" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO32" x="17.4639" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO33" x="18.7339" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO34" x="20.0039" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="IO35" x="21.2739" y="12.44" dx="1" dy="1.2" layer="1"/>
-<smd name="3V3" x="0.1" y="10.725" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="EN" x="0.1" y="9.455" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="D+" x="0.1" y="8.185" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="D-" x="0.1" y="6.915" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="5V" x="0.1" y="5.645" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="RESET" x="0.1" y="4.375" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="GND$1" x="0.1" y="3.105" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="STAT" x="0.1" y="1.835" dx="1" dy="1.2" layer="1" rot="R270"/>
-<smd name="GND$2" x="17.642840625" y="7.08151875" dx="3" dy="3" layer="1" rot="R45" cream="no"/>
-<smd name="GND$3" x="19.43608125" y="6.746240625" dx="0.6604" dy="0.670559375" layer="1" cream="no"/>
-<rectangle x1="17.3228" y1="7.62" x2="18.0848" y2="8.382" layer="31" rot="R45"/>
-<rectangle x1="17.4244" y1="5.5372" x2="18.1864" y2="6.2992" layer="31" rot="R45"/>
-<rectangle x1="18.4404" y1="6.5532" x2="19.2024" y2="7.3152" layer="31" rot="R45"/>
-<wire x1="22.225" y1="8.89" x2="28.067" y2="8.89" width="0.127" layer="51"/>
-<wire x1="28.067" y1="8.89" x2="28.067" y2="-1.27" width="0.127" layer="51"/>
-<wire x1="28.067" y1="-1.27" x2="22.225" y2="-1.27" width="0.127" layer="51"/>
-<wire x1="22.225" y1="-1.27" x2="22.225" y2="8.89" width="0.127" layer="51"/>
-<text x="28.575" y="-1.27" size="0.762" layer="51">Antenna
-GND
-Clearance</text>
-</package>
-</packages>
-</library>
-<library name="RFM95W-915S2">
-<packages>
-<package name="XCVR_RFM95W-915S2">
-<wire x1="-8" y1="-8" x2="-8" y2="8" width="0.127" layer="51"/>
-<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="51"/>
-<wire x1="8" y1="8" x2="8" y2="-8" width="0.127" layer="51"/>
-<wire x1="8" y1="-8" x2="-8" y2="-8" width="0.127" layer="51"/>
-<wire x1="-8.25" y1="8.25" x2="8.25" y2="8.25" width="0.05" layer="39"/>
-<wire x1="8.25" y1="8.25" x2="8.25" y2="7.95" width="0.05" layer="39"/>
-<wire x1="8.25" y1="7.95" x2="9.45" y2="7.95" width="0.05" layer="39"/>
-<wire x1="9.45" y1="7.95" x2="9.45" y2="-7.95" width="0.05" layer="39"/>
-<wire x1="9.45" y1="-7.95" x2="8.25" y2="-7.95" width="0.05" layer="39"/>
-<wire x1="8.25" y1="-7.95" x2="8.25" y2="-8.25" width="0.05" layer="39"/>
-<wire x1="8.25" y1="-8.25" x2="-8.25" y2="-8.25" width="0.05" layer="39"/>
-<wire x1="-8.25" y1="-8.25" x2="-8.25" y2="-7.95" width="0.05" layer="39"/>
-<wire x1="-8.25" y1="-7.95" x2="-9.45" y2="-7.95" width="0.05" layer="39"/>
-<wire x1="-9.45" y1="-7.95" x2="-9.45" y2="7.95" width="0.05" layer="39"/>
-<wire x1="-9.45" y1="7.95" x2="-8.25" y2="7.95" width="0.05" layer="39"/>
-<wire x1="-8.25" y1="7.95" x2="-8.25" y2="8.25" width="0.05" layer="39"/>
-<text x="-9.805790625" y="8.905259375" size="1.27" layer="25">&gt;NAME</text>
-<text x="-10.1033" y="-10.2033" size="1.27" layer="27">&gt;VALUE</text>
-<circle x="-10.15" y="7.05" radius="0.1" width="0.2" layer="21"/>
-<circle x="-10.15" y="7.05" radius="0.1" width="0.2" layer="51"/>
-<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="21"/>
-<wire x1="-8" y1="-8" x2="8" y2="-8" width="0.127" layer="21"/>
-<smd name="1" x="-7.7" y="7" dx="3" dy="1.4" layer="1"/>
-<smd name="2" x="-7.7" y="5" dx="3" dy="1.4" layer="1"/>
-<smd name="3" x="-7.7" y="3" dx="3" dy="1.4" layer="1"/>
-<smd name="4" x="-7.7" y="1" dx="3" dy="1.4" layer="1"/>
-<smd name="5" x="-7.7" y="-1" dx="3" dy="1.4" layer="1"/>
-<smd name="6" x="-7.7" y="-3" dx="3" dy="1.4" layer="1"/>
-<smd name="7" x="-7.7" y="-5" dx="3" dy="1.4" layer="1"/>
-<smd name="8" x="-7.7" y="-7" dx="3" dy="1.4" layer="1"/>
-<smd name="9" x="7.7" y="-7" dx="3" dy="1.4" layer="1"/>
-<smd name="10" x="7.7" y="-5" dx="3" dy="1.4" layer="1"/>
-<smd name="11" x="7.7" y="-3" dx="3" dy="1.4" layer="1"/>
-<smd name="12" x="7.7" y="-1" dx="3" dy="1.4" layer="1"/>
-<smd name="13" x="7.7" y="1" dx="3" dy="1.4" layer="1"/>
-<smd name="14" x="7.7" y="3" dx="3" dy="1.4" layer="1"/>
-<smd name="15" x="7.7" y="5" dx="3" dy="1.4" layer="1"/>
-<smd name="16" x="7.7" y="7" dx="3" dy="1.4" layer="1"/>
+<package name="LED_1655">
+<wire x1="-2.5" y1="-2.5" x2="2.5" y2="-2.5" width="0.127" layer="21"/>
+<wire x1="2.5" y1="2.5" x2="-2.5" y2="2.5" width="0.127" layer="21"/>
+<text x="-3.5" y="3" size="1.27" layer="25">&gt;NAME</text>
+<text x="-3.5" y="-3" size="1.27" layer="27" align="top-left">&gt;VALUE</text>
+<wire x1="-2.5" y1="-2.5" x2="2.5" y2="-2.5" width="0.127" layer="51"/>
+<wire x1="2.5" y1="-2.5" x2="2.5" y2="2.5" width="0.127" layer="51"/>
+<wire x1="2.5" y1="2.5" x2="-2.5" y2="2.5" width="0.127" layer="51"/>
+<wire x1="-2.5" y1="2.5" x2="-2.5" y2="-2.5" width="0.127" layer="51"/>
+<wire x1="-3.45" y1="2.75" x2="3.45" y2="2.75" width="0.05" layer="39"/>
+<wire x1="3.45" y1="2.75" x2="3.45" y2="-2.75" width="0.05" layer="39"/>
+<wire x1="3.45" y1="-2.75" x2="-3.45" y2="-2.75" width="0.05" layer="39"/>
+<wire x1="-3.45" y1="-2.75" x2="-3.45" y2="2.75" width="0.05" layer="39"/>
+<circle x="-3.75" y="1.6" radius="0.1" width="0.2" layer="21"/>
+<circle x="-3.75" y="1.6" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-2.5" y1="-0.7865" x2="-2.5" y2="0.7865" width="0.127" layer="21"/>
+<wire x1="2.5" y1="-0.7865" x2="2.5" y2="0.7865" width="0.127" layer="21"/>
+<smd name="1" x="-2.45" y="1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
+<smd name="4" x="2.45" y="1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
+<smd name="2" x="-2.45" y="-1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
+<smd name="3" x="2.45" y="-1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
 </package>
 </packages>
 </library>
@@ -641,7 +699,7 @@ design rules under a new name.</description>
 <param name="Efforts" value="2"/>
 <param name="TopRouterVariant" value="1"/>
 <param name="tpViaShape" value="round"/>
-<param name="PrefDir.1" value="a"/>
+<param name="PrefDir.1" value="*"/>
 <param name="PrefDir.2" value="0"/>
 <param name="PrefDir.3" value="0"/>
 <param name="PrefDir.4" value="0"/>
@@ -656,7 +714,7 @@ design rules under a new name.</description>
 <param name="PrefDir.13" value="0"/>
 <param name="PrefDir.14" value="0"/>
 <param name="PrefDir.15" value="0"/>
-<param name="PrefDir.16" value="a"/>
+<param name="PrefDir.16" value="-"/>
 <param name="cfVia" value="8"/>
 <param name="cfNonPref" value="5"/>
 <param name="cfChangeDir" value="2"/>
@@ -731,238 +789,256 @@ design rules under a new name.</description>
 </pass>
 </autorouter>
 <elements>
-<element name="JST-PH" library="adafruit" library_urn="urn:adsk.eagle:library:420" package="JST-PH-2-SMT-RA" package3d_urn="urn:adsk.eagle:package:6240692/1" value="" x="20.32" y="17.78" smashed="yes" rot="MR180">
-<attribute name="NAME" x="17.145" y="25.527" size="1.27" layer="26" font="vector" rot="MR180"/>
-<attribute name="VALUE" x="17.78" y="25.4" size="1.27" layer="28" font="vector" rot="MR180"/>
+<element name="BEEPER" library="buzzer" package="XDCR_AI-1223-TWT-12V-R" value="AI-1223-TWT-12V-R" x="67.31" y="46.99" smashed="yes" rot="MR0">
+<attribute name="AVAILABILITY" value="In Stock" x="27.94" y="16.51" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="DESCRIPTION" value=" ELECTRO-MECHANICAL AUDIO INDICATOR " x="27.94" y="16.51" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="MF" value="PUI Audio," x="27.94" y="16.51" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="MP" value="AI-1223-TWT-12V-R" x="27.94" y="16.51" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="NAME" x="77.4841" y="55.2779" size="1.27" layer="26" rot="MR0"/>
+<attribute name="PACKAGE" value="None" x="27.94" y="16.51" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="PRICE" value="None" x="27.94" y="16.51" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/AI-1223-TWT-12V-R/?ref=eda" x="27.94" y="16.51" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="VALUE" x="77.4784" y="54.5877" size="1.27" layer="28" rot="MR0" align="top-left"/>
 </element>
-<element name="USB-C" library="USB-C Adafruit USB4105-GF-A" package="GCT_USB4105-GF-A" value="USB4105-GF-A" x="15.0705" y="3.81" smashed="yes">
-<attribute name="DESCRIPTION" value=" USB-C (USB TYPE-C) USB 2.0 Receptacle Connector 24 (16+8 Dummy) Position Surface Mount, Right Angle; Through Hole " x="36.6605" y="-55.88" size="1.778" layer="27" display="off"/>
-<attribute name="DIGI-KEY_PART_NUMBER" value="2073-USB4105-GF-ATR-ND" x="36.6605" y="-55.88" size="1.778" layer="27" display="off"/>
-<attribute name="MF" value="GCT" x="36.6605" y="-55.88" size="1.778" layer="27" display="off"/>
-<attribute name="MP" value="USB4105-GF-A" x="36.6605" y="-55.88" size="1.778" layer="27" display="off"/>
-<attribute name="NAME" x="12.4835" y="9.786" size="1.27" layer="25"/>
-<attribute name="PACKAGE" value="None" x="36.6605" y="-55.88" size="1.778" layer="27" display="off"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/USB4105-GF-A/?ref=eda" x="36.6605" y="-55.88" size="1.778" layer="27" display="off"/>
+<element name="BMP3XX" library="BMP388 Breakout" package="ADAFRUIT_INDUSTRIES_3966_0" value="ADAFRUIT_INDUSTRIES_3966ADAFRUIT_INDUSTRIES_3966_0_0" x="50.8" y="46.99" smashed="yes" rot="R90">
+<attribute name="AUTOMOTIVE" value="No" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="CENTROID_NOT_SPECIFIED" value="No" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DATASHEET" value="https://cdn-learn.adafruit.com/downloads/pdf/adafruit-bmp388-bmp390-bmp3xx.pdf?timestamp=1628517945" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DEVICE_CLASS_L1" value="Sensors" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DEVICE_CLASS_L2" value="Pressure Sensors" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DEVICE_CLASS_L3" value="unset" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY_DESCRIPTION" value="BMP388 - PRECISION BAROMETRIC PR" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="DIGIKEY_PART_NUMBER" value="1528-2733-ND" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="FOOTPRINT_VARIANT_NAME_0" value="Recommended_Land_Pattern" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="LEAD_FREE" value="Yes" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MF" value="Adafruit Industries" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MFG_PACKAGE_IDENT" value="0" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MFG_PACKAGE_IDENT_DATE" value="0" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MFG_PACKAGE_IDENT_REV" value="0" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MOUSER_PART_NUMBER" value="485-3966" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="MPN" value="3966" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="NAME" x="41.61" y="34.29" size="1" layer="25" rot="R90"/>
+<attribute name="PACKAGE" value="MODULE_25MM40_17MM78" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="PIN_0_0_4_INSIDE_EDGE" value="clock" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="PREFIX" value="MD" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="ROHS" value="Yes" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="SENSOR_OUTPUT" value="I2C,SPI" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
+<attribute name="VERIFICATION_VERSION" value="0.0.0.3" x="60.96" y="93.98" size="1.778" layer="27" rot="R90" display="off"/>
 </element>
-<element name="QWIIC" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" package="1X04_1MM_RA" package3d_urn="urn:adsk.eagle:package:38096/1" value="" x="10.16" y="22.86" smashed="yes" rot="MR0">
-<attribute name="NAME" x="11.43" y="24.384" size="0.6096" layer="26" font="vector" ratio="20" rot="MR0"/>
-<attribute name="VALUE" x="11.811" y="19.558" size="0.6096" layer="28" font="vector" ratio="20" rot="MR0"/>
+<element name="JST-PH" library="adafruit" library_urn="urn:adsk.eagle:library:420" package="JST-PH-2-SMT-RA" package3d_urn="urn:adsk.eagle:package:6240692/1" value="" x="21.59" y="34.29" smashed="yes" rot="MR90">
+<attribute name="NAME" x="25.4" y="31.75" size="1.27" layer="26" font="vector" rot="MR90"/>
+<attribute name="VALUE" x="13.97" y="31.75" size="1.27" layer="28" font="vector" rot="MR90"/>
 </element>
-<element name="BEEPER" library="buzzer" package="XDCR_AI-1223-TWT-12V-R" value="AI-1223-TWT-12V-R" x="14.828" y="59.69" smashed="yes" rot="MR90">
-<attribute name="AVAILABILITY" value="In Stock" x="-15.652" y="80.01" size="1.778" layer="28" rot="MR90" display="off"/>
-<attribute name="DESCRIPTION" value=" ELECTRO-MECHANICAL AUDIO INDICATOR " x="-15.652" y="80.01" size="1.778" layer="28" rot="MR90" display="off"/>
-<attribute name="MF" value="PUI Audio," x="-15.652" y="80.01" size="1.778" layer="28" rot="MR90" display="off"/>
-<attribute name="MP" value="AI-1223-TWT-12V-R" x="-15.652" y="80.01" size="1.778" layer="28" rot="MR90" display="off"/>
-<attribute name="NAME" x="11.8129" y="68.4389" size="1.27" layer="26" rot="MR180"/>
-<attribute name="PACKAGE" value="None" x="-15.652" y="80.01" size="1.778" layer="28" rot="MR90" display="off"/>
-<attribute name="PRICE" value="None" x="-15.652" y="80.01" size="1.778" layer="28" rot="MR90" display="off"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/AI-1223-TWT-12V-R/?ref=eda" x="-15.652" y="80.01" size="1.778" layer="28" rot="MR90" display="off"/>
+<element name="U$1" library="TinyPICO_NANO_Eagle" package="TINYPICO-NANO-CONNECTOR" value="TINYPICO-NANO-CONNECTOR" x="12.7" y="39.37" smashed="yes"/>
+<element name="U1" library="RFM95W-915S2" package="XCVR_RFM95W-915S2" value="RFM95W-915S2" x="10.16" y="49.53" smashed="yes" rot="MR90">
+<attribute name="AVAILABILITY" value="In Stock" x="-1.27" y="72.39" size="1.778" layer="28" rot="MR90" display="off"/>
+<attribute name="DESCRIPTION" value=" 802.15.4 LoRa™ Transceiver Module 915MHz Antenna Not Included Surface Mount " x="-1.27" y="72.39" size="1.778" layer="28" rot="MR90" display="off"/>
+<attribute name="MF" value="RF Solutions" x="-1.27" y="72.39" size="1.778" layer="28" rot="MR90" display="off"/>
+<attribute name="MP" value="RFM95W-915S2" x="-1.27" y="72.39" size="1.778" layer="28" rot="MR90" display="off"/>
+<attribute name="NAME" x="19.065259375" y="39.724209375" size="1.27" layer="26" rot="MR90"/>
+<attribute name="PACKAGE" value="Non Standard RF Solutions" x="-1.27" y="72.39" size="1.778" layer="28" rot="MR90" display="off"/>
+<attribute name="PRICE" value="None" x="-1.27" y="72.39" size="1.778" layer="28" rot="MR90" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/RFM95W-915S2/?ref=eda" x="-1.27" y="72.39" size="1.778" layer="28" rot="MR90" display="off"/>
+<attribute name="VALUE" x="-0.0433" y="39.4267" size="1.27" layer="28" rot="MR90"/>
 </element>
-<element name="BMP3XX" library="BMP388 Breakout" package="ADAFRUIT_INDUSTRIES_3966_0" value="ADAFRUIT_INDUSTRIES_3966ADAFRUIT_INDUSTRIES_3966_0_0" x="15.113" y="44.45" smashed="yes" rot="R180">
-<attribute name="AUTOMOTIVE" value="No" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="CENTROID_NOT_SPECIFIED" value="No" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DATASHEET" value="https://cdn-learn.adafruit.com/downloads/pdf/adafruit-bmp388-bmp390-bmp3xx.pdf?timestamp=1628517945" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DEVICE_CLASS_L1" value="Sensors" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DEVICE_CLASS_L2" value="Pressure Sensors" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DEVICE_CLASS_L3" value="unset" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DIGIKEY_DESCRIPTION" value="BMP388 - PRECISION BAROMETRIC PR" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="DIGIKEY_PART_NUMBER" value="1528-2733-ND" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="FOOTPRINT_VARIANT_NAME_0" value="Recommended_Land_Pattern" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="LEAD_FREE" value="Yes" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MF" value="Adafruit Industries" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MFG_PACKAGE_IDENT" value="0" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MFG_PACKAGE_IDENT_DATE" value="0" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MFG_PACKAGE_IDENT_REV" value="0" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MOUSER_PART_NUMBER" value="485-3966" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="MPN" value="3966" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="NAME" x="18.161" y="55.072" size="1" layer="25" rot="R180"/>
-<attribute name="PACKAGE" value="MODULE_25MM40_17MM78" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="PIN_0_0_4_INSIDE_EDGE" value="clock" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="PREFIX" value="MD" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="ROHS" value="Yes" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="SENSOR_OUTPUT" value="I2C,SPI" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
-<attribute name="VERIFICATION_VERSION" value="0.0.0.3" x="-31.877" y="54.61" size="1.778" layer="27" rot="R180" display="off"/>
+<element name="U2" library="adafruit" library_urn="urn:adsk.eagle:library:420" package="FGPMMOPA6H" package3d_urn="urn:adsk.eagle:package:6240898/1" value="" x="35.56" y="45.72" smashed="yes" rot="MR90">
+<attribute name="NAME" x="44.06" y="37.72" size="0.8128" layer="26" ratio="18" rot="MR90"/>
+<attribute name="VALUE" x="26.06" y="37.72" size="0.4064" layer="28" ratio="10" rot="MR90"/>
 </element>
-<element name="R1" library="resis CR1206-JW-512ELF" package="RESC3216X75N" value="CR1206-JW-512ELF" x="24.13" y="6.35" smashed="yes" rot="R270">
-<attribute name="DESCRIPTION" value=" 5.1 kOhms ±5% 0.25W, 1/4W Chip Resistor 1206 (3216 Metric) Moisture Resistant Thick Film " x="-34.29" y="-43.18" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="DIGI-KEY_PART_NUMBER" value="118-CR1206-JW-512ELFTR-ND" x="-34.29" y="-43.18" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="MF" value="Bourns" x="-34.29" y="-43.18" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="MP" value="CR1206-JW-512ELF" x="-34.29" y="-43.18" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="NAME" x="22.439" y="4.87" size="0.5" layer="25" rot="R270"/>
-<attribute name="PACKAGE" value="3216 Bourns" x="-34.29" y="-43.18" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/CR1206-JW-512ELF/?ref=eda" x="-34.29" y="-43.18" size="1.778" layer="27" rot="R270" display="off"/>
-<attribute name="VALUE" x="25.948" y="10.458" size="0.5" layer="27" rot="R270" align="top-left"/>
+<element name="UFL" library="adafruit" library_urn="urn:adsk.eagle:library:420" package="U.FL" package3d_urn="urn:adsk.eagle:package:6240943/1" value="" x="23.495" y="56.896" smashed="yes" rot="MR0">
+<attribute name="NAME" x="24.765" y="59.436" size="1.016" layer="26" ratio="18" rot="MR0"/>
+<attribute name="VALUE" x="24.765" y="53.721" size="0.8128" layer="28" ratio="10" rot="MR0"/>
 </element>
-<element name="R2" library="resis CR1206-JW-512ELF" package="RESC3216X75N" value="CR1206-JW-512ELF" x="6.35" y="6.35" smashed="yes" rot="R90">
-<attribute name="DESCRIPTION" value=" 5.1 kOhms ±5% 0.25W, 1/4W Chip Resistor 1206 (3216 Metric) Moisture Resistant Thick Film " x="64.77" y="63.5" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="DIGI-KEY_PART_NUMBER" value="118-CR1206-JW-512ELFTR-ND" x="64.77" y="63.5" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="MF" value="Bourns" x="64.77" y="63.5" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="MP" value="CR1206-JW-512ELF" x="64.77" y="63.5" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="NAME" x="5.12" y="4.02" size="0.5" layer="25" rot="R90"/>
-<attribute name="PACKAGE" value="3216 Bourns" x="64.77" y="63.5" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/CR1206-JW-512ELF/?ref=eda" x="64.77" y="63.5" size="1.778" layer="27" rot="R90" display="off"/>
-<attribute name="VALUE" x="7.58" y="4.02" size="0.5" layer="27" rot="R90" align="top-left"/>
+<element name="USB-C" library="USB-C Adafruit USB4105-GF-A" package="GCT_USB4105-GF-A" value="USB4105-GF-A" x="3.81" y="45.72" smashed="yes" rot="R270">
+<attribute name="DESCRIPTION" value=" USB-C (USB TYPE-C) USB 2.0 Receptacle Connector 24 (16+8 Dummy) Position Surface Mount, Right Angle; Through Hole " x="-40.64" y="-11.43" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="DIGI-KEY_PART_NUMBER" value="2073-USB4105-GF-ATR-ND" x="-40.64" y="-11.43" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MF" value="GCT" x="-40.64" y="-11.43" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="MP" value="USB4105-GF-A" x="-40.64" y="-11.43" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="NAME" x="11.31" y="50.72" size="1.27" layer="25" rot="R270"/>
+<attribute name="PACKAGE" value="None" x="-40.64" y="-11.43" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/USB4105-GF-A/?ref=eda" x="-40.64" y="-11.43" size="1.778" layer="27" rot="R270" display="off"/>
+<attribute name="VALUE" x="9.81" y="50.72" size="1.27" layer="27" rot="R270"/>
 </element>
-<element name="U$1" library="TinyPICO_NANO_Eagle" package="TINYPICO-NANO-CONNECTOR" value="TINYPICO-NANO-CONNECTOR" x="21.31625" y="13.716" smashed="yes" rot="R90"/>
-<element name="U1" library="RFM95W-915S2" package="XCVR_RFM95W-915S2" value="RFM95W-915S2" x="15.0255" y="39.37" smashed="yes" rot="MR0">
-<attribute name="AVAILABILITY" value="In Stock" x="-7.8345" y="27.94" size="1.778" layer="28" rot="MR0" display="off"/>
-<attribute name="DESCRIPTION" value=" 802.15.4 LoRa™ Transceiver Module 915MHz Antenna Not Included Surface Mount " x="-7.8345" y="27.94" size="1.778" layer="28" rot="MR0" display="off"/>
-<attribute name="MF" value="RF Solutions" x="-7.8345" y="27.94" size="1.778" layer="28" rot="MR0" display="off"/>
-<attribute name="MP" value="RFM95W-915S2" x="-7.8345" y="27.94" size="1.778" layer="28" rot="MR0" display="off"/>
-<attribute name="PACKAGE" value="Non Standard RF Solutions" x="-7.8345" y="27.94" size="1.778" layer="28" rot="MR0" display="off"/>
-<attribute name="PRICE" value="None" x="-7.8345" y="27.94" size="1.778" layer="28" rot="MR0" display="off"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/RFM95W-915S2/?ref=eda" x="-7.8345" y="27.94" size="1.778" layer="28" rot="MR0" display="off"/>
-<attribute name="VALUE" x="25.1288" y="29.1667" size="1.27" layer="28" rot="MR0"/>
+<element name="J1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" package="1X04_1MM_RA" package3d_urn="urn:adsk.eagle:package:38096/1" value="" x="38.227" y="37.846" smashed="yes">
+<attribute name="NAME" x="36.83" y="35.687" size="0.6096" layer="25" font="vector" ratio="20"/>
+<attribute name="VALUE" x="36.576" y="34.544" size="0.6096" layer="27" font="vector" ratio="20"/>
 </element>
-<element name="UFL" library="adafruit" library_urn="urn:adsk.eagle:library:420" package="U.FL" package3d_urn="urn:adsk.eagle:package:6240943/1" value="" x="14.828" y="64.516" smashed="yes" rot="R270">
-<attribute name="NAME" x="13.558" y="66.675" size="1.016" layer="25" ratio="18"/>
-<attribute name="VALUE" x="11.653" y="65.786" size="0.8128" layer="27" ratio="10" rot="R270"/>
+<element name="D1" library="5050 NeoPixel" package="LED_1655" value="1655" x="6.985" y="35.052" smashed="yes" rot="MR0">
+<attribute name="AVAILABILITY" value="In Stock" x="6.985" y="35.052" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="DESCRIPTION" value=" Addressable Lighting Neopixel 10 LED Discrete Serial (Shift Register) Red, Green, Blue (RGB) 5.00mm L x 5.00mm W " x="6.985" y="35.052" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="MF" value="Adafruit" x="6.985" y="35.052" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="MP" value="1655" x="6.985" y="35.052" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="NAME" x="10.485" y="38.052" size="1.27" layer="26" rot="MR0"/>
+<attribute name="PACKAGE" value="None" x="6.985" y="35.052" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="PRICE" value="None" x="6.985" y="35.052" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/1655/?ref=eda" x="6.985" y="35.052" size="1.778" layer="28" rot="MR0" display="off"/>
+<attribute name="VALUE" x="10.485" y="32.052" size="1.27" layer="28" rot="MR0" align="top-left"/>
 </element>
 </elements>
 <signals>
-<signal name="GND">
-<contactref element="QWIIC" pad="1"/>
-<contactref element="BMP3XX" pad="3"/>
-<contactref element="JST-PH" pad="2"/>
-<contactref element="U$1" pad="GND$1"/>
-<contactref element="U$1" pad="GND$3"/>
-<contactref element="U$1" pad="GND$2"/>
-<contactref element="U$1" pad="GND$4"/>
-<contactref element="BEEPER" pad="N"/>
-<contactref element="U1" pad="8"/>
-<contactref element="U1" pad="1"/>
-<contactref element="U1" pad="10"/>
-<contactref element="USB-C" pad="B1_A12"/>
-<contactref element="USB-C" pad="A1_B12"/>
-<contactref element="R2" pad="1"/>
-<contactref element="R1" pad="2"/>
-<contactref element="UFL" pad="2"/>
-<contactref element="UFL" pad="1"/>
-<wire x1="13.453" y1="64.516" x2="16.203" y2="64.516" width="0" layer="19" extent="1-1"/>
-<wire x1="11.028" y1="59.69" x2="13.453" y2="64.516" width="0" layer="19" extent="1-1"/>
-<wire x1="18.923" y1="50.8" x2="11.028" y2="59.69" width="0" layer="19" extent="1-1"/>
-<wire x1="22.7255" y1="46.37" x2="18.923" y2="50.8" width="0" layer="19" extent="16-16"/>
-<wire x1="22.7255" y1="32.37" x2="22.7255" y2="46.37" width="0" layer="19" extent="16-16"/>
-<wire x1="14.90275" y1="31.6865" x2="22.7255" y2="32.37" width="0" layer="19" extent="1-16"/>
-<wire x1="14.23473125" y1="31.358840625" x2="14.90275" y2="31.6865" width="0" layer="19" extent="1-1"/>
-<wire x1="14.570009375" y1="33.15208125" x2="14.90275" y2="31.6865" width="0" layer="19" extent="1-1"/>
-<wire x1="7.3255" y1="34.37" x2="14.570009375" y2="33.15208125" width="0" layer="19" extent="1-16"/>
-<wire x1="11.66" y1="22.86" x2="14.23473125" y2="31.358840625" width="0" layer="19" extent="1-16"/>
-<wire x1="19.32" y1="21.48" x2="11.66" y2="22.86" width="0" layer="19" extent="16-16"/>
-<wire x1="18.21125" y1="13.816" x2="19.32" y2="21.48" width="0" layer="19" extent="1-16"/>
-<wire x1="18.2705" y1="8.565" x2="18.21125" y2="13.816" width="0" layer="19" extent="1-1"/>
-<wire x1="11.8705" y1="8.565" x2="18.2705" y2="8.565" width="0" layer="19" extent="1-1"/>
-<wire x1="6.35" y1="4.856" x2="11.8705" y2="8.565" width="0" layer="19" extent="1-1"/>
-<wire x1="24.13" y1="4.856" x2="18.2705" y2="8.565" width="0" layer="19" extent="1-1"/>
-</signal>
-<signal name="VBAT">
-<contactref element="JST-PH" pad="1"/>
-<contactref element="U$1" pad="VBAT"/>
-<wire x1="8.87625" y1="18.4799" x2="21.32" y2="21.48" width="0" layer="19" extent="1-16"/>
-</signal>
-<signal name="3VO">
-<contactref element="BMP3XX" pad="2"/>
-</signal>
-<signal name="SCL">
-<contactref element="QWIIC" pad="4"/>
-<contactref element="BMP3XX" pad="4"/>
-<contactref element="U$1" pad="IO22"/>
-<wire x1="21.21625" y1="23.5712" x2="16.383" y2="50.8" width="0" layer="19" extent="1-1"/>
-<wire x1="8.66" y1="22.86" x2="21.21625" y2="23.5712" width="0" layer="19" extent="1-16"/>
-</signal>
-<signal name="SDA">
-<contactref element="QWIIC" pad="3"/>
-<contactref element="BMP3XX" pad="6"/>
-<contactref element="U$1" pad="IO21"/>
-<wire x1="21.21625" y1="24.8412" x2="11.303" y2="50.8" width="0" layer="19" extent="1-1"/>
-<wire x1="9.66" y1="22.86" x2="21.21625" y2="24.8412" width="0" layer="19" extent="1-16"/>
-</signal>
-<signal name="VCC">
-<contactref element="QWIIC" pad="2"/>
-<contactref element="BMP3XX" pad="1"/>
-<contactref element="U$1" pad="3V3"/>
-<contactref element="U1" pad="13"/>
-<wire x1="7.3255" y1="40.37" x2="24.003" y2="50.8" width="0" layer="19" extent="16-16"/>
-<wire x1="10.66" y1="22.86" x2="7.3255" y2="40.37" width="0" layer="19" extent="16-16"/>
-<wire x1="10.59125" y1="13.816" x2="10.66" y2="22.86" width="0" layer="19" extent="1-16"/>
-</signal>
-<signal name="VIN">
-<contactref element="USB-C" pad="A4_B9"/>
-<contactref element="USB-C" pad="B4_A9"/>
-<contactref element="U$1" pad="5V"/>
-<wire x1="17.4705" y1="8.565" x2="15.67125" y2="13.816" width="0" layer="19" extent="1-1"/>
-<wire x1="12.6705" y1="8.565" x2="17.4705" y2="8.565" width="0" layer="19" extent="1-1"/>
-</signal>
-<signal name="DP">
-<contactref element="USB-C" pad="A6"/>
-<contactref element="USB-C" pad="B6"/>
-<contactref element="U$1" pad="D+"/>
-<wire x1="14.8205" y1="8.565" x2="13.13125" y2="13.816" width="0" layer="19" extent="1-1"/>
-<wire x1="15.8205" y1="8.565" x2="14.8205" y2="8.565" width="0" layer="19" extent="1-1"/>
-</signal>
-<signal name="DN">
-<contactref element="USB-C" pad="A7"/>
-<contactref element="USB-C" pad="B7"/>
-<contactref element="U$1" pad="D-"/>
-<wire x1="14.3205" y1="8.565" x2="14.40125" y2="13.816" width="0" layer="19" extent="1-1"/>
-<wire x1="15.3205" y1="8.565" x2="14.3205" y2="8.565" width="0" layer="19" extent="1-1"/>
-</signal>
 <signal name="SHELL_GND">
 <contactref element="USB-C" pad="S1"/>
 <contactref element="USB-C" pad="S2"/>
 <contactref element="USB-C" pad="S3"/>
 <contactref element="USB-C" pad="S4"/>
-<wire x1="19.3905" y1="3.81" x2="19.3905" y2="7.99" width="0" layer="19" extent="1-1"/>
-<wire x1="10.7505" y1="7.99" x2="19.3905" y2="7.99" width="0" layer="19" extent="1-1"/>
-<wire x1="10.7505" y1="3.81" x2="10.7505" y2="7.99" width="0" layer="19" extent="1-1"/>
+<wire x1="3.81" y1="50.04" x2="7.99" y2="50.04" width="0" layer="19" extent="1-1"/>
+<wire x1="7.99" y1="41.4" x2="7.99" y2="50.04" width="0" layer="19" extent="1-1"/>
+<wire x1="3.81" y1="41.4" x2="7.99" y2="41.4" width="0" layer="19" extent="1-1"/>
 </signal>
-<signal name="N$1">
-<contactref element="USB-C" pad="B5"/>
-<contactref element="R1" pad="1"/>
-<wire x1="16.8205" y1="8.565" x2="24.13" y2="7.844" width="0" layer="19" extent="1-1"/>
+<signal name="3VO">
+<contactref element="BMP3XX" pad="2"/>
 </signal>
-<signal name="N$2">
-<contactref element="USB-C" pad="A5"/>
-<contactref element="R2" pad="2"/>
-<wire x1="6.35" y1="7.844" x2="13.8205" y2="8.565" width="0" layer="19" extent="1-1"/>
+<signal name="SCL">
+<contactref element="BMP3XX" pad="4"/>
+<contactref element="U$1" pad="IO22"/>
+<contactref element="J1" pad="4"/>
+<wire x1="39.727" y1="37.846" x2="57.15" y2="45.72" width="0" layer="19" extent="1-1"/>
+<wire x1="22.5552" y1="39.47" x2="39.727" y2="37.846" width="0" layer="19" extent="1-1"/>
 </signal>
-<signal name="N$4">
-<contactref element="U$1" pad="IO36"/>
+<signal name="SDA">
+<contactref element="BMP3XX" pad="6"/>
+<contactref element="U$1" pad="IO21"/>
+<contactref element="J1" pad="3"/>
+<wire x1="38.727" y1="37.846" x2="57.15" y2="50.8" width="0" layer="19" extent="1-1"/>
+<wire x1="23.8252" y1="39.47" x2="38.727" y2="37.846" width="0" layer="19" extent="1-1"/>
 </signal>
-<signal name="GPIO9">
-<contactref element="U$1" pad="IO9"/>
+<signal name="VCC">
+<contactref element="BMP3XX" pad="1"/>
+<contactref element="U$1" pad="3V3"/>
+<contactref element="U1" pad="13"/>
+<contactref element="U2" pad="P$1"/>
+<contactref element="J1" pad="2"/>
+<wire x1="42.31" y1="38.22" x2="57.15" y2="38.1" width="0" layer="19" extent="16-16"/>
+<wire x1="37.727" y1="37.846" x2="42.31" y2="38.22" width="0" layer="19" extent="1-16"/>
+<wire x1="12.8" y1="50.095" x2="37.727" y2="37.846" width="0" layer="19" extent="1-1"/>
+<wire x1="11.16" y1="57.23" x2="12.8" y2="50.095" width="0" layer="19" extent="1-16"/>
+</signal>
+<signal name="GND">
+<contactref element="JST-PH" pad="2"/>
+<contactref element="U$1" pad="GND$1"/>
+<contactref element="U$1" pad="GND$2"/>
+<contactref element="U$1" pad="GND$3"/>
+<contactref element="U$1" pad="GND$4"/>
+<contactref element="BEEPER" pad="N"/>
+<contactref element="U1" pad="1"/>
+<contactref element="U1" pad="8"/>
+<contactref element="U1" pad="10"/>
+<contactref element="USB-C" pad="A1_B12"/>
+<contactref element="USB-C" pad="B1_A12"/>
+<contactref element="UFL" pad="2"/>
+<contactref element="UFL" pad="1"/>
+<contactref element="BMP3XX" pad="3"/>
+<contactref element="U2" pad="P$19"/>
+<contactref element="U2" pad="P$12"/>
+<contactref element="U2" pad="P$3"/>
+<contactref element="U2" pad="P$8"/>
+<contactref element="J1" pad="1"/>
+<contactref element="D1" pad="1"/>
+<wire x1="57.15" y1="43.18" x2="67.31" y2="43.19" width="0" layer="19" extent="1-1"/>
+<wire x1="39.31" y1="38.22" x2="57.15" y2="43.18" width="0" layer="19" extent="16-16"/>
+<wire x1="36.727" y1="37.846" x2="39.31" y2="38.22" width="0" layer="19" extent="1-16"/>
+<wire x1="31.81" y1="38.22" x2="36.727" y2="37.846" width="0" layer="19" extent="1-16"/>
+<wire x1="30.6705" y1="45.7835" x2="31.81" y2="38.22" width="0" layer="19" extent="1-16"/>
+<wire x1="30.342840625" y1="46.45151875" x2="30.6705" y2="45.7835" width="0" layer="19" extent="1-1"/>
+<wire x1="32.13608125" y1="46.116240625" x2="30.6705" y2="45.7835" width="0" layer="19" extent="1-1"/>
+<wire x1="30.31" y1="53.22" x2="30.342840625" y2="46.45151875" width="0" layer="19" extent="1-16"/>
+<wire x1="23.495" y1="55.521" x2="30.31" y2="53.22" width="0" layer="19" extent="16-16"/>
+<wire x1="23.495" y1="58.271" x2="23.495" y2="55.521" width="0" layer="19" extent="16-16"/>
+<wire x1="40.81" y1="53.22" x2="30.31" y2="53.22" width="0" layer="19" extent="16-16"/>
+<wire x1="17.16" y1="41.83" x2="30.342840625" y2="46.45151875" width="0" layer="19" extent="1-16"/>
+<wire x1="12.8" y1="42.475" x2="17.16" y2="41.83" width="0" layer="19" extent="1-16"/>
+<wire x1="8.565" y1="42.52" x2="12.8" y2="42.475" width="0" layer="19" extent="1-1"/>
+<wire x1="3.16" y1="41.83" x2="8.565" y2="42.52" width="0" layer="19" extent="1-16"/>
+<wire x1="9.435" y1="36.652" x2="8.565" y2="42.52" width="0" layer="19" extent="1-16"/>
+<wire x1="8.565" y1="48.92" x2="8.565" y2="42.52" width="0" layer="19" extent="1-1"/>
+<wire x1="17.89" y1="33.29" x2="17.16" y2="41.83" width="0" layer="19" extent="16-16"/>
+<wire x1="5.16" y1="57.23" x2="8.565" y2="48.92" width="0" layer="19" extent="1-16"/>
+</signal>
+<signal name="VBAT">
+<contactref element="JST-PH" pad="1"/>
+<contactref element="U$1" pad="VBAT"/>
+<wire x1="17.89" y1="35.29" x2="17.4639" y2="51.81" width="0" layer="19" extent="1-16"/>
+</signal>
+<signal name="VIN">
+<contactref element="USB-C" pad="A4_B9"/>
+<contactref element="USB-C" pad="B4_A9"/>
+<contactref element="U$1" pad="5V"/>
+<contactref element="D1" pad="3"/>
+<wire x1="8.565" y1="43.32" x2="12.8" y2="45.015" width="0" layer="19" extent="1-1"/>
+<wire x1="8.565" y1="48.12" x2="8.565" y2="43.32" width="0" layer="19" extent="1-1"/>
+<wire x1="4.535" y1="33.452" x2="8.565" y2="43.32" width="0" layer="19" extent="1-16"/>
+</signal>
+<signal name="DP">
+<contactref element="USB-C" pad="A6"/>
+<contactref element="USB-C" pad="B6"/>
+<contactref element="U$1" pad="D+"/>
+<wire x1="8.565" y1="45.97" x2="12.8" y2="47.555" width="0" layer="19" extent="1-1"/>
+<wire x1="8.565" y1="44.97" x2="8.565" y2="45.97" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="DN">
+<contactref element="USB-C" pad="A7"/>
+<contactref element="USB-C" pad="B7"/>
+<contactref element="U$1" pad="D-"/>
+<wire x1="8.565" y1="46.47" x2="12.8" y2="46.285" width="0" layer="19" extent="1-1"/>
+<wire x1="8.565" y1="45.47" x2="8.565" y2="46.47" width="0" layer="19" extent="1-1"/>
+</signal>
+<signal name="BEEP">
 <contactref element="BEEPER" pad="P"/>
-<wire x1="21.21625" y1="27.3812" x2="18.628" y2="59.69" width="0" layer="19" extent="1-1"/>
+<contactref element="U$1" pad="IO35"/>
+<wire x1="33.9739" y1="51.81" x2="67.31" y2="50.79" width="0" layer="19" extent="1-1"/>
 </signal>
 <signal name="MOSI">
 <contactref element="U$1" pad="IO23"/>
 <contactref element="U1" pad="3"/>
-<wire x1="21.21625" y1="18.4912" x2="22.7255" y2="42.37" width="0" layer="19" extent="1-16"/>
+<wire x1="13.16" y1="41.83" x2="17.4752" y2="39.47" width="0" layer="19" extent="1-16"/>
 </signal>
 <signal name="MISO">
 <contactref element="U$1" pad="IO19"/>
 <contactref element="U1" pad="2"/>
-<wire x1="21.21625" y1="19.7612" x2="22.7255" y2="44.37" width="0" layer="19" extent="1-16"/>
+<wire x1="15.16" y1="41.83" x2="18.7452" y2="39.47" width="0" layer="19" extent="1-16"/>
 </signal>
 <signal name="SCK">
 <contactref element="U1" pad="4"/>
 <contactref element="U$1" pad="IO18"/>
-<wire x1="21.21625" y1="21.0312" x2="22.7255" y2="40.37" width="0" layer="19" extent="1-16"/>
+<wire x1="11.16" y1="41.83" x2="20.0152" y2="39.47" width="0" layer="19" extent="1-16"/>
 </signal>
 <signal name="CS">
 <contactref element="U1" pad="5"/>
 <contactref element="U$1" pad="IO5"/>
-<wire x1="21.21625" y1="22.3012" x2="22.7255" y2="38.37" width="0" layer="19" extent="1-16"/>
+<wire x1="9.16" y1="41.83" x2="21.2852" y2="39.47" width="0" layer="19" extent="1-16"/>
 </signal>
 <signal name="RST">
 <contactref element="U1" pad="6"/>
 <contactref element="U$1" pad="IO0"/>
-<wire x1="21.21625" y1="26.1112" x2="22.7255" y2="36.37" width="0" layer="19" extent="1-16"/>
+<wire x1="7.16" y1="41.83" x2="25.0952" y2="39.47" width="0" layer="19" extent="1-16"/>
 </signal>
 <signal name="ANT">
 <contactref element="UFL" pad="3"/>
 <contactref element="U1" pad="9"/>
-<wire x1="7.3255" y1="32.37" x2="14.828" y2="62.991" width="0" layer="19" extent="1-16"/>
+<wire x1="3.16" y1="57.23" x2="21.97" y2="56.896" width="0" layer="19" extent="16-16"/>
+</signal>
+<signal name="RX">
+<contactref element="U2" pad="P$10"/>
+<contactref element="U$1" pad="TX"/>
+<wire x1="28.9052" y1="39.47" x2="28.81" y2="38.22" width="0" layer="19" extent="1-16"/>
+</signal>
+<signal name="VBACK">
+<contactref element="U2" pad="P$4"/>
+</signal>
+<signal name="FIX">
+<contactref element="U2" pad="P$5"/>
+<contactref element="U$1" pad="IO39"/>
+<wire x1="30.1752" y1="39.47" x2="36.31" y2="38.22" width="0" layer="19" extent="1-16"/>
+</signal>
+<signal name="TX">
+<contactref element="U2" pad="P$9"/>
+<contactref element="U$1" pad="RX"/>
+<wire x1="27.6352" y1="39.47" x2="30.31" y2="38.22" width="0" layer="19" extent="1-16"/>
+</signal>
+<signal name="NEO">
+<contactref element="U$1" pad="IO38"/>
+<contactref element="D1" pad="2"/>
+<wire x1="9.435" y1="33.452" x2="31.4452" y2="39.47" width="0" layer="19" extent="1-16"/>
 </signal>
 </signals>
 <mfgpreviewcolors>

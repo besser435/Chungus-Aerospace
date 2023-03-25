@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="9.6.2">
+<eagle version="9.5.1">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -460,69 +460,6 @@ https://www.tinypico.com/tinypico-nano</description>
 </deviceset>
 </devicesets>
 </library>
-<library name="resis CR1206-JW-512ELF">
-<packages>
-<package name="RESC3216X75N">
-<text x="-2.33" y="-1.23" size="0.5" layer="27" align="top-left">&gt;VALUE</text>
-<text x="-2.33" y="1.23" size="0.5" layer="25">&gt;NAME</text>
-<wire x1="1.73" y1="-0.88" x2="-1.73" y2="-0.88" width="0.127" layer="51"/>
-<wire x1="1.73" y1="0.88" x2="-1.73" y2="0.88" width="0.127" layer="51"/>
-<wire x1="1.73" y1="-0.88" x2="1.73" y2="0.88" width="0.127" layer="51"/>
-<wire x1="-1.73" y1="-0.88" x2="-1.73" y2="0.88" width="0.127" layer="51"/>
-<wire x1="-0.59" y1="0.88" x2="0.59" y2="0.88" width="0.127" layer="21"/>
-<wire x1="-0.59" y1="-0.88" x2="0.59" y2="-0.88" width="0.127" layer="21"/>
-<wire x1="-2.331" y1="-1.135" x2="2.331" y2="-1.135" width="0.05" layer="39"/>
-<wire x1="-2.331" y1="1.135" x2="2.331" y2="1.135" width="0.05" layer="39"/>
-<wire x1="-2.331" y1="-1.135" x2="-2.331" y2="1.135" width="0.05" layer="39"/>
-<wire x1="2.331" y1="-1.135" x2="2.331" y2="1.135" width="0.05" layer="39"/>
-<smd name="1" x="-1.494" y="0" dx="1.17" dy="1.77" layer="1"/>
-<smd name="2" x="1.494" y="0" dx="1.17" dy="1.77" layer="1"/>
-</package>
-</packages>
-<symbols>
-<symbol name="CR1206-JW-512ELF">
-<wire x1="-5.08" y1="0" x2="-4.445" y2="1.905" width="0.254" layer="94"/>
-<wire x1="-4.445" y1="1.905" x2="-3.175" y2="-1.905" width="0.254" layer="94"/>
-<wire x1="-3.175" y1="-1.905" x2="-1.905" y2="1.905" width="0.254" layer="94"/>
-<wire x1="-1.905" y1="1.905" x2="-0.635" y2="-1.905" width="0.254" layer="94"/>
-<wire x1="-0.635" y1="-1.905" x2="0.635" y2="1.905" width="0.254" layer="94"/>
-<wire x1="0.635" y1="1.905" x2="1.905" y2="-1.905" width="0.254" layer="94"/>
-<wire x1="1.905" y1="-1.905" x2="3.175" y2="1.905" width="0.254" layer="94"/>
-<wire x1="3.175" y1="1.905" x2="4.445" y2="-1.905" width="0.254" layer="94"/>
-<wire x1="4.445" y1="-1.905" x2="5.08" y2="0" width="0.254" layer="94"/>
-<text x="-7.624440625" y="2.54148125" size="2.54148125" layer="95">&gt;NAME</text>
-<text x="-7.62996875" y="-5.086640625" size="2.54331875" layer="96">&gt;VALUE</text>
-<pin name="1" x="-10.16" y="0" visible="off" length="middle" direction="pas"/>
-<pin name="2" x="10.16" y="0" visible="off" length="middle" direction="pas" rot="R180"/>
-</symbol>
-</symbols>
-<devicesets>
-<deviceset name="CR1206-JW-512ELF" prefix="R">
-<description>RES SMD 5.1K OHM 5% 1/4W 1206 </description>
-<gates>
-<gate name="G$1" symbol="CR1206-JW-512ELF" x="0" y="0"/>
-</gates>
-<devices>
-<device name="" package="RESC3216X75N">
-<connects>
-<connect gate="G$1" pin="1" pad="1"/>
-<connect gate="G$1" pin="2" pad="2"/>
-</connects>
-<technologies>
-<technology name="">
-<attribute name="DESCRIPTION" value=" 5.1 kOhms ±5% 0.25W, 1/4W Chip Resistor 1206 (3216 Metric) Moisture Resistant Thick Film "/>
-<attribute name="DIGI-KEY_PART_NUMBER" value="118-CR1206-JW-512ELFTR-ND"/>
-<attribute name="MF" value="Bourns"/>
-<attribute name="MP" value="CR1206-JW-512ELF"/>
-<attribute name="PACKAGE" value="3216 Bourns"/>
-<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/CR1206-JW-512ELF/?ref=eda"/>
-</technology>
-</technologies>
-</device>
-</devices>
-</deviceset>
-</devicesets>
-</library>
 <library name="buzzer">
 <packages>
 <package name="XDCR_AI-1223-TWT-12V-R">
@@ -807,6 +744,42 @@ JST PH 2-pin thru-home side entry</description>
 <text x="-1.27" y="2.54" size="1.016" layer="25" ratio="18">&gt;NAME</text>
 <text x="-1.27" y="-3.175" size="0.8128" layer="27" ratio="10">&gt;VALUE</text>
 </package>
+<package name="FGPMMOPA6H" urn="urn:adsk.eagle:footprint:6240255/1" library_version="2">
+<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="21"/>
+<wire x1="8" y1="-8" x2="-8" y2="-8" width="0.127" layer="21"/>
+<wire x1="-8" y1="8" x2="8" y2="8" width="0.127" layer="51"/>
+<wire x1="8" y1="8" x2="8" y2="-8" width="0.127" layer="51"/>
+<wire x1="8" y1="-8" x2="-8" y2="-8" width="0.127" layer="51"/>
+<wire x1="-8" y1="-8" x2="-8" y2="8" width="0.127" layer="51"/>
+<wire x1="8" y1="6" x2="8" y2="-6" width="0.127" layer="21"/>
+<wire x1="8" y1="-7.5" x2="8" y2="-8" width="0.127" layer="21"/>
+<wire x1="8" y1="8" x2="8" y2="7.5" width="0.127" layer="21"/>
+<circle x="0.5" y="0.85" radius="0.5" width="0.8128" layer="51"/>
+<circle x="-9.1" y="8.4" radius="0.3162" width="0.8128" layer="21"/>
+<smd name="P$1" x="-7.5" y="6.75" dx="2" dy="1" layer="1"/>
+<smd name="P$2" x="-7.5" y="5.25" dx="2" dy="1" layer="1"/>
+<smd name="P$3" x="-7.5" y="3.75" dx="2" dy="1" layer="1"/>
+<smd name="P$4" x="-7.5" y="2.25" dx="2" dy="1" layer="1"/>
+<smd name="P$5" x="-7.5" y="0.75" dx="2" dy="1" layer="1"/>
+<smd name="P$6" x="-7.5" y="-0.75" dx="2" dy="1" layer="1"/>
+<smd name="P$7" x="-7.5" y="-2.25" dx="2" dy="1" layer="1"/>
+<smd name="P$8" x="-7.5" y="-3.75" dx="2" dy="1" layer="1"/>
+<smd name="P$9" x="-7.5" y="-5.25" dx="2" dy="1" layer="1"/>
+<smd name="P$10" x="-7.5" y="-6.75" dx="2" dy="1" layer="1"/>
+<smd name="P$11" x="7.5" y="-6.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$12" x="7.5" y="-5.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$13" x="7.5" y="-3.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$14" x="7.5" y="-2.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$15" x="7.5" y="-0.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$16" x="7.5" y="0.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$17" x="7.5" y="2.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$18" x="7.5" y="3.75" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$19" x="7.5" y="5.25" dx="2" dy="1" layer="1" rot="R180"/>
+<smd name="P$20" x="7.5" y="6.75" dx="2" dy="1" layer="1" rot="R180"/>
+<text x="-8" y="8.5" size="0.8128" layer="25" ratio="18">&gt;NAME</text>
+<text x="-8" y="-9.5" size="0.4064" layer="27" ratio="10">&gt;VALUE</text>
+<hole x="0.5" y="0.85" drill="3"/>
+</package>
 </packages>
 <packages3d>
 <package3d name="JST-PH-2-SMT-RA" urn="urn:adsk.eagle:package:6240692/1" type="box" library_version="2">
@@ -840,6 +813,11 @@ JST PH 2-pin thru-home side entry</description>
 <packageinstance name="U.FL"/>
 </packageinstances>
 </package3d>
+<package3d name="FGPMMOPA6H" urn="urn:adsk.eagle:package:6240898/1" type="box" library_version="2">
+<packageinstances>
+<packageinstance name="FGPMMOPA6H"/>
+</packageinstances>
+</package3d>
 </packages3d>
 <symbols>
 <symbol name="PINHD2" urn="urn:adsk.eagle:symbol:6239527/1" library_version="2">
@@ -861,6 +839,45 @@ JST PH 2-pin thru-home side entry</description>
 <pin name="GND@1" x="-2.54" y="-7.62" visible="off" length="short" direction="pas"/>
 <text x="-2.54" y="3.302" size="1.27" layer="95">&gt;NAME</text>
 <text x="-2.54" y="-10.16" size="1.27" layer="96">&gt;VALUE</text>
+</symbol>
+<symbol name="FGPMMOPA6H" urn="urn:adsk.eagle:symbol:6239650/1" library_version="2">
+<wire x1="-12.7" y1="20.32" x2="12.7" y2="20.32" width="0.254" layer="94"/>
+<wire x1="12.7" y1="20.32" x2="12.7" y2="12.7" width="0.254" layer="94"/>
+<wire x1="12.7" y1="12.7" x2="12.7" y2="-22.86" width="0.254" layer="94"/>
+<wire x1="12.7" y1="-22.86" x2="-12.7" y2="-22.86" width="0.254" layer="94"/>
+<wire x1="-12.7" y1="-22.86" x2="-12.7" y2="-15.24" width="0.254" layer="94"/>
+<wire x1="-12.7" y1="-15.24" x2="-12.7" y2="12.7" width="0.254" layer="94"/>
+<wire x1="-12.7" y1="12.7" x2="-12.7" y2="20.32" width="0.254" layer="94"/>
+<wire x1="-12.7" y1="12.7" x2="12.7" y2="12.7" width="0.254" layer="94" style="shortdash"/>
+<wire x1="-12.7" y1="-15.24" x2="12.7" y2="-15.24" width="0.254" layer="94" style="shortdash"/>
+<text x="-7.62" y="17.78" size="1.27" layer="94">FGPMMOPA6H GPS</text>
+<text x="-10.16" y="15.24" size="1.27" layer="94">MTK MT3339 Chipset</text>
+<text x="-10.16" y="-17.78" size="1.27" layer="94">VCC:</text>
+<text x="-9.906" y="-20.32" size="1.27" layer="94">VBACKUP:</text>
+<text x="2.54" y="-17.78" size="1.27" layer="94">3.0-4.3V</text>
+<text x="2.54" y="-20.32" size="1.27" layer="94">2.0-4.3V</text>
+<text x="-12.7" y="22.86" size="1.27" layer="95">&gt;NAME</text>
+<text x="-12.7" y="-25.4" size="1.27" layer="95">&gt;VALUE</text>
+<pin name="VCC" x="-15.24" y="10.16" length="short"/>
+<pin name="NRESET" x="-15.24" y="7.62" length="short"/>
+<pin name="GND@1" x="-15.24" y="5.08" length="short"/>
+<pin name="VBACKUP" x="-15.24" y="2.54" length="short"/>
+<pin name="3D-FIX" x="-15.24" y="0" length="short"/>
+<pin name="NC@1" x="-15.24" y="-2.54" length="short"/>
+<pin name="NC@2" x="-15.24" y="-5.08" length="short"/>
+<pin name="GND@2" x="-15.24" y="-7.62" length="short"/>
+<pin name="TX" x="-15.24" y="-10.16" length="short"/>
+<pin name="RX" x="-15.24" y="-12.7" length="short"/>
+<pin name="EX_ANT" x="15.24" y="-12.7" length="short" rot="R180"/>
+<pin name="GND@3" x="15.24" y="-10.16" length="short" rot="R180"/>
+<pin name="1PPS" x="15.24" y="-7.62" length="short" rot="R180"/>
+<pin name="RTCM" x="15.24" y="-5.08" length="short" rot="R180"/>
+<pin name="NC@3" x="15.24" y="-2.54" length="short" rot="R180"/>
+<pin name="NC@4" x="15.24" y="0" length="short" rot="R180"/>
+<pin name="NC@5" x="15.24" y="2.54" length="short" rot="R180"/>
+<pin name="NC@6" x="15.24" y="5.08" length="short" rot="R180"/>
+<pin name="GND@4" x="15.24" y="7.62" length="short" rot="R180"/>
+<pin name="NC@7" x="15.24" y="10.16" length="short" rot="R180"/>
 </symbol>
 </symbols>
 <devicesets>
@@ -944,6 +961,151 @@ JST PH 2-pin thru-home side entry</description>
 </package3dinstances>
 <technologies>
 <technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+<deviceset name="GPS_FGPMMOPA6H" urn="urn:adsk.eagle:component:6241140/1" prefix="U" uservalue="yes" library_version="2">
+<description>&lt;b&gt;GPS Module&lt;/b&gt; - MTK MT3339 Chipset, -165dBm sensitivity, 22 channels, 10Hz, auto-select external antenna options</description>
+<gates>
+<gate name="G$1" symbol="FGPMMOPA6H" x="0" y="0"/>
+</gates>
+<devices>
+<device name="" package="FGPMMOPA6H">
+<connects>
+<connect gate="G$1" pin="1PPS" pad="P$13"/>
+<connect gate="G$1" pin="3D-FIX" pad="P$5"/>
+<connect gate="G$1" pin="EX_ANT" pad="P$11"/>
+<connect gate="G$1" pin="GND@1" pad="P$3"/>
+<connect gate="G$1" pin="GND@2" pad="P$8"/>
+<connect gate="G$1" pin="GND@3" pad="P$12"/>
+<connect gate="G$1" pin="GND@4" pad="P$19"/>
+<connect gate="G$1" pin="NC@1" pad="P$6"/>
+<connect gate="G$1" pin="NC@2" pad="P$7"/>
+<connect gate="G$1" pin="NC@3" pad="P$15"/>
+<connect gate="G$1" pin="NC@4" pad="P$16"/>
+<connect gate="G$1" pin="NC@5" pad="P$17"/>
+<connect gate="G$1" pin="NC@6" pad="P$18"/>
+<connect gate="G$1" pin="NC@7" pad="P$20"/>
+<connect gate="G$1" pin="NRESET" pad="P$2"/>
+<connect gate="G$1" pin="RTCM" pad="P$14"/>
+<connect gate="G$1" pin="RX" pad="P$10"/>
+<connect gate="G$1" pin="TX" pad="P$9"/>
+<connect gate="G$1" pin="VBACKUP" pad="P$4"/>
+<connect gate="G$1" pin="VCC" pad="P$1"/>
+</connects>
+<package3dinstances>
+<package3dinstance package3d_urn="urn:adsk.eagle:package:6240898/1"/>
+</package3dinstances>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+</devices>
+</deviceset>
+</devicesets>
+</library>
+<library name="BMP388 Breakout">
+<description>Upverter Parts Library
+
+Created by Upverter.com</description>
+<packages>
+<package name="ADAFRUIT_INDUSTRIES_3966_0">
+<description>BMP388 series Pressure Sensor Evaluation Board</description>
+<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="51"/>
+<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="51"/>
+<wire x1="12.7" y1="8.89" x2="12.7" y2="-8.89" width="0.15" layer="51"/>
+<wire x1="12.7" y1="-8.89" x2="-12.7" y2="-8.89" width="0.15" layer="51"/>
+<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
+<wire x1="12.7" y1="-8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
+<wire x1="-12.7" y1="-8.89" x2="12.7" y2="-8.89" width="0.15" layer="21"/>
+<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="21"/>
+<wire x1="-12.8" y1="-8.99" x2="-12.8" y2="8.99" width="0.1" layer="41"/>
+<wire x1="-12.8" y1="8.99" x2="12.8" y2="8.99" width="0.1" layer="41"/>
+<wire x1="12.8" y1="8.99" x2="12.8" y2="-8.99" width="0.1" layer="41"/>
+<wire x1="12.8" y1="-8.99" x2="-12.8" y2="-8.99" width="0.1" layer="41"/>
+<text x="-12.7" y="9.19" size="1" layer="25">&gt;NAME</text>
+<circle x="-13.3" y="-6.35" radius="0.25" width="0" layer="21"/>
+<pad name="1" x="-8.89" y="-6.35" drill="1" diameter="1.78" shape="square"/>
+<pad name="2" x="-6.35" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="3" x="-3.81" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="4" x="-1.27" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="5" x="1.27" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="6" x="3.81" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="7" x="6.35" y="-6.35" drill="1" diameter="1.78"/>
+<pad name="8" x="8.89" y="-6.35" drill="1" diameter="1.78"/>
+</package>
+</packages>
+<symbols>
+<symbol name="ADAFRUIT_INDUSTRIES_3966_0_0">
+<description>BMP388 series Pressure Sensor Evaluation Board</description>
+<wire x1="2.54" y1="-22.86" x2="2.54" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="2.54" y1="-5.08" x2="30.48" y2="-5.08" width="0.254" layer="94"/>
+<wire x1="30.48" y1="-5.08" x2="30.48" y2="-22.86" width="0.254" layer="94"/>
+<wire x1="30.48" y1="-22.86" x2="2.54" y2="-22.86" width="0.254" layer="94"/>
+<wire x1="2.54" y1="-7.62" x2="2.54" y2="-7.62" width="0.15" layer="94"/>
+<wire x1="30.48" y1="-7.62" x2="30.48" y2="-7.62" width="0.15" layer="94"/>
+<wire x1="2.54" y1="-20.32" x2="2.54" y2="-20.32" width="0.15" layer="94"/>
+<wire x1="30.48" y1="-12.7" x2="30.48" y2="-12.7" width="0.15" layer="94"/>
+<wire x1="2.54" y1="-12.7" x2="2.54" y2="-12.7" width="0.15" layer="94"/>
+<wire x1="2.54" y1="-15.24" x2="2.54" y2="-15.24" width="0.15" layer="94"/>
+<wire x1="2.54" y1="-17.78" x2="2.54" y2="-17.78" width="0.15" layer="94"/>
+<wire x1="30.48" y1="-20.32" x2="30.48" y2="-20.32" width="0.15" layer="94"/>
+<text x="2.54" y="-2.54" size="2.54" layer="95" align="top-left">&gt;NAME</text>
+<text x="2.54" y="-25.4" size="2.54" layer="95" align="top-left">3966</text>
+<pin name="VIN" x="-2.54" y="-7.62" length="middle" direction="pwr"/>
+<pin name="3VO" x="35.56" y="-7.62" length="middle" direction="pwr" rot="R180"/>
+<pin name="!CS!" x="-2.54" y="-20.32" length="middle" direction="in"/>
+<pin name="INT" x="35.56" y="-12.7" length="middle" direction="out" rot="R180"/>
+<pin name="SCK/SCL" x="-2.54" y="-12.7" length="middle" direction="in"/>
+<pin name="SDI/SDA" x="-2.54" y="-15.24" length="middle"/>
+<pin name="SDO/ADR" x="-2.54" y="-17.78" length="middle"/>
+<pin name="GND" x="35.56" y="-20.32" length="middle" direction="pwr" rot="R180"/>
+</symbol>
+</symbols>
+<devicesets>
+<deviceset name="ADAFRUIT_INDUSTRIES_3966" prefix="MD">
+<description>BMP388 series Pressure Sensor Evaluation Board</description>
+<gates>
+<gate name="G$0" symbol="ADAFRUIT_INDUSTRIES_3966_0_0" x="0" y="0"/>
+</gates>
+<devices>
+<device name="ADAFRUIT_INDUSTRIES_3966_0_0" package="ADAFRUIT_INDUSTRIES_3966_0">
+<connects>
+<connect gate="G$0" pin="!CS!" pad="7"/>
+<connect gate="G$0" pin="3VO" pad="2"/>
+<connect gate="G$0" pin="GND" pad="3"/>
+<connect gate="G$0" pin="INT" pad="8"/>
+<connect gate="G$0" pin="SCK/SCL" pad="4"/>
+<connect gate="G$0" pin="SDI/SDA" pad="6"/>
+<connect gate="G$0" pin="SDO/ADR" pad="5"/>
+<connect gate="G$0" pin="VIN" pad="1"/>
+</connects>
+<technologies>
+<technology name="">
+<attribute name="AUTOMOTIVE" value="No"/>
+<attribute name="CENTROID_NOT_SPECIFIED" value="No"/>
+<attribute name="DATASHEET" value="https://cdn-learn.adafruit.com/downloads/pdf/adafruit-bmp388-bmp390-bmp3xx.pdf?timestamp=1628517945"/>
+<attribute name="DEVICE_CLASS_L1" value="Sensors"/>
+<attribute name="DEVICE_CLASS_L2" value="Pressure Sensors"/>
+<attribute name="DEVICE_CLASS_L3" value="unset"/>
+<attribute name="DIGIKEY_DESCRIPTION" value="BMP388 - PRECISION BAROMETRIC PR"/>
+<attribute name="DIGIKEY_PART_NUMBER" value="1528-2733-ND"/>
+<attribute name="FOOTPRINT_VARIANT_NAME_0" value="Recommended_Land_Pattern"/>
+<attribute name="LEAD_FREE" value="Yes"/>
+<attribute name="MF" value="Adafruit Industries"/>
+<attribute name="MFG_PACKAGE_IDENT" value="0"/>
+<attribute name="MFG_PACKAGE_IDENT_DATE" value="0"/>
+<attribute name="MFG_PACKAGE_IDENT_REV" value="0"/>
+<attribute name="MOUSER_PART_NUMBER" value="485-3966"/>
+<attribute name="MPN" value="3966"/>
+<attribute name="PACKAGE" value="MODULE_25MM40_17MM78"/>
+<attribute name="PIN_0_0_4_INSIDE_EDGE" value="clock"/>
+<attribute name="PREFIX" value="MD"/>
+<attribute name="ROHS" value="Yes"/>
+<attribute name="SENSOR_OUTPUT" value="I2C,SPI"/>
+<attribute name="VERIFICATION_VERSION" value="0.0.0.3"/>
+</technology>
 </technologies>
 </device>
 </devices>
@@ -1103,106 +1265,68 @@ We carry &lt;a href=”https://www.sparkfun.com/products/14204”&gt;200mm&lt;/a
 </deviceset>
 </devicesets>
 </library>
-<library name="BMP388 Breakout">
-<description>Upverter Parts Library
-
-Created by Upverter.com</description>
+<library name="5050 NeoPixel">
 <packages>
-<package name="ADAFRUIT_INDUSTRIES_3966_0">
-<description>BMP388 series Pressure Sensor Evaluation Board</description>
-<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="51"/>
-<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="51"/>
-<wire x1="12.7" y1="8.89" x2="12.7" y2="-8.89" width="0.15" layer="51"/>
-<wire x1="12.7" y1="-8.89" x2="-12.7" y2="-8.89" width="0.15" layer="51"/>
-<wire x1="-12.7" y1="8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
-<wire x1="12.7" y1="-8.89" x2="12.7" y2="8.89" width="0.15" layer="21"/>
-<wire x1="-12.7" y1="-8.89" x2="12.7" y2="-8.89" width="0.15" layer="21"/>
-<wire x1="-12.7" y1="-8.89" x2="-12.7" y2="8.89" width="0.15" layer="21"/>
-<wire x1="-12.8" y1="-8.99" x2="-12.8" y2="8.99" width="0.1" layer="41"/>
-<wire x1="-12.8" y1="8.99" x2="12.8" y2="8.99" width="0.1" layer="41"/>
-<wire x1="12.8" y1="8.99" x2="12.8" y2="-8.99" width="0.1" layer="41"/>
-<wire x1="12.8" y1="-8.99" x2="-12.8" y2="-8.99" width="0.1" layer="41"/>
-<text x="-12.7" y="9.19" size="1" layer="25">&gt;NAME</text>
-<circle x="-13.3" y="-6.35" radius="0.25" width="0" layer="21"/>
-<pad name="1" x="-8.89" y="-6.35" drill="1" diameter="1.78" shape="square"/>
-<pad name="2" x="-6.35" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="3" x="-3.81" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="4" x="-1.27" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="5" x="1.27" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="6" x="3.81" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="7" x="6.35" y="-6.35" drill="1" diameter="1.78"/>
-<pad name="8" x="8.89" y="-6.35" drill="1" diameter="1.78"/>
+<package name="LED_1655">
+<wire x1="-2.5" y1="-2.5" x2="2.5" y2="-2.5" width="0.127" layer="21"/>
+<wire x1="2.5" y1="2.5" x2="-2.5" y2="2.5" width="0.127" layer="21"/>
+<text x="-3.5" y="3" size="1.27" layer="25">&gt;NAME</text>
+<text x="-3.5" y="-3" size="1.27" layer="27" align="top-left">&gt;VALUE</text>
+<wire x1="-2.5" y1="-2.5" x2="2.5" y2="-2.5" width="0.127" layer="51"/>
+<wire x1="2.5" y1="-2.5" x2="2.5" y2="2.5" width="0.127" layer="51"/>
+<wire x1="2.5" y1="2.5" x2="-2.5" y2="2.5" width="0.127" layer="51"/>
+<wire x1="-2.5" y1="2.5" x2="-2.5" y2="-2.5" width="0.127" layer="51"/>
+<wire x1="-3.45" y1="2.75" x2="3.45" y2="2.75" width="0.05" layer="39"/>
+<wire x1="3.45" y1="2.75" x2="3.45" y2="-2.75" width="0.05" layer="39"/>
+<wire x1="3.45" y1="-2.75" x2="-3.45" y2="-2.75" width="0.05" layer="39"/>
+<wire x1="-3.45" y1="-2.75" x2="-3.45" y2="2.75" width="0.05" layer="39"/>
+<circle x="-3.75" y="1.6" radius="0.1" width="0.2" layer="21"/>
+<circle x="-3.75" y="1.6" radius="0.1" width="0.2" layer="51"/>
+<wire x1="-2.5" y1="-0.7865" x2="-2.5" y2="0.7865" width="0.127" layer="21"/>
+<wire x1="2.5" y1="-0.7865" x2="2.5" y2="0.7865" width="0.127" layer="21"/>
+<smd name="1" x="-2.45" y="1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
+<smd name="4" x="2.45" y="1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
+<smd name="2" x="-2.45" y="-1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
+<smd name="3" x="2.45" y="-1.6" dx="1" dy="1.5" layer="1" rot="R90"/>
 </package>
 </packages>
 <symbols>
-<symbol name="ADAFRUIT_INDUSTRIES_3966_0_0">
-<description>BMP388 series Pressure Sensor Evaluation Board</description>
-<wire x1="2.54" y1="-22.86" x2="2.54" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="2.54" y1="-5.08" x2="30.48" y2="-5.08" width="0.254" layer="94"/>
-<wire x1="30.48" y1="-5.08" x2="30.48" y2="-22.86" width="0.254" layer="94"/>
-<wire x1="30.48" y1="-22.86" x2="2.54" y2="-22.86" width="0.254" layer="94"/>
-<wire x1="2.54" y1="-7.62" x2="2.54" y2="-7.62" width="0.15" layer="94"/>
-<wire x1="30.48" y1="-7.62" x2="30.48" y2="-7.62" width="0.15" layer="94"/>
-<wire x1="2.54" y1="-20.32" x2="2.54" y2="-20.32" width="0.15" layer="94"/>
-<wire x1="30.48" y1="-12.7" x2="30.48" y2="-12.7" width="0.15" layer="94"/>
-<wire x1="2.54" y1="-12.7" x2="2.54" y2="-12.7" width="0.15" layer="94"/>
-<wire x1="2.54" y1="-15.24" x2="2.54" y2="-15.24" width="0.15" layer="94"/>
-<wire x1="2.54" y1="-17.78" x2="2.54" y2="-17.78" width="0.15" layer="94"/>
-<wire x1="30.48" y1="-20.32" x2="30.48" y2="-20.32" width="0.15" layer="94"/>
-<text x="2.54" y="-2.54" size="2.54" layer="95" align="top-left">&gt;NAME</text>
-<text x="2.54" y="-25.4" size="2.54" layer="95" align="top-left">3966</text>
-<pin name="VIN" x="-2.54" y="-7.62" length="middle" direction="pwr"/>
-<pin name="3VO" x="35.56" y="-7.62" length="middle" direction="pwr" rot="R180"/>
-<pin name="!CS!" x="-2.54" y="-20.32" length="middle" direction="in"/>
-<pin name="INT" x="35.56" y="-12.7" length="middle" direction="out" rot="R180"/>
-<pin name="SCK/SCL" x="-2.54" y="-12.7" length="middle" direction="in"/>
-<pin name="SDI/SDA" x="-2.54" y="-15.24" length="middle"/>
-<pin name="SDO/ADR" x="-2.54" y="-17.78" length="middle"/>
-<pin name="GND" x="35.56" y="-20.32" length="middle" direction="pwr" rot="R180"/>
+<symbol name="1655">
+<wire x1="10.16" y1="7.62" x2="10.16" y2="-7.62" width="0.254" layer="94"/>
+<wire x1="10.16" y1="-7.62" x2="-10.16" y2="-7.62" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="-7.62" x2="-10.16" y2="7.62" width="0.254" layer="94"/>
+<wire x1="-10.16" y1="7.62" x2="10.16" y2="7.62" width="0.254" layer="94"/>
+<text x="-10.1621" y="8.8923" size="1.778" layer="95">&gt;NAME</text>
+<text x="-10.16" y="-8.89" size="1.778" layer="96" rot="MR180">&gt;VALUE</text>
+<pin name="DIN" x="-15.24" y="0" length="middle" direction="in"/>
+<pin name="DOUT" x="15.24" y="0" length="middle" direction="out" rot="R180"/>
+<pin name="VDD" x="15.24" y="5.08" length="middle" direction="pwr" rot="R180"/>
+<pin name="VSS" x="15.24" y="-5.08" length="middle" direction="pwr" rot="R180"/>
 </symbol>
 </symbols>
 <devicesets>
-<deviceset name="ADAFRUIT_INDUSTRIES_3966" prefix="MD">
-<description>BMP388 series Pressure Sensor Evaluation Board</description>
+<deviceset name="1655" prefix="D">
+<description>Ws2812b 5050 Rgb Led With Integrated Driver Chip Pack Of 10 &lt;a href="https://pricing.snapeda.com/parts/1655/Adafruit/view-part?ref=eda"&gt;Check availability&lt;/a&gt;</description>
 <gates>
-<gate name="G$0" symbol="ADAFRUIT_INDUSTRIES_3966_0_0" x="0" y="0"/>
+<gate name="G$1" symbol="1655" x="0" y="0"/>
 </gates>
 <devices>
-<device name="ADAFRUIT_INDUSTRIES_3966_0_0" package="ADAFRUIT_INDUSTRIES_3966_0">
+<device name="" package="LED_1655">
 <connects>
-<connect gate="G$0" pin="!CS!" pad="7"/>
-<connect gate="G$0" pin="3VO" pad="2"/>
-<connect gate="G$0" pin="GND" pad="3"/>
-<connect gate="G$0" pin="INT" pad="8"/>
-<connect gate="G$0" pin="SCK/SCL" pad="4"/>
-<connect gate="G$0" pin="SDI/SDA" pad="6"/>
-<connect gate="G$0" pin="SDO/ADR" pad="5"/>
-<connect gate="G$0" pin="VIN" pad="1"/>
+<connect gate="G$1" pin="DIN" pad="2"/>
+<connect gate="G$1" pin="DOUT" pad="4"/>
+<connect gate="G$1" pin="VDD" pad="3"/>
+<connect gate="G$1" pin="VSS" pad="1"/>
 </connects>
 <technologies>
 <technology name="">
-<attribute name="AUTOMOTIVE" value="No"/>
-<attribute name="CENTROID_NOT_SPECIFIED" value="No"/>
-<attribute name="DATASHEET" value="https://cdn-learn.adafruit.com/downloads/pdf/adafruit-bmp388-bmp390-bmp3xx.pdf?timestamp=1628517945"/>
-<attribute name="DEVICE_CLASS_L1" value="Sensors"/>
-<attribute name="DEVICE_CLASS_L2" value="Pressure Sensors"/>
-<attribute name="DEVICE_CLASS_L3" value="unset"/>
-<attribute name="DIGIKEY_DESCRIPTION" value="BMP388 - PRECISION BAROMETRIC PR"/>
-<attribute name="DIGIKEY_PART_NUMBER" value="1528-2733-ND"/>
-<attribute name="FOOTPRINT_VARIANT_NAME_0" value="Recommended_Land_Pattern"/>
-<attribute name="LEAD_FREE" value="Yes"/>
-<attribute name="MF" value="Adafruit Industries"/>
-<attribute name="MFG_PACKAGE_IDENT" value="0"/>
-<attribute name="MFG_PACKAGE_IDENT_DATE" value="0"/>
-<attribute name="MFG_PACKAGE_IDENT_REV" value="0"/>
-<attribute name="MOUSER_PART_NUMBER" value="485-3966"/>
-<attribute name="MPN" value="3966"/>
-<attribute name="PACKAGE" value="MODULE_25MM40_17MM78"/>
-<attribute name="PIN_0_0_4_INSIDE_EDGE" value="clock"/>
-<attribute name="PREFIX" value="MD"/>
-<attribute name="ROHS" value="Yes"/>
-<attribute name="SENSOR_OUTPUT" value="I2C,SPI"/>
-<attribute name="VERIFICATION_VERSION" value="0.0.0.3"/>
+<attribute name="AVAILABILITY" value="In Stock"/>
+<attribute name="DESCRIPTION" value=" Addressable Lighting Neopixel 10 LED Discrete Serial (Shift Register) Red, Green, Blue (RGB) 5.00mm L x 5.00mm W "/>
+<attribute name="MF" value="Adafruit"/>
+<attribute name="MP" value="1655"/>
+<attribute name="PACKAGE" value="None"/>
+<attribute name="PRICE" value="None"/>
+<attribute name="PURCHASE-URL" value="https://pricing.snapeda.com/search/part/1655/?ref=eda"/>
 </technology>
 </technologies>
 </device>
@@ -1222,14 +1346,14 @@ Created by Upverter.com</description>
 <parts>
 <part name="USB-C" library="USB-C Adafruit USB4105-GF-A" deviceset="USB4105-GF-A" device=""/>
 <part name="U$1" library="TinyPICO_NANO_Eagle" deviceset="TINYPICO-NANO-CONNECTOR" device=""/>
-<part name="R1" library="resis CR1206-JW-512ELF" deviceset="CR1206-JW-512ELF" device=""/>
-<part name="R2" library="resis CR1206-JW-512ELF" deviceset="CR1206-JW-512ELF" device=""/>
 <part name="BEEPER" library="buzzer" deviceset="AI-1223-TWT-12V-R" device=""/>
 <part name="U1" library="RFM95W-915S2" deviceset="RFM95W-915S2" device=""/>
 <part name="JST-PH" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="JST_2PIN" device="-SMT-RA" package3d_urn="urn:adsk.eagle:package:6240692/1"/>
-<part name="QWIIC" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="QWIIC_CONNECTOR" device="JS-1MM" package3d_urn="urn:adsk.eagle:package:38096/1"/>
 <part name="BMP3XX" library="BMP388 Breakout" deviceset="ADAFRUIT_INDUSTRIES_3966" device="ADAFRUIT_INDUSTRIES_3966_0_0"/>
 <part name="UFL" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="ANTENNA_U.FL" device="" package3d_urn="urn:adsk.eagle:package:6240943/1"/>
+<part name="U2" library="adafruit" library_urn="urn:adsk.eagle:library:420" deviceset="GPS_FGPMMOPA6H" device="" package3d_urn="urn:adsk.eagle:package:6240898/1"/>
+<part name="J1" library="SparkFun-Connectors" library_urn="urn:adsk.eagle:library:513" deviceset="QWIIC_CONNECTOR" device="JS-1MM" package3d_urn="urn:adsk.eagle:package:38096/1"/>
+<part name="D1" library="5050 NeoPixel" deviceset="1655" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -1241,14 +1365,6 @@ Created by Upverter.com</description>
 <attribute name="VALUE" x="101.6" y="-25.4" size="1.778" layer="96"/>
 </instance>
 <instance part="U$1" gate="G$1" x="114.3" y="68.58" smashed="yes" rot="R90"/>
-<instance part="R1" gate="G$1" x="170.18" y="-5.08" smashed="yes">
-<attribute name="NAME" x="162.555559375" y="-2.53851875" size="2.54148125" layer="95"/>
-<attribute name="VALUE" x="160.01003125" y="-10.166640625" size="2.54331875" layer="96"/>
-</instance>
-<instance part="R2" gate="G$1" x="63.5" y="-5.08" smashed="yes">
-<attribute name="NAME" x="55.875559375" y="-2.53851875" size="2.54148125" layer="95"/>
-<attribute name="VALUE" x="43.17003125" y="-10.166640625" size="2.54331875" layer="96"/>
-</instance>
 <instance part="BEEPER" gate="G$1" x="63.5" y="30.48" smashed="yes" rot="R270">
 <attribute name="NAME" x="58.674" y="25.146" size="1.778" layer="95"/>
 </instance>
@@ -1260,16 +1376,24 @@ Created by Upverter.com</description>
 <attribute name="NAME" x="110.49" y="-40.005" size="1.778" layer="95"/>
 <attribute name="VALUE" x="110.49" y="-50.8" size="1.778" layer="96"/>
 </instance>
-<instance part="QWIIC" gate="J1" x="-30.48" y="63.5" smashed="yes">
-<attribute name="VALUE" x="-35.56" y="58.166" size="1.778" layer="96" font="vector" align="top-left"/>
-<attribute name="NAME" x="-35.56" y="71.374" size="1.778" layer="95" font="vector"/>
-</instance>
-<instance part="BMP3XX" gate="G$0" x="10.16" y="81.28" smashed="yes">
-<attribute name="NAME" x="27.94" y="76.2" size="2.54" layer="95" rot="R180" align="top-left"/>
+<instance part="BMP3XX" gate="G$0" x="-53.34" y="76.2" smashed="yes">
+<attribute name="NAME" x="-35.56" y="71.12" size="2.54" layer="95" rot="R180" align="top-left"/>
 </instance>
 <instance part="UFL" gate="G$1" x="193.04" y="71.12" smashed="yes">
 <attribute name="NAME" x="190.5" y="74.422" size="1.27" layer="95"/>
 <attribute name="VALUE" x="190.5" y="60.96" size="1.27" layer="96"/>
+</instance>
+<instance part="U2" gate="G$1" x="38.1" y="68.58" smashed="yes">
+<attribute name="NAME" x="25.4" y="91.44" size="1.27" layer="95"/>
+<attribute name="VALUE" x="25.4" y="43.18" size="1.27" layer="95"/>
+</instance>
+<instance part="J1" gate="J1" x="-93.98" y="58.42" smashed="yes">
+<attribute name="VALUE" x="-99.06" y="53.086" size="1.778" layer="96" font="vector" align="top-left"/>
+<attribute name="NAME" x="-99.06" y="66.294" size="1.778" layer="95" font="vector"/>
+</instance>
+<instance part="D1" gate="G$1" x="172.72" y="30.48" smashed="yes">
+<attribute name="NAME" x="162.5579" y="39.3723" size="1.778" layer="95"/>
+<attribute name="VALUE" x="162.56" y="21.59" size="1.778" layer="96" rot="MR180"/>
 </instance>
 </instances>
 <busses>
@@ -1277,10 +1401,10 @@ Created by Upverter.com</description>
 <nets>
 <net name="SCL" class="0">
 <segment>
-<pinref part="QWIIC" gate="J1" pin="SCL"/>
 <pinref part="BMP3XX" gate="G$0" pin="SCK/SCL"/>
-<wire x1="-22.86" y1="68.58" x2="7.62" y2="68.58" width="0.1524" layer="91"/>
-<label x="-10.922" y="68.58" size="1.778" layer="95"/>
+<wire x1="-86.36" y1="63.5" x2="-55.88" y2="63.5" width="0.1524" layer="91"/>
+<label x="-74.422" y="63.5" size="1.778" layer="95"/>
+<pinref part="J1" gate="J1" pin="SCL"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="IO22"/>
@@ -1291,10 +1415,10 @@ Created by Upverter.com</description>
 </net>
 <net name="SDA" class="0">
 <segment>
-<pinref part="QWIIC" gate="J1" pin="SDA"/>
 <pinref part="BMP3XX" gate="G$0" pin="SDI/SDA"/>
-<wire x1="-22.86" y1="66.04" x2="7.62" y2="66.04" width="0.1524" layer="91"/>
-<label x="-10.922" y="66.04" size="1.778" layer="95"/>
+<wire x1="-86.36" y1="60.96" x2="-55.88" y2="60.96" width="0.1524" layer="91"/>
+<label x="-74.422" y="60.96" size="1.778" layer="95"/>
+<pinref part="J1" gate="J1" pin="SDA"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="IO21"/>
@@ -1305,14 +1429,9 @@ Created by Upverter.com</description>
 </net>
 <net name="VCC" class="0">
 <segment>
-<pinref part="QWIIC" gate="J1" pin="VCC"/>
-<wire x1="-22.86" y1="63.5" x2="-12.7" y2="63.5" width="0.1524" layer="91"/>
-<label x="-20.32" y="63.5" size="1.778" layer="95"/>
-</segment>
-<segment>
 <pinref part="BMP3XX" gate="G$0" pin="VIN"/>
-<wire x1="7.62" y1="73.66" x2="-7.62" y2="73.66" width="0.1524" layer="91"/>
-<label x="-7.62" y="73.66" size="1.778" layer="95"/>
+<wire x1="-55.88" y1="68.58" x2="-71.12" y2="68.58" width="0.1524" layer="91"/>
+<label x="-71.12" y="68.58" size="1.778" layer="95"/>
 </segment>
 <segment>
 <pinref part="U$1" gate="G$1" pin="3V3"/>
@@ -1324,18 +1443,18 @@ Created by Upverter.com</description>
 <wire x1="251.46" y1="88.9" x2="266.7" y2="88.9" width="0.1524" layer="91"/>
 <label x="261.62" y="88.9" size="1.778" layer="95"/>
 </segment>
+<segment>
+<pinref part="U2" gate="G$1" pin="VCC"/>
+<wire x1="22.86" y1="78.74" x2="10.16" y2="78.74" width="0.1524" layer="91"/>
+<label x="10.16" y="78.74" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="J1" gate="J1" pin="VCC"/>
+<wire x1="-86.36" y1="58.42" x2="-71.12" y2="58.42" width="0.1524" layer="91"/>
+<label x="-76.2" y="58.42" size="1.778" layer="95"/>
+</segment>
 </net>
 <net name="GND" class="0">
-<segment>
-<pinref part="QWIIC" gate="J1" pin="GND"/>
-<wire x1="-22.86" y1="60.96" x2="-12.7" y2="60.96" width="0.1524" layer="91"/>
-<label x="-20.32" y="60.96" size="1.778" layer="95"/>
-</segment>
-<segment>
-<pinref part="BMP3XX" gate="G$0" pin="GND"/>
-<wire x1="45.72" y1="60.96" x2="53.34" y2="60.96" width="0.1524" layer="91"/>
-<label x="48.26" y="60.96" size="1.778" layer="95"/>
-</segment>
 <segment>
 <pinref part="JST-PH" gate="G$1" pin="1"/>
 <wire x1="114.3" y1="-43.18" x2="132.08" y2="-43.18" width="0.1524" layer="91"/>
@@ -1362,20 +1481,45 @@ Created by Upverter.com</description>
 <label x="147.32" y="-17.78" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="R2" gate="G$1" pin="1"/>
-<wire x1="53.34" y1="-5.08" x2="43.18" y2="-5.08" width="0.1524" layer="91"/>
-<label x="43.18" y="-5.08" size="1.778" layer="95"/>
-</segment>
-<segment>
-<pinref part="R1" gate="G$1" pin="2"/>
-<wire x1="180.34" y1="-5.08" x2="190.5" y2="-5.08" width="0.1524" layer="91"/>
-<label x="185.42" y="-5.08" size="1.778" layer="95"/>
-</segment>
-<segment>
 <pinref part="UFL" gate="G$1" pin="GND@1"/>
 <pinref part="UFL" gate="G$1" pin="GND@0"/>
 <wire x1="190.5" y1="63.5" x2="190.5" y2="66.04" width="0.1524" layer="91"/>
 <label x="190.5" y="63.5" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="BMP3XX" gate="G$0" pin="GND"/>
+<wire x1="-17.78" y1="55.88" x2="-7.62" y2="55.88" width="0.1524" layer="91"/>
+<label x="-12.7" y="55.88" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U2" gate="G$1" pin="GND@4"/>
+<wire x1="53.34" y1="76.2" x2="66.04" y2="76.2" width="0.1524" layer="91"/>
+<label x="60.96" y="76.2" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U2" gate="G$1" pin="GND@3"/>
+<wire x1="53.34" y1="58.42" x2="66.04" y2="58.42" width="0.1524" layer="91"/>
+<label x="60.96" y="58.42" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U2" gate="G$1" pin="GND@1"/>
+<wire x1="22.86" y1="73.66" x2="10.16" y2="73.66" width="0.1524" layer="91"/>
+<label x="10.16" y="73.66" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U2" gate="G$1" pin="GND@2"/>
+<wire x1="22.86" y1="60.96" x2="10.16" y2="60.96" width="0.1524" layer="91"/>
+<label x="10.16" y="60.96" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="J1" gate="J1" pin="GND"/>
+<wire x1="-86.36" y1="55.88" x2="-71.12" y2="55.88" width="0.1524" layer="91"/>
+<label x="-76.2" y="55.88" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="D1" gate="G$1" pin="VSS"/>
+<wire x1="187.96" y1="25.4" x2="198.12" y2="25.4" width="0.1524" layer="91"/>
+<label x="193.04" y="25.4" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="VBAT" class="0">
@@ -1401,6 +1545,11 @@ Created by Upverter.com</description>
 <pinref part="U$1" gate="G$1" pin="5V"/>
 <wire x1="115.824" y1="35.306" x2="115.824" y2="22.86" width="0.1524" layer="91"/>
 <label x="115.57" y="23.114" size="1.778" layer="95" rot="R90"/>
+</segment>
+<segment>
+<pinref part="D1" gate="G$1" pin="VDD"/>
+<wire x1="187.96" y1="35.56" x2="198.12" y2="35.56" width="0.1524" layer="91"/>
+<label x="193.04" y="35.56" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="DP" class="0">
@@ -1437,37 +1586,16 @@ Created by Upverter.com</description>
 <label x="113.03" y="23.114" size="1.778" layer="95" rot="R90"/>
 </segment>
 </net>
-<net name="N$1" class="0">
-<segment>
-<pinref part="USB-C" gate="G$1" pin="CC2"/>
-<pinref part="R1" gate="G$1" pin="1"/>
-<wire x1="137.16" y1="-5.08" x2="160.02" y2="-5.08" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$2" class="0">
-<segment>
-<pinref part="USB-C" gate="G$1" pin="CC1"/>
-<pinref part="R2" gate="G$1" pin="2"/>
-<wire x1="96.52" y1="-5.08" x2="73.66" y2="-5.08" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$4" class="0">
-<segment>
-<pinref part="U$1" gate="G$1" pin="GPIO36"/>
-<wire x1="136.144" y1="83.566" x2="136.144" y2="83.82" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="GPIO9" class="0">
-<segment>
-<pinref part="U$1" gate="G$1" pin="GPIO9"/>
-<wire x1="136.144" y1="68.326" x2="136.144" y2="68.58" width="0.1524" layer="91"/>
-<wire x1="136.144" y1="68.58" x2="149.86" y2="68.58" width="0.1524" layer="91"/>
-<label x="142.24" y="68.58" size="1.778" layer="95"/>
-</segment>
+<net name="BEEP" class="0">
 <segment>
 <pinref part="BEEPER" gate="G$1" pin="+"/>
 <wire x1="68.58" y1="33.02" x2="81.28" y2="33.02" width="0.1524" layer="91"/>
-<label x="73.66" y="33.02" size="1.778" layer="95"/>
+<label x="76.2" y="33.02" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="IO35"/>
+<wire x1="92.964" y1="83.566" x2="81.28" y2="83.566" width="0.1524" layer="91"/>
+<label x="81.28" y="83.82" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="MOSI" class="0">
@@ -1540,6 +1668,62 @@ Created by Upverter.com</description>
 <pinref part="U1" gate="G$1" pin="ANT"/>
 <wire x1="198.12" y1="71.12" x2="215.9" y2="71.12" width="0.1524" layer="91"/>
 <label x="203.2" y="71.12" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="RX" class="0">
+<segment>
+<pinref part="U2" gate="G$1" pin="RX"/>
+<wire x1="22.86" y1="55.88" x2="10.16" y2="55.88" width="0.1524" layer="91"/>
+<label x="10.16" y="55.88" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="TX"/>
+<wire x1="136.144" y1="73.406" x2="149.86" y2="73.406" width="0.1524" layer="91"/>
+<label x="146.558" y="73.406" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="VBACK" class="0">
+<segment>
+<pinref part="U2" gate="G$1" pin="VBACKUP"/>
+<wire x1="22.86" y1="71.12" x2="10.16" y2="71.12" width="0.1524" layer="91"/>
+<label x="10.16" y="71.12" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="FIX" class="0">
+<segment>
+<pinref part="U2" gate="G$1" pin="3D-FIX"/>
+<wire x1="22.86" y1="68.58" x2="10.16" y2="68.58" width="0.1524" layer="91"/>
+<label x="10.16" y="68.58" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO39"/>
+<wire x1="136.144" y1="75.946" x2="149.86" y2="75.946" width="0.1524" layer="91"/>
+<label x="146.05" y="75.946" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="TX" class="0">
+<segment>
+<pinref part="U2" gate="G$1" pin="TX"/>
+<wire x1="22.86" y1="58.42" x2="10.16" y2="58.42" width="0.1524" layer="91"/>
+<label x="10.16" y="58.42" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="U$1" gate="G$1" pin="RX"/>
+<wire x1="136.144" y1="70.866" x2="136.144" y2="71.12" width="0.1524" layer="91"/>
+<wire x1="136.144" y1="71.12" x2="149.86" y2="71.12" width="0.1524" layer="91"/>
+<label x="146.812" y="71.12" size="1.778" layer="95"/>
+</segment>
+</net>
+<net name="NEO" class="0">
+<segment>
+<pinref part="U$1" gate="G$1" pin="GPIO38"/>
+<wire x1="136.144" y1="78.486" x2="149.86" y2="78.486" width="0.1524" layer="91"/>
+<label x="144.78" y="78.74" size="1.778" layer="95"/>
+</segment>
+<segment>
+<pinref part="D1" gate="G$1" pin="DIN"/>
+<wire x1="157.48" y1="30.48" x2="147.32" y2="30.48" width="0.1524" layer="91"/>
+<label x="147.32" y="30.48" size="1.778" layer="95"/>
 </segment>
 </net>
 </nets>
