@@ -27,5 +27,14 @@ while True:
 
     time_1 = time.monotonic
     d_quat_orientation = quat_v_relative * (time_1 - time_0)
-    quat_normalized = 
+    dquat_1, dquat_2, dquat_3, dquat_4 = d_quat_orientation
+    norm = math.sqrt(dquat_1**2 + dquat_2**2 + dquat_3**2 + dquat_4**2)
+    quat_orientation_normalized = d_quat_orientation / norm
+    
+    #Conversion to Euler angles
+    quat_1, quat_2, quat_3, quat_4 = quat_orientation_normalized
+    Euler_psi = math.atan() #Unsure what exactly to do here, idk what the comma means in the document
+    Euler_theta = math.asin(2 * (quat_2 * quat_4 - quat_1 * quat_3))
+    Euler_phi = math.atan() #Also unsure what do to here
 
+    print("Normalized quaternion: ", str(quat_orientation_normalized), " ", "Psi: ", str(Euler_psi), " ", "Theta: ", str(Euler_theta), " ", "Phi: " (Euler_phi))
