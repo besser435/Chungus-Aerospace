@@ -31,10 +31,10 @@ while True:
     norm = math.sqrt(dquat_1**2 + dquat_2**2 + dquat_3**2 + dquat_4**2)
     quat_orientation_normalized = d_quat_orientation / norm
     
-    #Conversion to Euler angles
+    #Conversion to Euler angles (radians)
     quat_1, quat_2, quat_3, quat_4 = quat_orientation_normalized
-    Euler_psi = math.atan() #Unsure what exactly to do here, idk what the comma means in the document
+    Euler_psi = math.atan2(2 * (quat_2 * quat_3 + quat_1 * quat_4), quat_1**2 + quat_2**2 - quat_3**2 - quat_4**2)
     Euler_theta = math.asin(2 * (quat_2 * quat_4 - quat_1 * quat_3))
-    Euler_phi = math.atan() #Also unsure what do to here
+    Euler_phi = math.atan2(2 * (quat_1 * quat_2 + quat_3 * quat_4), quat_1**2 - quat_2**2 - quat_3**2 + quat_4**2) 
 
     print("Normalized quaternion: ", str(quat_orientation_normalized), " ", "Psi: ", str(Euler_psi), " ", "Theta: ", str(Euler_theta), " ", "Phi: " (Euler_phi))
