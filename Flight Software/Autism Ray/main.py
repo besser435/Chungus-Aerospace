@@ -3,7 +3,7 @@ import time, busio, digitalio, board, neopixel, adafruit_rfm9x
 """
 Authored by besser435
 Created February 2023
-Revised March 2023
+Revised April 2023
 
 Autism Ray is Chungus Aerospace's system to locate a rocket
 using LoRa 915MHz radios. Once the rocket lands, we will
@@ -16,10 +16,9 @@ but we might as well try.
 This is the rocket code. It will broadcast the radio signal, and
 will also beep for when we get close to finding it.
 """
-version = "Autism Ray v1.0.1 (Rocket)"
+version = "Autism Ray v1.0.2 (Rocket)"
 
 
-"""TODO Pin numbers are not set correctly."""
 # LEDs
 led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=1)
 led = digitalio.DigitalInOut(board.LED_GREEN)
@@ -50,8 +49,11 @@ def beep(state):
 
 
 def error(e):
+
+    #https://discord.com/channels/914767468331929653/938696892659929109/1083860244003831829
+    #add proper redundancy, see message above
+
     print("Error occurred: \n", e)
-    
     for i in range(120):    # wait 2 minutes for the issue to magically disappear before trying one last time
         led_neo.fill((255, 0, 0))
         beep(1)
@@ -59,7 +61,6 @@ def error(e):
         led_neo.fill((0, 0, 0))
         beep(0)
         time.sleep(0.5)
-
         print("Error, will try again when i is 120. i = " + str(i))
 
     while True:
