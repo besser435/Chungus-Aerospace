@@ -23,7 +23,7 @@ but we might as well try.
 
 This is the ground station code, it will help us find the rocket.
 """
-version = "Autism Ray v1.1.1 (Ground)"
+version = "Autism Ray v1.1.2 (Ground)"
 
 # I2C
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -73,7 +73,7 @@ while True:
         else:
             packet_text = str(packet, 'utf-8') 
             print("Received (UTF-8): {0}".format(packet_text))
-            print(Fore.CYAN + "RSSI:", rssi, "dB", "   at", time_and_date)
+            print(Fore.CYAN + "RSSI: " + str(rssi) + "dB", "   at", time_and_date)
             print("Pi CPU Temp: " + str(cpu.temperature))
             buzz.start(50)
             buzz.ChangeFrequency((rssi * 4 + 900))
@@ -94,9 +94,11 @@ while True:
         display.fill(0)
         display.show()
         with open(FILE_LOCATION + "beacon_receiver_error.txt", "a") as f: 
+            f.write(version + "\n")
             f.write(str(time_and_date) + "\n" + str(traceback.format_exc()))
             f.write("\n" * 2)
-
+        break
+    
     except KeyboardInterrupt:
         print("KeyboardInterrupt")
         buzz.start(0)
