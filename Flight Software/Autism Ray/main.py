@@ -16,7 +16,7 @@ but we might as well try.
 This is the rocket code. It will broadcast the radio signal, and
 will also beep for when we get close to finding it.
 """
-version = "Autism Ray v1.0.2 (Rocket)"
+version = "Autism Ray v1.0.3 (Rocket)"
 
 
 # LEDs
@@ -41,9 +41,9 @@ beeper.direction = digitalio.Direction.OUTPUT
 def beep(state):
     if mute_beeper == 0:
         if state == 0:
-            beeper.value = True 
-        elif state == 1:
             beeper.value = False
+        elif state == 1:
+            beeper.value = True
     else:
         led_neo.brightness = 0.01
 
