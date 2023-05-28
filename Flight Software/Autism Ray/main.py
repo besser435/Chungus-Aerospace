@@ -3,7 +3,7 @@ import time, busio, digitalio, board, neopixel, adafruit_rfm9x
 """
 Authored by besser435
 Created February 2023
-Revised April 2023
+Revised May 2023
 
 Autism Ray is Chungus Aerospace's system to locate a rocket
 using LoRa 915MHz radios. Once the rocket lands, we will
@@ -16,7 +16,7 @@ but we might as well try.
 This is the rocket code. It will broadcast the radio signal, and
 will also beep for when we get close to finding it.
 """
-version = "Autism Ray v1.0.3 (Rocket)"
+version = "Autism Ray v1.1 (Rocket)"
 
 
 # LEDs
@@ -24,7 +24,6 @@ led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=1)
 led = digitalio.DigitalInOut(board.LED_GREEN)
 led.direction = digitalio.Direction.OUTPUT
 led.value = True
-
 
 # RFM95
 spi = busio.SPI(board.SCK, MOSI=board.MOSI, MISO=board.MISO)
@@ -39,10 +38,10 @@ mute_beeper = 0
 beeper = digitalio.DigitalInOut(board.D1) 
 beeper.direction = digitalio.Direction.OUTPUT
 def beep(state):
-    if mute_beeper == 0:
-        if state == 0:
+    if not mute_beeper:
+        if not state:
             beeper.value = False
-        elif state == 1:
+        elif state:
             beeper.value = True
     else:
         led_neo.brightness = 0.01
@@ -76,7 +75,15 @@ while True:
         led_neo.fill((255, 255, 255))
         beep(1)
 
-        send_data = bytes(version + " Beacon. Heartbeat: " + str(heartbeat) + "\r\n","utf-8")
+        """
+        TODO should really separate send_data by new lines. Currently I just parse this on the
+        the ground station by converting it to a list and chopping off certain characters. Its hard coded, 
+        and not dynamic to changing string lengths. For example, a different version number might bung 
+        with the formatting on the OLED display if its a character too long or too short for example.
+        
+        New lines would fix this, as I could just parse for new lines, rather that set char counts in a list.
+        """ 
+        send_data = bytes(version + " Beacon Heartbeat: " + str(heartbeat) + "      \r\n","utf-8")
         rfm.send(send_data)
         print("Sent the message: " + str(send_data))
 
