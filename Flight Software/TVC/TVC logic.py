@@ -6,42 +6,28 @@ import math
 import adafruit_icm20x
 import numpy as np
 import scipy
-<<<<<<< Updated upstream
-from filterpy.kalman import KalmanFilter
-=======
+
 import tvc_cfg as tvc
->>>>>>> Stashed changes
 
 i2c = board.i2c
 icm = adafruit_icm20x.ICM20649(i2c)
 time_initial = time.monotonic()
-<<<<<<< Updated upstream
-quat_initial = np.array[1, 0, 0, 0] #Defines initial reference relative to earth
-
-time_0 = time_initial
-while True:
-    angular_vx, angular_vy, angular_vz = icm.gyro
-=======
 quat_initial = np.array([1, 0, 0, 0]) #Defines initial reference relative to earth
 
 time_0 = time_initial
+
 while True:
     angular_vx_uncorrected, angular_vy_uncorrected, angular_vz_uncorrected = icm.gyro
     angular_vx = angular_vx_uncorrected - tvc.gyro_x_offset
     angular_vy = angular_vy_uncorrected - tvc.gyro_y_offset
     angular_vz = angular_vz_uncorrected - tvc.gyro_z_offset
->>>>>>> Stashed changes
 
     #IMU Kalman filter
     filt_angular_vx = angular_vx
     filt_angular_vy = angular_vy
     filt_angular_vz = angular_vz #PLACEHOLDER FOR KALMAN FILTER
     #Representation as quaternions
-<<<<<<< Updated upstream
-    quat_v = np.array[0, filt_angular_vx, filt_angular_vy, filt_angular_vz]
-=======
     quat_v = np.array([0, filt_angular_vx, filt_angular_vy, filt_angular_vz])
->>>>>>> Stashed changes
     quat_v_relative = np.tensordot(0.5 * quat_initial, quat_v, axes=0)
 
     time_1 = time.monotonic
@@ -57,7 +43,5 @@ while True:
     Euler_phi = math.atan2(2 * (quat_1 * quat_2 + quat_3 * quat_4), quat_1**2 - quat_2**2 - quat_3**2 + quat_4**2) 
 
     print("Normalized quaternion: ", str(quat_orientation_normalized), " ", "Psi: ", str(Euler_psi), " ", "Theta: ", str(Euler_theta), " ", "Phi: " (Euler_phi))
-<<<<<<< Updated upstream
-=======
+
     time_0 = time_1
->>>>>>> Stashed changes
