@@ -1,10 +1,10 @@
 #TVC config file
 
-#IMU
+#IMU accel
 accel_x_offset = None
 accel_y_offset = None
 accel_z_offset = None
-
+#IMU gyri (rad/s)
 gyro_x_offset = None
 gyro_y_offset = None
 gyro_z_offset = None

@@ -13,14 +13,15 @@ i2c = board.i2c
 icm = adafruit_icm20x.ICM20649(i2c)
 time_initial = time.monotonic()
 quat_initial = np.array([1, 0, 0, 0]) #Defines initial reference relative to earth
+radconv = 3.14159 / 180 #radian conversion thing because values are only in degrees, this is fucking stupid because not having radians as the default kills efficiency
 
 time_0 = time_initial
 
 while True:
     angular_vx_uncorrected, angular_vy_uncorrected, angular_vz_uncorrected = icm.gyro
-    angular_vx = angular_vx_uncorrected - tvc.gyro_x_offset
-    angular_vy = angular_vy_uncorrected - tvc.gyro_y_offset
-    angular_vz = angular_vz_uncorrected - tvc.gyro_z_offset
+    angular_vx = angular_vx_uncorrected * radconv - tvc.gyro_x_offset
+    angular_vy = angular_vy_uncorrected * radconv - tvc.gyro_y_offset
+    angular_vz = angular_vz_uncorrected * radconv - tvc.gyro_z_offset
 
     #IMU Kalman filter
     filt_angular_vx = angular_vx
@@ -42,6 +43,6 @@ while True:
     Euler_theta = math.asin(2 * (quat_2 * quat_4 - quat_1 * quat_3))
     Euler_phi = math.atan2(2 * (quat_1 * quat_2 + quat_3 * quat_4), quat_1**2 - quat_2**2 - quat_3**2 + quat_4**2) 
 
-    print("Normalized quaternion: ", str(quat_orientation_normalized), " ", "Psi: ", str(Euler_psi), " ", "Theta: ", str(Euler_theta), " ", "Phi: " (Euler_phi))
+    print(f"Normalized quaternion: {str(quat_orientation_normalized)} Psi: {str(Euler_psi)} Theta: {str(Euler_theta)} Phi: {str(Euler_phi)} (rad)")
 
     time_0 = time_1
