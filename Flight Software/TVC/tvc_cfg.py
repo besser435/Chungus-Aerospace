@@ -1,16 +1,17 @@
-#TVC config file
+"""TVC config file"""
 
-#IMU accel
-accel_x_offset = None
-accel_y_offset = None
-accel_z_offset = None
-#IMU gyri (rad/s)
-gyro_x_offset = None
-gyro_y_offset = None
-gyro_z_offset = None
+# IMU accel
+accel_x_offset = 0
+accel_y_offset = 0
+accel_z_offset = 0
 
-#Geofencing for abort condition
-limit_north = None
-limit_south = None
-limit_east = None
-limit_west = None
+# IMU gyro (rad/s)
+gyro_x_offset = 0
+gyro_y_offset = 0
+gyro_z_offset = 0
+
+# Geofencing for abort condition
+limit_north = 0
+limit_south = 0
+limit_east = 0
+limit_west = 0
