@@ -21,4 +21,5 @@ while True:
     z, R = icm.acceleration
     x, P = predict(x, P, F, Q)
     x, P = update(x, P, z, R)
-    print("z: " float(z), " ", "x: " float(x))
+    
+    print("z: " str(z), " ", "x: " str(x))
