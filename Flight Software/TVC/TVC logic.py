@@ -38,8 +38,7 @@ while True:
 
     time_1 = time.monotonic()
     d_quat_orientation = quat_v_relative * (time_1 - time_0)
-    dquat_1, dquat_2, dquat_3, dquat_4 = d_quat_orientation
-    norm = math.sqrt(dquat_1**2 + dquat_2**2 + dquat_3**2 + dquat_4**2)
+    norm = math.sqrt(d_quat_orientation[0]**2 + d_quat_orientation[1]**2 + d_quat_orientation[2]**2 + d_quat_orientation[3]**2)
     quat_orientation_normalized = d_quat_orientation / norm
     
     # Conversion to Euler angles (radians)
