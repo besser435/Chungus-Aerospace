@@ -24,9 +24,9 @@ while True:
     angular_vx_uncorrected = icm.gyro[0]
     angular_vy_uncorrected = icm.gyro[1]
     angular_vz_uncorrected = icm.gyro[2]
-    angular_vx = angular_vx_uncorrected #- cfg.gyro_x_offset_deg
-    angular_vy = angular_vy_uncorrected #- cfg.gyro_y_offset_deg
-    angular_vz = angular_vz_uncorrected #- cfg.gyro_z_offset_deg
+    angular_vx = angular_vx_uncorrected - cfg.gyro_x_offset
+    angular_vy = angular_vy_uncorrected - cfg.gyro_y_offset
+    angular_vz = angular_vz_uncorrected - cfg.gyro_z_offset
 
     # IMU Kalman filter
     filt_angular_vx = angular_vx
