@@ -9,8 +9,8 @@ import tvc_cfg as cfg
 
 """Quaternion logic for TVC using ICM20649 IMU"""
 
-#i2c = busio.I2C(board.SCL1, board.SDA1)
-#icm = adafruit_icm20x.ICM20649(i2c)
+i2c = busio.I2C(board.SCL1, board.SDA1)
+icm = adafruit_icm20x.ICM20649(i2c)
 
 time_initial = time.monotonic()
 quat_initial = np.array([1, 0, 0, 0])   # Defines initial reference relative to earth
@@ -21,9 +21,9 @@ time_0 = time.monotonic()
 time.sleep(0.05) # Exists to prevent nan errors due to time_1 - time_0 being considered equal to 0, can be commented out if program runs slower than 100Hz
 while True:
     # Rate gyro values
-    angular_vx_uncorrected = 0#icm.gyro[0]
-    angular_vy_uncorrected = 0#icm.gyro[1]
-    angular_vz_uncorrected = 1#icm.gyro[2]
+    angular_vx_uncorrected = icm.gyro[0]
+    angular_vy_uncorrected = icm.gyro[1]
+    angular_vz_uncorrected = icm.gyro[2]
     angular_vx = angular_vx_uncorrected #- cfg.gyro_x_offset_deg
     angular_vy = angular_vy_uncorrected #- cfg.gyro_y_offset_deg
     angular_vz = angular_vz_uncorrected #- cfg.gyro_z_offset_deg
