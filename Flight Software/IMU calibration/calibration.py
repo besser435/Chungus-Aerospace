@@ -50,24 +50,23 @@ i = 1
 #z calibration
 led0[0] = (255, 0, 0)
 print("Running Z calibration")
-for i in range(2000):
+for i in range(1, 2000):
     accelCum_z += icm.acceleration[2]
-    if i >= 1:
-        accelAvg_z = accelCum_z / i
-        print(f"x: {str(accelAvg_x)} y: {str(accelAvg_y)} z: {str(accelAvg_z)} g:  gyro x: {str(gyroAvg_x * radianConversion)} gyro y: {str(gyroAvg_y * radianConversion)} gyro z: {str(gyroAvg_z * radianConversion)} (rad/s)")
+
+    accelAvg_z = accelCum_z / i
+    print(f"x: {str(accelAvg_x)} y: {str(accelAvg_y)} z: {str(accelAvg_z)} g:  gyro x: {str(gyroAvg_x * radianConversion)} gyro y: {str(gyroAvg_y * radianConversion)} gyro z: {str(gyroAvg_z * radianConversion)} (rad/s)")
 
 #g calibration
 print("Running G calibration")
 i = 1
 cum_g = 0
-for i in range(2000):
+for i in range(1, 2000):
     accel_x, accel_y, accel_z = icm.acceleration
 
     accel_mag = math.sqrt(pow(accel_x - accelAvg_x, 2) + pow(accel_y - accelAvg_y, 2) + pow(accel_z - accelAvg_z, 2))
     cum_g += accel_mag
-    if i >= 1:
-        g = cum_g / i
-        print(f"x: {str(accelAvg_x)} y: {str(accelAvg_y)} z: {str(accelAvg_z)} g: {str(g)} gyro x: {str(gyroAvg_x * radianConversion)} gyro y: {str(gyroAvg_y * radianConversion)} gyro z: {str(gyroAvg_z * radianConversion)} (rad/s)")
+    g = cum_g / i
+    print(f"x: {str(accelAvg_x)} y: {str(accelAvg_y)} z: {str(accelAvg_z)} g: {str(g)} gyro x: {str(gyroAvg_x * radianConversion)} gyro y: {str(gyroAvg_y * radianConversion)} gyro z: {str(gyroAvg_z * radianConversion)} (rad/s)")
 
 print("Calibration complete")
 led0[0] = (255, 255, 255)
