@@ -84,7 +84,7 @@ while True:
             #print("Pi CPU Temp: " + str(cpu.temperature))
 
             if beeper_toggle:
-                buzz_freq = ((rssi * 4) + 900)
+                buzz_freq = 2**(rssi / 20) * 10000
                 #print("DEBUG RSSI buzzer freq:", buzz_freq)
                 buzz.start(50)
                 buzz.ChangeFrequency(buzz_freq)            
