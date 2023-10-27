@@ -24,7 +24,7 @@ but we might as well try.
 
 This is the ground station code, it will help us find the rocket.
 """
-version = "Autism Ray v1.2 (Ground)"
+version = "Autism Ray v1.3 (Ground)"
 
 # I2C
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -93,7 +93,7 @@ while True:
 
             display.fill(0)
             display.text(packet_text[11:], 0, 0, 1)
-            display.text("RSSI: " + str(rssi) + "  HB: " + packet_text[44:] , 0, 13, 1)
+            display.text("RSSI: " + str(rssi) + "  HB: " + packet_text[43:] , 0, 13, 1)
             display.text(time_and_date, 0, 25, 1)
             display.show()
 
@@ -116,7 +116,8 @@ while True:
         break
     
     except KeyboardInterrupt:
-        print("KeyboardInterrupt")
+        print("Stopping, KeyboardInterrupt")
         buzz.start(0)
         display.fill(0)
         display.show()
+        exit()
