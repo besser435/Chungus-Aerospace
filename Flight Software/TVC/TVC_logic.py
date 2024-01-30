@@ -4,7 +4,7 @@ import busio
 import math
 import adafruit_icm20x
 import numpy as np
-#import scipy
+import scipy
 import tvc_cfg as cfg
 
 """Quaternion logic for TVC using ICM20649 IMU"""
@@ -15,7 +15,7 @@ icm = adafruit_icm20x.ICM20649(i2c)
 time_initial = time.monotonic()
 quat_initial = np.array([1, 0, 0, 0])   # Defines initial reference relative to earth
 quat_orientation_int = quat_initial    # Sets initial conditions for integration
-radconv = 3.14159265358979 / 180    # Radian conversion constant
+radconv = np.pi / 180   # Radian conversion constant
 
 time_0 = time.monotonic()
 time.sleep(0.05) # Exists to prevent nan errors due to time_1 - time_0 being considered equal to 0, can be commented out if program runs slower than 100Hz
@@ -45,7 +45,7 @@ while True:
 
     time_1 = time.monotonic()
     quat_orientation_int = np.add(quat_orientation_int, quat_v_relative * (time_1 - time_0))    # Riemann sum integral 
-    norm = math.sqrt(quat_orientation_int[0]**2 + quat_orientation_int[1]**2 + quat_orientation_int[2]**2 + quat_orientation_int[3]**2) # Normalization for quaternion
+    norm = np.sqrt(quat_orientation_int[0]**2 + quat_orientation_int[1]**2 + quat_orientation_int[2]**2 + quat_orientation_int[3]**2) # Normalization for quaternion
     quat_orientation = quat_orientation_int / norm   # Final quaternion measurement
     
     # Conversion to Euler angles (radians)
