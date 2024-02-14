@@ -6,6 +6,7 @@ import traceback
 # from gpiozero import CPUTemperature
 from digi.xbee.devices import XBeeDevice
 import time
+import json
 
 """
 NOTE: On chadpi, there is a cron job that runs this script on boot.
@@ -24,66 +25,102 @@ FILE_LOCATION = "/home/pi/Desktop/"
 # Display
 
 
-# Button A
-# btnA = DigitalInOut(board.D5)
-# btnA.direction = Direction.INPUT
-# btnA.pull = Pull.UP
+# import RPi.GPIO as GPIO
 
-# # Button B
-# btnB = DigitalInOut(board.D6)
-# btnB.direction = Direction.INPUT
-# btnB.pull = Pull.UP
+# GPIO.setmode(GPIO.BCM)  # Use Broadcom pin numbering
+# GPIO.setup(button_pin, GPIO.IN, pull_up_down=GPIO.PUD_UP)  # button_pin is the GPIO pin the button is connected to
 
+# # Now, when you check the button state:
+# button_state = GPIO.input(button_pin)
+# # button_state will be False when pressed, True when not pressed.
 
 
-#         if not btnA.value:
-#             beeper_toggle = not beeper_toggle
-#             print("Beeper toggled: ", beeper_toggle)
-
-
-# from digi.xbee.devices import XBeeDevice
-
-# # Configure your device's serial port and baud rate
-# xbee = XBeeDevice("COM7", 9600)
-# try:
-#     print("Waiting for data...\n")
-#     xbee.open(force_settings=True)
-
-
-#     while True:
-#         xbee_message = xbee.read_data()
-#         if xbee_message is not None:
-#             print("Received: %s" % xbee_message.data.decode())
-#             # After receiving, you might want to get the last RSSI
-#             rssi = xbee.get_parameter("DB")
-#             print("Last packet RSSI: -%d dBm" % int.from_bytes(rssi, byteorder='big'))
-#             time.sleep(1)
-# except KeyboardInterrupt:
-#     pass
-# finally:
-#     if xbee is not None and xbee.is_open():
-#         xbee.close()
-
-
-
-
-
-
+#/dev/ttyAMA0
+#/dev/ttyS0
 xbee = XBeeDevice("COM7", 9600)
 xbee.open()
 
-def get_message() -> tuple:
-    """Returns the message and RSSI of the last received packet."""
+
+
+# TODO send AK to see if Xbee is alive. if so do a beep sequence and update the display as a nice boot animation.
+# maybe do this a few times while actively searching to ensure the connections are still alive.
+# Maybe inpliment on the beacon. Should be a function.
+
+
+
+
+
+
+
+def xbee_is_alive() -> bool:
+    """Returns True if the Xbee is alive, False if not. Tests the connection by sending a command to the Xbee and 
+    checking if it returns a value."""
+    
+    hardware_series = xbee.get_parameter("HS")
+    hardware_to_string = hardware_series.decode("utf-8")
+    
+    print(hardware_to_string)
+    print(f"Hardware is: {hardware_series} delete this debug line")
+
+    if hardware_series is not None:
+        return True
+    else:
+        return False
+
+
+
+
+def get_message(data) -> tuple:
+    """Returns the message JSON and RSSI of the last received packet.
+    TODO should maybe read in main loop, then pass that to this function"""
 
     xbee_message = xbee.read_data()
+
+
+    # Get the RSSI value
     rssi = xbee.get_parameter("DB")
     rssi = int.from_bytes(rssi, byteorder='big')
 
     if xbee_message is not None:
-        return xbee_message.data.decode(), rssi
+        message_data = xbee_message.data.decode()
+
+        # Find the first newline or carriage return character to split the message
+        end_of_message = message_data.find('\n')
+        if end_of_message == -1:
+            end_of_message = message_data.find('\r')
+        
+        if end_of_message != -1:
+            # Extract only the first message
+            message = message_data[:end_of_message]
+        else:
+            message = message_data
+
+        # Convert the message to JSON
+        try:
+            message_json = json.loads(message)
+        except json.JSONDecodeError:
+            # Handle the case where the message cannot be converted to JSON
+            print("Error: Message is not in valid JSON format.")
+            return None, None
+
+       
+        return message_json, rssi
     else:
         return None, None
 
+
+
+
+
+
+
+
+
+
+
+
+def draw_screen(data: dict):
+    pass
 
 
 while True:
@@ -96,17 +133,27 @@ while True:
             print("Last packet RSSI: -%d dBm" % rssi)
         else:
             print("No message received.")
+            # add some sort of heartbeat to the GS to ensure its still searching
 
     except Exception as e:
         traceback.print_exc()
         break
         
     except KeyboardInterrupt:
-        pass
+        break
 
 
 
 
+
+
+
+
+
+
+
+
+"""NOTE Pyserial implementation incase of issues with digi.xbee"""
 # import serial
 # #with serial.Serial("COM7", 9600, timeout=0.1) as xbee:
 # xbee = serial.Serial("COM7", 9600, timeout=0.1)
