@@ -5,8 +5,9 @@ import board
 import neopixel
 import adafruit_gps
 
-# Configuration
-MESSAGE_SEND_RATE = 5 # How often to send, not update
+# Configuration, in seconds
+MESSAGE_SEND_RATE = 5
+UPDATE_RATE = 0     # Effectively, how fast to read GNSS data
 
 
 # Hardware setup
@@ -31,7 +32,7 @@ def reset_xbee():
 reset_xbee()
 
 def get_gnss():
-    if gnss.has_fix:    #TODO dangerous assumption. Ensure this will not prevent this from executing
+    if gnss.has_fix:    # TODO dangerous assumption. Ensure this will not prevent this from executing
         # ensure no precision errors with the float minutes. see GPS docs
         data = {
             #"latitude": gnss.latitude,
@@ -62,32 +63,53 @@ def send_message(message):
     message = str(message + "\r")
     encoded_message = message.encode("utf-8")
 
-    #print(f"Sent message:  {message}")
+    print(f"Sent message:  {message}")
 
     xbee_uart.write(encoded_message)    # encoding wrong maybe? should be hex
 
+def get_gnss_SIL():
+    import random
+
+    rng_speed = random.randint(0, 100)
+    rng_alt = random.randint(0, 1000)
+
+    return {
+        "latitude": 38.897957,
+        "longitude": -77.036560,
+
+        "altitude": rng_alt,
+
+        "speed": rng_speed,
+
+        "time": "Jan 1st 1970",
+
+        "satellites": 4,
+        "fix_quality": 1,
+        "live_fix": "Test"
+    }
 
 
 
-
-global peak_speed_kts   # TODO globals bad for some reason, get rid of them
-global peak_alt_m
-global telemetry
-peak_speed_kts = 0
-peak_alt_m = 0
+global telemetry # TODO globals bad for some reason, get rid of them
 
 
 
-telemetry = {
-    "latitude", None,
-    "longitude", None,
-    "altitude", None,
-    "speed", None,
-    "satellites", None,
-    "time", None,
-    "fix_quality", None,
-    "live_fix", None,
-    "peak_speed_kts", peak_speed_kts
+telemetry = {   # this is a set. not a great data structure, use a dict?
+    "latitude": None,
+    "longitude": None,
+
+    "altitude": None,
+
+    "speed": None,
+
+    "time": None,
+
+    "satellites": None,
+    "fix_quality": None,
+    "live_fix": None,
+    
+    "peak_speed_kts": None,
+    "peak_alt_m": None
 }
 
 
@@ -95,20 +117,13 @@ last_update = time.monotonic()
 while True:
     try:
         gnss.update()
-        gnss_data = get_gnss()
+        gnss_data = get_gnss() #get_gnss_SIL()
 
         if gnss_data and gnss_data.get("live_fix") == "True":   # TODO verify live_fix correctly states when GNSS is healthy
-            telemetry = {
-                "latitude", gnss_data.get("latitude"),
-                "longitude", gnss_data.get("longitude"),
-                "altitude", gnss_data.get("altitude"),
-                "speed", gnss_data.get("speed"),
-                "satellites", gnss_data.get("satellites"),
-                "time", gnss_data.get("time"),
-                "fix_quality", gnss_data.get("fix_quality"),
-                "live_fix", gnss_data.get("live_fix"),
-                "peak_speed_kts", peak_speed_kts
-            }
+            # Update telemetry with GNSS data
+            for key in telemetry.keys():
+                if key in gnss_data:
+                    telemetry[key] = gnss_data[key]
         else:
             telemetry["live_fix"] = "Unhealthy"
 
@@ -117,10 +132,10 @@ while True:
 
 
 
-        if gnss_data.get("speed") > peak_speed_kts: # convert to f/s maybe
-            peak_speed_kts = gnss_data.get("speed")
+        if gnss_data.get("speed") > telemetry["peak_speed_kts"]: # convert to f/s maybe
+            telemetry["peak_speed_kts"] = round(float(gnss_data.get("speed") * 0.514444), 3)
 
-        if gnss_data.get("altitude") > peak_alt_m:  # alt in m above earth ellipsoid
+        if gnss_data.get("altitude") > telemetry["peak_alt_m"]:  # alt in m above earth ellipsoid
             # From what I have read, GNSS altitude is not terribly accurate
             peak_alt_m = gnss_data.get("altitude")
         
@@ -134,14 +149,8 @@ while True:
             last_update = time.monotonic()
             send_message(telemetry)
 
-
-
-
-
-
-
-
-
+        time.sleep(UPDATE_RATE)
+            
 
 
 
