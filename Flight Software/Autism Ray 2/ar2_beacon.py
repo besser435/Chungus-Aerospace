@@ -6,14 +6,14 @@ import neopixel
 import adafruit_gps
 
 # Configuration, in seconds
-MESSAGE_SEND_RATE = 5
-UPDATE_RATE = 0     # Effectively, how fast to read GNSS data
+MESSAGE_SEND_RATE = 1
+UPDATE_RATE = 0     # loop iteration rate
 
 
 # Hardware setup
 led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=1)
 
-# NOTE On Rev B, use UART. On Rev A, use I2C (hardware oopsie doopsie)
+# NOTE On Rev 2 and later, use UART. On Rev 1, use I2C (hardware oopsie doopsie)
 #gnss_uart = busio.UART(board.MISO, board.MOSI, baudrate=9600)
 #gnss = adafruit_gps.GPS(gnss_uart, debug=False)
 gnss = adafruit_gps.GPS_GtopI2C(board.I2C())
@@ -85,16 +85,12 @@ def get_gnss_SIL():
 
         "satellites": 4,
         "fix_quality": 1,
-        "live_fix": "Test"
+        "live_fix": "True"  # TODO this probably isnt needed
     }
 
 
 
-global telemetry # TODO globals bad for some reason, get rid of them
-
-
-
-telemetry = {   # this is a set. not a great data structure, use a dict?
+telemetry = {   # outside of loop to not reset values
     "latitude": None,
     "longitude": None,
 
@@ -117,10 +113,10 @@ last_update = time.monotonic()
 while True:
     try:
         gnss.update()
-        gnss_data = get_gnss() #get_gnss_SIL()
+        gnss_data = get_gnss_SIL() #get_gnss_SIL()
 
         if gnss_data and gnss_data.get("live_fix") == "True":   # TODO verify live_fix correctly states when GNSS is healthy
-            # Update telemetry with GNSS data
+            # do not overwrite existing keys, only update the key values that are present
             for key in telemetry.keys():
                 if key in gnss_data:
                     telemetry[key] = gnss_data[key]
@@ -132,8 +128,10 @@ while True:
 
 
 
-        if gnss_data.get("speed") > telemetry["peak_speed_kts"]: # convert to f/s maybe
-            telemetry["peak_speed_kts"] = round(float(gnss_data.get("speed") * 0.514444), 3)
+        if gnss_data.get("speed") > telemetry["peak_speed_kts"]:
+            # Convert to m/s on the ground with round(float(telemetry["peak_speed_kts"] * 0.514444), 3)
+            telemetry["peak_speed_kts"] = gnss_data.get("speed")
+
 
         if gnss_data.get("altitude") > telemetry["peak_alt_m"]:  # alt in m above earth ellipsoid
             # From what I have read, GNSS altitude is not terribly accurate
@@ -153,7 +151,10 @@ while True:
             
 
 
-
+        print(f"Loop iteration took: {time.monotonic() - last_update}s")
+        
+        for data in telemetry.items():
+            print(f"{data[0]}: {data[1]}")
 
     except Exception as e:
         print("Error occurred: \n")

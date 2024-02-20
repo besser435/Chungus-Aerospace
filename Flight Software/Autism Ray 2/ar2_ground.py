@@ -1,17 +1,20 @@
 from digi.xbee.devices import XBeeDevice
 
-import adafruit_ssd1306
-from PIL import Image, ImageDraw, ImageFont
+import displayio
+import terminalio
+from adafruit_display_text import label
+import adafruit_displayio_ssd1306
+
 from gpiozero import TonalBuzzer
 from gpiozero.tones import Tone
 from gpiozero import Button
 
 import board
-import busio
 
 import traceback
 import time
 import json
+import random
 
 """
 NOTE: On chadpi, there is a cron job that runs this script on boot.
@@ -24,17 +27,36 @@ LOG_LOCATION = "/home/pi/Desktop/"
 enable_logging = False
 
 
-
 # XBee
 #/dev/ttyAMA0
 #/dev/ttyS0
-xbee = XBeeDevice("COM7", 9600)
-xbee.open()
+#xbee = XBeeDevice("/dev/ttyS0", 9600)
+#xbee.open()
 
 # Display
-#pip3 install adafruit-circuitpython-ssd1306
-i2c = busio.I2C(board.SCL, board.SDA)
-oled = adafruit_ssd1306.SSD1306_I2C(128, 64, i2c)
+i2c = board.I2C()
+oled_reset = board.D9
+display_bus = displayio.I2CDisplay(i2c, device_address=0x3D, reset=oled_reset)
+
+WIDTH = 128
+HEIGHT = 64
+
+display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=WIDTH, height=HEIGHT)
+
+background_bitmap = displayio.Bitmap(WIDTH, HEIGHT, 1)
+background_palette = displayio.Palette(1)
+background_palette[0] = 0xfffff #0x000000
+background_sprite = displayio.TileGrid(background_bitmap, pixel_shader=background_palette)
+splash = displayio.Group()
+splash.append(background_sprite)
+display.root_group = splash
+
+text_labels = []
+for i in range(6):
+    text_area = label.Label(terminalio.FONT, text='', color=0x000000, x=1, y=5 + i*10)  #0xfffff
+    splash.append(text_area)
+    text_labels.append(text_area)
+
 
 # Buttons
 sw1 = Button(17)
@@ -42,6 +64,7 @@ sw2 = Button(27)
 sw3 = Button(22)
 
 # Buzzer
+TonalBuzzer.max_tone = property(lambda self: Tone(4000))  # override default max of 880Hz
 buzzer = TonalBuzzer(21)
 enable_buzzer = False
 
@@ -54,34 +77,20 @@ enable_buzzer = False
 
 
 def boot():
-    image = Image.new("1", (oled.width, oled.height))
-    draw = ImageDraw.Draw(image)
-    draw.rectangle((0, 0, oled.width, oled.height), outline=255, fill=255)
-
-    font = ImageFont.load_default()
-    text = "AR2"
-    (font_width, font_height) = font.getsize(text)
-    draw.text(
-        (oled.width // 2 - font_width // 2, oled.height // 2 - font_height // 2),
-        text,
-        font=font,
-        fill=255,
-    )
-    oled.image(image)
-    oled.show()
-
-
-
-    buzzer.play(Tone(1000))
-    time.sleep(0.1)
-    buzzer.play(Tone(400))
-    time.sleep(0.1)
-    buzzer.play(Tone(400))
+    buzzer.play(Tone(frequency=800))
     time.sleep(0.1)
     buzzer.stop()
+    time.sleep(0.2)
 
-    oled.fill(0)
-    oled.show()
+    buzzer.play(Tone(frequency=400))
+    time.sleep(0.1)
+    buzzer.stop()
+    time.sleep(0.2)
+
+    buzzer.play(Tone(frequency=400))
+    time.sleep(0.1)
+    buzzer.stop()
+    time.sleep(0.2)
 boot()
 
 
@@ -102,7 +111,7 @@ def xbee_is_alive() -> bool:
         return False
 
 
-def get_message(data) -> tuple:
+def get_message() -> tuple:
     """Returns the message JSON and RSSI of the last received packet.
     TODO should maybe read in main loop, then pass that to this function"""
 
@@ -132,6 +141,7 @@ def get_message(data) -> tuple:
             message_json = json.loads(message)
         except json.JSONDecodeError:
             # Handle the case where the message cannot be converted to JSON
+            print(f"Received: {message}")
             print("Error: Message is not in valid JSON format.")
             return None, None
 
@@ -149,13 +159,48 @@ def log_data(data: dict):
 
 
 def draw_screen(data: dict):
-    pass
+    """Updates the display with the data from the beacon."""
+    packet_age = data["packet_age"]
+    if packet_age < 1000:
+        packet_age = f"{packet_age}ms"
+    elif packet_age < 60000:
+        packet_age = f"{packet_age // 1000}s!"
+    elif packet_age < 3600000:
+        packet_age = f"{packet_age // 60000}m!"
+
+    print(data)
+    text_lines = [
+        f"RSSI: {data['rssi']},  Sats: {data['sats']}",
+        f"P: {packet_age}, U: {data['utc']}",
+        f"Lat: {data['lat']}",
+        f"Lon: {data['lon']}",
+        f"Alt: {data['alt']}m",
+        f"PA: {data['peak_alt']}m, PS: {data['peak_speed']}m/s",
+    ]
+
+    for label, new_text in zip(text_labels, text_lines):
+        label.text = new_text
+
+
+
+data = {
+    "rssi": -random.randint(0, 100),
+    "sats": random.randint(3, 20),
+    "packet_age": 420,
+    "lat": 72.145265,
+    "lon": 0,
+    "alt": 0,
+    "utc": "20:24:58",
+    "peak_alt": 1568,
+    "peak_speed": 500
+}
+
+
 
 
 while True:
     try:
         message, rssi = get_message()
-
 
         if message is not None:
             print("Received: %s" % message)
@@ -169,7 +214,7 @@ while True:
             # add some sort of heartbeat to the GS to ensure its still searching
 
 
-
+        draw_screen(data)
 
 
 
@@ -188,7 +233,7 @@ while True:
             enable_logging = not enable_logging
             print("Toggled logging to: %s" % enable_logging)
 
-        if sw3.is_pressed: # restart the script
+        if sw3.is_pressed: # Cycle through display modes
             pass
 
 
