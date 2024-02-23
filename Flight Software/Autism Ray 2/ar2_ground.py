@@ -30,8 +30,8 @@ enable_logging = False
 # XBee
 #/dev/ttyAMA0
 #/dev/ttyS0
-#xbee = XBeeDevice("/dev/ttyS0", 9600)
-#xbee.open()
+xbee = XBeeDevice("/dev/ttyAMA0", 9600)
+xbee.open()
 
 # Display
 i2c = board.I2C()
@@ -77,27 +77,26 @@ enable_buzzer = False
 
 
 def boot():
-    buzzer.play(Tone(frequency=800))
+    buzzer.play(Tone(frequency=1600))
     time.sleep(0.1)
     buzzer.stop()
-    time.sleep(0.2)
+    time.sleep(0.01)
 
-    buzzer.play(Tone(frequency=400))
+    buzzer.play(Tone(frequency=600))
     time.sleep(0.1)
     buzzer.stop()
-    time.sleep(0.2)
+    time.sleep(0.01)
 
-    buzzer.play(Tone(frequency=400))
+    buzzer.play(Tone(frequency=600))
     time.sleep(0.1)
     buzzer.stop()
-    time.sleep(0.2)
 boot()
 
-
+display.brightness=0.55
 
 def xbee_is_alive() -> bool:
     """Returns True if the Xbee is alive, False if not. Tests the connection by sending a command to the Xbee and 
-    checking if it returns a value."""
+    checking if it returns a value"""
     
     hardware_series = xbee.get_parameter("HS")
     hardware_to_string = hardware_series.decode("utf-8")
@@ -152,14 +151,14 @@ def get_message() -> tuple:
 
 
 def log_data(data: dict):
-    """Logs GPS and RSSI data to a file."""
+    """Logs GPS and RSSI data to a file"""
     if enable_logging:
         with open(LOG_LOCATION + "ar2_ground_log.txt", "a") as f:
             f.write(json.dumps(data) + "\n")
 
 
 def draw_screen(data: dict):
-    """Updates the display with the data from the beacon."""
+    """Updates the display with the data from the beacon"""
     packet_age = data["packet_age"]
     if packet_age < 1000:
         packet_age = f"{packet_age}ms"
@@ -182,20 +181,41 @@ def draw_screen(data: dict):
         label.text = new_text
 
 
+def rssi_to_hz(rssi):
+    """Maps the RSSI value to a frequency in Hz for the buzzer"""
+    rssi_min = -170
+    rssi_max = -15
+    freq_min = 250
+    freq_max = 2000
 
-data = {
+    frequency = ((rssi - rssi_min) / (rssi_max - rssi_min)) * (freq_max - freq_min) + freq_min
+
+    return int(frequency)
+
+
+telemetry = {
+    # Values from the beacon
+    #"latitude_full": f"{int(gnss.latitude)}.{str(gnss.latitude_minutes).replace(".", "")}",
+    "latitude": None,
+    "longitude": None,
+
+    "altitude": 0,
+
+    "speed": 0,
+
+    "utc": None,
+
+    "satellites": 0,
+    "fix_quality": 0,
+    "has_fix": 0,
+    
+    "peak_speed_kts": 0,
+    "peak_alt_m": 0,
+
+    # Metadata values from the ground
     "rssi": -random.randint(0, 100),
-    "sats": random.randint(3, 20),
     "packet_age": 420,
-    "lat": 72.145265,
-    "lon": 0,
-    "alt": 0,
-    "utc": "20:24:58",
-    "peak_alt": 1568,
-    "peak_speed": 500
 }
-
-
 
 
 while True:
@@ -205,16 +225,30 @@ while True:
         if message is not None:
             print("Received: %s" % message)
             print("Last packet RSSI: -%d dBm" % rssi)
-            buzzer_freq = 2**(rssi / 20) * 10000
-            buzzer.play(Tone(frequency=buzzer_freq))
-            print("Buzzer frequency: %d" % buzzer_freq)
+
+            # update data
+            # display data
+
+
+
+            #with open(LOG_LOCATION + "ar2_ground_log.txt", "a") as f:
+                #f.write(json.dumps(message) + "\n")
+
+
+            if enable_buzzer:
+                freq = rssi_to_hz(rssi)
+                buzzer.play(Tone(frequency=freq))
+                print("Mapped frequency:", freq, "Hz at RSSI:", rssi, "dBm")
+
+
+
         else:
             print("No message received.")
             buzzer.stop()
             # add some sort of heartbeat to the GS to ensure its still searching
 
 
-        draw_screen(data)
+        draw_screen(telemetry)
 
 
 
@@ -224,9 +258,6 @@ while True:
             enable_buzzer = not enable_buzzer
             if enable_buzzer:
                 buzzer.stop()
-
-
-
             print("Toggled buzzer mute to: %s" % enable_buzzer)
 
         if sw2.is_pressed: # Toggle logging
