@@ -12,7 +12,7 @@ from gpiozero import CPUTemperature
 """
 Authored by besser435
 Created February 2023
-Revised May 2023
+Revised January 2024
 
 Autism Ray is Chungus Aerospace's system to locate a rocket
 using LoRa 915MHz radios. Once the rocket lands, we will
@@ -23,8 +23,13 @@ to head in to find the rocket. Not sure if this will even work,
 but we might as well try.
 
 This is the ground station code, it will help us find the rocket.
+
+
+NOTE: On chadpi, there is a cron job that runs this script on boot.
+sh: crontab -e
+@reboot python3 ~/Desktop/autism_ray_ground.py
 """
-version = "Autism Ray v1.2 (Ground)"
+version = "Autism Ray v1.4 (Ground)"
 
 # I2C
 i2c = busio.I2C(board.SCL, board.SDA)
@@ -50,6 +55,16 @@ btnA = DigitalInOut(board.D5)
 btnA.direction = Direction.INPUT
 btnA.pull = Pull.UP
 
+# Button B
+btnB = DigitalInOut(board.D6)
+btnB.direction = Direction.INPUT
+btnB.pull = Pull.UP
+
+# Button C
+btnC = DigitalInOut(board.D12)
+btnC.direction = Direction.INPUT
+btnC.pull = Pull.UP
+
 # Buzzer
 GPIO.setmode(GPIO.BCM)
 GPIO.setup(12, GPIO.OUT)  
@@ -61,6 +76,7 @@ beeper_toggle = 1
 FILE_LOCATION = "/home/pi/Desktop/" 
 cpu = CPUTemperature()
 
+print(Fore.GREEN + version)
 while True:
     try:   
         now = datetime.datetime.now()
@@ -76,6 +92,7 @@ while True:
             buzz.start(0)
             display.fill(0)
             display.text("Received nothing!", 0, 0, 1)
+            display.text("Pi CPU Temp: " + str(cpu.temperature), 0, 13, 1)
             display.show()
         else:
             packet_text = str(packet, 'utf-8') 
@@ -93,13 +110,21 @@ while True:
 
             display.fill(0)
             display.text(packet_text[11:], 0, 0, 1)
-            display.text("RSSI: " + str(rssi) + "  HB: " + packet_text[44:] , 0, 13, 1)
+            display.text("RSSI: " + str(rssi) + "  HB: " + packet_text[43:] , 0, 13, 1)
             display.text(time_and_date, 0, 25, 1)
             display.show()
 
         if not btnA.value:
             beeper_toggle = not beeper_toggle
             print(Fore.GREEN + "Toggled Beeper to "  + str(beeper_toggle))
+            display.text("Beeper "  + str(beeper_toggle), 0, 25, 1)
+            display.show()
+
+        #if not btnB.value:
+            #display.fill(0)
+            #display.show()
+            #print(Fore.RED + "Stopping, Button B pressed")
+            #exit()
 
         time.sleep(0.4)
 
@@ -116,7 +141,8 @@ while True:
         break
     
     except KeyboardInterrupt:
-        print("KeyboardInterrupt")
+        print("Stopping, KeyboardInterrupt")
         buzz.start(0)
         display.fill(0)
         display.show()
+        exit()
