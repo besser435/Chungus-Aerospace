@@ -57,10 +57,10 @@ def get_gnss():
 
     speed = gnss.speed_knots if gnss.speed_knots is not None else 0
 
-    utc = gnss.timestamp_utc if gnss.timestamp_utc is not None else 0
+    utc = str(gnss.timestamp_utc) if gnss.timestamp_utc is not None else 0
 
     satellites = gnss.satellites if gnss.satellites is not None else 0
-    has_fix = gnss.has_fix if gnss.has_fix is not None else False
+    has_fix = "true" if gnss.has_fix is not None else "false"   # JSON requires lowercase true and false
 
     data = {
         "latitude": f"{latitude_int}.{latitude_minutes_str}",
@@ -82,7 +82,9 @@ def get_gnss():
 def send_message(message):
     """NOTE: removes spaces from the message and adds a newline and carriage return to the end."""
     message = str(message)
-    message = message.replace(" ", "") + "\n\r"
+    message = message.replace(" ", "")      # Remove spaces and add newline and carriage return
+    message = message.replace("'", "\"")    # JSON uses double quotes
+    message += "\n\r"   # Add newline and carriage return for line UART readline() to work
     encoded_message = message.encode("utf-8")
 
     print(f"Sent message:  {message}")
@@ -148,21 +150,18 @@ while True:
             # see https://learn.adafruit.com/deep-sleep-with-circuitpython/alarms-and-sleep
             last_update = time.monotonic()
 
-            send_message(telemetry)
+            send_message("AR2 " + str(telemetry))
+            # TODO need to remove the "AR2 " from the message on the ground side
 
             
         # NOTE Debugging
+        print(f"loop took {time.monotonic() - last_update} seconds")
         for data in telemetry.items():
             print(f"{data[0]}: {data[1]}")
         print("\n" * 2)
 
-        print(f"loop took {time.monotonic() - last_update} seconds")
-
-        
 
         time.sleep(UPDATE_RATE)
-
-
     #except Exception as e:
         #print("Error occurred: \n")
         #print(str(e))

@@ -1,9 +1,9 @@
 from digi.xbee.devices import XBeeDevice
-
+#import serial
 import displayio
 import terminalio
 from adafruit_display_text import label
-import adafruit_displayio_ssd1306
+from adafruit_displayio_ssd1306 import SSD1306
 
 from gpiozero import TonalBuzzer
 from gpiozero.tones import Tone
@@ -24,39 +24,42 @@ sh: crontab -e
 
 # Configuration
 LOG_LOCATION = "/home/pi/Desktop/"
-enable_logging = False
+ENABLE_LOGGING = False
 
 
 # XBee
 #/dev/ttyAMA0
 #/dev/ttyS0
-xbee = XBeeDevice("/dev/ttyAMA0", 9600)
+#xbee = serial.Serial("/dev/ttyS0", 9600, timeout=2)
+xbee = XBeeDevice("/dev/ttyS0", 9600)
 xbee.open()
 
 # Display
 i2c = board.I2C()
 oled_reset = board.D9
-display_bus = displayio.I2CDisplay(i2c, device_address=0x3D, reset=oled_reset)
 
+# I HATE THIS DISPLAY LIBRARY!!!!!!!!
 WIDTH = 128
 HEIGHT = 64
+display_bus = displayio.I2CDisplay(i2c, device_address=0x3D, reset=oled_reset)
+display = SSD1306(display_bus, width=WIDTH, height=HEIGHT)
 
-display = adafruit_displayio_ssd1306.SSD1306(display_bus, width=WIDTH, height=HEIGHT)
 
 background_bitmap = displayio.Bitmap(WIDTH, HEIGHT, 1)
 background_palette = displayio.Palette(1)
-background_palette[0] = 0xfffff #0x000000
+background_palette[0] = 0xffffff
 background_sprite = displayio.TileGrid(background_bitmap, pixel_shader=background_palette)
 splash = displayio.Group()
 splash.append(background_sprite)
-display.root_group = splash
+display.show(splash)
 
+
+# Create text labels
 text_labels = []
 for i in range(6):
-    text_area = label.Label(terminalio.FONT, text='', color=0x000000, x=1, y=5 + i*10)  #0xfffff
+    text_area = label.Label(terminalio.FONT, text='', color=0x000000, x=1, y=5 + i * 10)
     splash.append(text_area)
     text_labels.append(text_area)
-
 
 # Buttons
 sw1 = Button(17)
@@ -70,29 +73,27 @@ enable_buzzer = False
 
 
 
-
 # TODO send AK to see if Xbee is alive. if so do a beep sequence and update the display as a nice boot animation.
 # maybe do this a few times while actively searching to ensure the connections are still alive.
 # Maybe implement on the beacon. Should be a function.
 
 
 def boot():
-    buzzer.play(Tone(frequency=1600))
+    buzzer.play(Tone(frequency=1200))
     time.sleep(0.1)
     buzzer.stop()
-    time.sleep(0.01)
+    time.sleep(0.1)
 
     buzzer.play(Tone(frequency=600))
     time.sleep(0.1)
     buzzer.stop()
-    time.sleep(0.01)
+    time.sleep(0.1)
 
     buzzer.play(Tone(frequency=600))
     time.sleep(0.1)
     buzzer.stop()
 boot()
 
-display.brightness=0.55
 
 def xbee_is_alive() -> bool:
     """Returns True if the Xbee is alive, False if not. Tests the connection by sending a command to the Xbee and 
@@ -150,6 +151,23 @@ def get_message() -> tuple:
         return None, None
 
 
+def get_message_ser():
+    """Returns the message JSON and RSSI of the last received packet."""
+    xbee_message = xbee.readline()
+    
+    if len(xbee_message) > 2:
+        # convert to string
+        xbee_message = xbee_message.decode("ascii")
+
+        # remove newline and carriage return
+        xbee_message = xbee_message.replace("\n", "")
+        xbee_message = xbee_message.replace("\r", "")
+        xbee_message = json.loads(xbee_message)
+        return xbee_message  
+    else:
+        return None  
+
+
 def log_data(data: dict):
     """Logs GPS and RSSI data to a file"""
     if enable_logging:
@@ -158,6 +176,7 @@ def log_data(data: dict):
 
 
 def draw_screen(data: dict):
+    display._reset()    # I hate this display library
     """Updates the display with the data from the beacon"""
     packet_age = data["packet_age"]
     if packet_age < 1000:
@@ -167,18 +186,19 @@ def draw_screen(data: dict):
     elif packet_age < 3600000:
         packet_age = f"{packet_age // 60000}m!"
 
-    print(data)
     text_lines = [
-        f"RSSI: {data['rssi']},  Sats: {data['sats']}",
+        f"RSSI: {-random.randint(0, 100)},  Sats: {data['satellites']}",
         f"P: {packet_age}, U: {data['utc']}",
-        f"Lat: {data['lat']}",
-        f"Lon: {data['lon']}",
-        f"Alt: {data['alt']}m",
-        f"PA: {data['peak_alt']}m, PS: {data['peak_speed']}m/s",
+        f"Lat: {data['latitude']}",
+        f"Lon: {data['longitude']}",
+        f"Alt: {data['altitude']}m",
+        f"PA: {data['peak_alt_m']}m, PS: {data['peak_speed_kts']}kts",
     ]
 
     for label, new_text in zip(text_labels, text_lines):
         label.text = new_text
+
+    display.show(splash)
 
 
 def rssi_to_hz(rssi):
@@ -213,21 +233,25 @@ telemetry = {
     "peak_alt_m": 0,
 
     # Metadata values from the ground
-    "rssi": -random.randint(0, 100),
+    "rssi": 0,
     "packet_age": 420,
 }
 
 
 while True:
-    try:
+    #try:
         message, rssi = get_message()
+        #message = get_message_ser()
 
         if message is not None:
-            print("Received: %s" % message)
-            print("Last packet RSSI: -%d dBm" % rssi)
+            #print(f"Received: {message}")
+            #print("Last packet RSSI: -%d dBm" % rssi)
 
-            # update data
-            # display data
+
+            for key, value in message.items():
+                telemetry[key] = value
+
+            print(f"telem: {telemetry}") 
 
 
 
@@ -235,10 +259,10 @@ while True:
                 #f.write(json.dumps(message) + "\n")
 
 
-            if enable_buzzer:
-                freq = rssi_to_hz(rssi)
-                buzzer.play(Tone(frequency=freq))
-                print("Mapped frequency:", freq, "Hz at RSSI:", rssi, "dBm")
+            # if enable_buzzer:
+            #     freq = rssi_to_hz(rssi)
+            #     buzzer.play(Tone(frequency=freq))
+            #     print("Mapped frequency:", freq, "Hz at RSSI:", rssi, "dBm")
 
 
 
@@ -269,11 +293,11 @@ while True:
 
 
 
-    except Exception as e:
-        traceback.print_exc()
+    # except Exception as e:
+    #     traceback.print_exc()
         
-    except KeyboardInterrupt:
-        buzzer.stop()
+    # except KeyboardInterrupt:
+    #     buzzer.stop()
 
 
 
