@@ -1,18 +1,23 @@
-print("Starting AR2 Ground...") # importing some lib takes forever, this is a sanity check
-from gpiozero import TonalBuzzer
-from gpiozero.tones import Tone
-from gpiozero import Button
-
 import board
 import digitalio
 
 import traceback
 import time
 import json
-import random
 from datetime import datetime
+import os
+os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
 from digi.xbee.devices import XBeeDevice
+
+from gpiozero import TonalBuzzer
+from gpiozero.tones import Tone
+from gpiozero import Button
+
+from luma.core.interface.serial import i2c
+from luma.core.render import canvas
+from luma.oled.device import ssd1306
+from PIL import ImageFont
 
 
 """
@@ -42,41 +47,8 @@ def reset_xbee():
     time.sleep(1)
     print("XBee reset complete.")
 reset_xbee()
-
 xbee = XBeeDevice("/dev/serial0", 9600)
 xbee.open()
-
-
-
-# Display
-# BUG: Slow, and somehow conflicts with the Xbee
-import displayio
-import terminalio
-from adafruit_display_text import label
-from adafruit_displayio_ssd1306 import SSD1306  
-i2c = board.I2C()
-oled_reset = board.D9
-
-# I HATE THIS DISPLAY LIBRARY!!!!!!!!
-WIDTH = 128
-HEIGHT = 64
-display_bus = displayio.I2CDisplay(i2c, device_address=0x3D, reset=oled_reset)
-display = SSD1306(display_bus, width=WIDTH, height=HEIGHT)
-
-background_bitmap = displayio.Bitmap(WIDTH, HEIGHT, 1)
-background_palette = displayio.Palette(1)
-background_palette[0] = 0xffffff
-background_sprite = displayio.TileGrid(background_bitmap, pixel_shader=background_palette)
-splash = displayio.Group()
-splash.append(background_sprite)
-display.show(splash)
-
-# Create text labels
-text_labels = []
-for i in range(6):
-    text_area = label.Label(terminalio.FONT, text='', color=0x000000, x=1, y=5 + i * 10)
-    splash.append(text_area)
-    text_labels.append(text_area)
 
 # Buttons
 sw1 = Button(17)
@@ -88,11 +60,16 @@ TonalBuzzer.max_tone = property(lambda self: Tone(4000))  # override default max
 buzzer = TonalBuzzer(21)
 enable_buzzer = False
 
+# OLED
+serial = i2c(port=1, address=0x3D)
+oled = ssd1306(serial)
+font_path = "droid-sans-mono.ttf"
+font_size = 10
+font = ImageFont.truetype(font_path, size=font_size)  # Specify the path to your font file and the font size
 
 
 # Other stuff
 enable_logging = True
-
 
 
 # TODO send AK to see if Xbee is alive. if so do a beep sequence and update the display as a nice boot animation.
@@ -101,6 +78,26 @@ enable_logging = True
 
 
 def boot():
+    # Use a monospace font
+    font_path = "Ubuntu-Bold.ttf"
+    font_size = 60
+    font = ImageFont.truetype(font_path, size=font_size)
+
+    text_box = font.getbbox("AR2")
+    text_width = text_box[2] - text_box[0]
+
+    x = (oled.width - text_width) // 2
+    y = ((oled.height - font_size) // 2) - 5
+
+    from luma.core.sprite_system import framerate_regulator
+    regulator = framerate_regulator(fps=5)
+    with regulator:
+        with canvas(oled) as draw:
+            draw.rectangle(oled.bounding_box, outline="white", fill="black")
+            draw.text((x, y), text="AR2", fill="white", font=font)
+    time.sleep(1)
+
+
     buzzer.play(Tone(frequency=1200))
     time.sleep(0.1)
     buzzer.stop()
@@ -140,7 +137,7 @@ def get_message() -> tuple:
 
     # Get RSSI from the message
     rssi = xbee.get_parameter("DB")
-    rssi = int.from_bytes(rssi, byteorder='big')
+    rssi = -int.from_bytes(rssi, byteorder='big')
 
     if xbee_message is not None:
         message_data = xbee_message.data.decode()
@@ -156,6 +153,9 @@ def get_message() -> tuple:
         else:
             message = message_data
 
+        pkt_timestamp = time.monotonic()
+
+
         # Convert the message to JSON
         try:
             message_json = json.loads(message)
@@ -163,10 +163,10 @@ def get_message() -> tuple:
             # Handle the case where the message cannot be converted to JSON
             print("Error: Message is not in valid JSON format.")
             print(f"Received: {message}")
-            return None, None
-        return message_json, rssi
+            return xbee_message, None, None
+        return message_json, rssi, pkt_timestamp
     else:
-        return None, None
+        return None, None, None
 
 
 def log_data(data: dict):
@@ -177,8 +177,7 @@ def log_data(data: dict):
 
 
 def draw_screen(data: dict):
-    display._reset()    # I hate this display library
-    """Updates the display with the data from the beacon"""
+    """Updates the display with the data from the telemetry variable."""
     packet_age = data["packet_age"]
     if packet_age < 1000:
         packet_age = f"{packet_age}ms"
@@ -188,18 +187,21 @@ def draw_screen(data: dict):
         packet_age = f"{packet_age // 60000}m!"
 
     text_lines = [
-        f"RSSI: {data['rssi']},  Sats: {data['satellites']}",
-        f"P: {packet_age}, U: {data['utc']}",
-        f"Lat: {data['latitude']}",
-        f"Lon: {data['longitude']}",
-        f"Alt: {data['altitude']}m",
+        f"R: {data['rssi']}, S: {data['satellites']}, D: {data['h_dilution']}",
+        f"P: {data['packet_age']}ms, U: {data['utc']}",
+        f"Lat: {data['latitude']}°",
+        f"Lon: {data['longitude']}°",
+        f"Alt: {data['altitude']}m, S: {data['speed']}kts",
         f"PA: {data['peak_alt_m']}m, PS: {data['peak_speed_kts']}kts",
     ]
 
-    for label, new_text in zip(text_labels, text_lines):
-        label.text = new_text
+    with canvas(oled) as draw:
+        for i, line in enumerate(text_lines):
+            draw.text((0, i * 10), line, fill="white", font=font)
 
-    display.show(splash)
+        
+        draw.line((3, 22, 120, 22), fill="white")   # Health separator 
+        draw.line((3, 42, 120, 42), fill="white")   # Position separator
 
 
 def rssi_to_hz(rssi) -> int:
@@ -226,7 +228,7 @@ telemetry = {
     "utc": 0,
 
     "satellites": 0,
-    "fix_quality": 0,
+    "h_dilution": 0,
     "has_fix": 0,
     
     "peak_speed_kts": 0,
@@ -234,32 +236,45 @@ telemetry = {
 
     # Metadata values from the ground
     "rssi": 0,
-    "packet_age": 420,
+    "packet_age": 0
 }
 
 
 error_count = 0
 while True:
     try:
-        message, rssi = get_message()
-
+        message, rssi, pkt_timestamp = get_message()
 
         if message is not None:
-            log_data(telemetry) # should check if the data is different before logging
-
-            print(f"Received telemetry:\n{telemetry}\n\n\n")
+            if telemetry["satellites"] >= 4 or telemetry["has_fix"] == True:    # Don't log if no fix. Only used on startup when values are 0 
+                log_data(telemetry)
 
             for key, value in message.items():
                 telemetry[key] = value
+            telemetry["rssi"] = rssi
+
+            # should be outside the if statement, but then it flashes, so its here for now
+            # could print every 5 seconds, and on each update or something
+            print("\n" * 2)
+            print("\n".join([f"{key}: {value}" for key, value in telemetry.items()]))
+            print(datetime.now())
+
+
             if enable_buzzer:
                 freq = rssi_to_hz(rssi)
                 buzzer.play(Tone(frequency=freq))
                 print("Mapped frequency:", freq, "Hz at RSSI:", rssi, "dBm")
         else:
-            #print(f"Received nothing. Last packet telemetry:\n{telemetry}\n\n\n")
-            print(f"got nothing {message}")
+            pass
             #buzzer.stop()
             # add some sort of heartbeat to the GS to ensure its still searching
+        
+
+        # TODO get working
+        # if pkt_timestamp or telemetry["packet_age"] is not 0:
+        #     packet_age = int((time.monotonic() - pkt_timestamp) * 1000)
+        #     telemetry["packet_age"] = packet_age
+
 
 
         draw_screen(telemetry)
@@ -274,10 +289,12 @@ while True:
             enable_logging = not enable_logging
             print(f"Toggled logging to: {enable_logging}")
             time.sleep(0.5) # Debounce
+            #display_message("Logging {enable_logging}")
 
         if sw3.is_pressed: # Cycle through display modes
             pass
             time.sleep(0.5) # Debounce
+            #display_message("Display mode {mode}")
 
         time.sleep(0.1)
     except Exception:

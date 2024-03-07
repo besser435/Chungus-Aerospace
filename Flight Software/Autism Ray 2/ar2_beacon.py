@@ -5,12 +5,11 @@ import board
 import neopixel
 import adafruit_gps
 import traceback
-from datetime import datetime
 
 # Configuration
 # BUG acts weird when blow 1
 MESSAGE_SEND_RATE = 1   # Seconds between messages
-UPDATE_RATE = 0.5    # Seconds between loop iterations
+UPDATE_RATE = 0    # Seconds between loop iterations
 
 
 _FRAME_ID = 0x01
@@ -42,7 +41,7 @@ def reset_xbee():
     xbee_reset.direction = digitalio.Direction.INPUT # Set as input (pulling high might cause damage the XBee)
 reset_xbee()
 
-
+#TODO only show 5 decimal places for lat and long   
 def get_gnss() -> dict:
     # The GPS library does not return all the minutes.
     # We need to manually add them together.    
@@ -54,18 +53,18 @@ def get_gnss() -> dict:
     longitude_int = int(gnss.longitude) if gnss.longitude is not None else 0
     longitude_minutes_str = str(gnss.longitude_minutes).replace(".", "") if gnss.longitude_minutes is not None else "0"
 
-    altitude = gnss.altitude_m if gnss.altitude_m is not None else 0
+    altitude = int(gnss.altitude_m) if gnss.altitude_m is not None else 0
     height_geoid = gnss.height_geoid if gnss.height_geoid is not None else 0
 
-    speed = gnss.speed_knots if gnss.speed_knots is not None else 0
+    speed = int(gnss.speed_knots) if gnss.speed_knots is not None else 0
 
     #utc = str(gnss.timestamp_utc) if gnss.timestamp_utc is not None else 0
-    time_utc = gnss.timestamp_utc.strftime("%H:%M:%S") if gnss.timestamp_utc is not None else 0
+    #time_utc = "{:02d}:{:02d}:{:02d}".format(*time.localtime(gnss.timestamp_utc)[3:6]) if gnss.timestamp_utc is not None else "0",
+    time_utc = "{:02d}:{:02d}:{:02d}".format(gnss.timestamp_utc.tm_hour, gnss.timestamp_utc.tm_min, gnss.timestamp_utc.tm_sec) if gnss.timestamp_utc is not None else "0"
 
     satellites = gnss.satellites if gnss.satellites is not None else 0
-    #has_fix = "true" if gnss.has_fix is not None else "false"   # JSON requires lowercase true and false # NOTE old line, may have caused a bug
+    h_dilution = round(gnss.horizontal_dilution, 1) if gnss.horizontal_dilution is not None else 0
     has_fix = "true" if gnss.has_fix is True else "false"   # JSON requires lowercase true and false
-    print(f"has_fix (still broken): {gnss.has_fix}")
 
     data = {
         "latitude": f"{latitude_int}.{latitude_minutes_str}",
@@ -79,6 +78,7 @@ def get_gnss() -> dict:
         "utc": time_utc,
 
         "satellites": satellites,
+        "h_dilution": h_dilution,
         "has_fix": has_fix
     }
 
@@ -91,18 +91,14 @@ def format_message(message) -> str:
     message = message.replace(" ", "")      # Remove spaces to bytes
     message = message.replace("'", "\"")    # JSON uses double quotes
     message += "\n\r"
-    print(message)
+
     return message
 
-
+# TODO ensure the frame isnt too long. It will get longer as the flight progresses, as speed, alt, and peak values increase
 def generate_tx_request_frame(frame_id, destination_address, broadcast_radius, transmit_options, payload_data) -> bytes:
     """Generates a transmit request frame for an XBee in API 1 mode. Uses frame type 0x10.
     Raises a ValueError if the payload data is too long. The maximum length is 254 bytes."""
     # https://www.digi.com/resources/documentation/digidocs/pdfs/90002173.pdf#page=129&zoom=100,96,70
-
-    encoded_message = message.encode('ascii')  # Encode the message to ASCII bytes
-    if len(encoded_message) >= 254:
-        raise ValueError("Payload data is too long. Maximum length is 254 bytes.")
 
     start_delimiter = b"\x7E"
 
@@ -120,10 +116,12 @@ def generate_tx_request_frame(frame_id, destination_address, broadcast_radius, t
 
     transmit_options_byte = bytes([transmit_options])
 
-    payload_data_bytes = str(payload_data).encode("ascii")
+    payload_data_bytes = str(payload_data).encode("ascii")  # kinda already done in frame_length, but whatever
+    # TODO: dont rase value error, just send what we can. In the future, split the message into multiple frames.
+    if len(payload_data_bytes) >= 254:
+        raise ValueError(f"Payload data is too long. Maximum length is 254 bytes. Got: {len(payload_data_bytes)}  bytes.")
 
     checksum = 0xFF - (frame_type[0] + frame_id_byte[0] + sum(destination_address_bytes) + sum(reserved) + broadcast_radius_byte[0] + transmit_options_byte[0] + sum(payload_data_bytes)) & 0xFF
-
 
     frame = (
         start_delimiter +
@@ -137,7 +135,9 @@ def generate_tx_request_frame(frame_id, destination_address, broadcast_radius, t
         payload_data_bytes +
         bytes([checksum])
     )
-    print(f"checksum: {checksum}")
+
+    #print(f"Payload len: {len(payload_data_bytes)}, Total frame len: {frame_length}")
+    #print(f"Generated frame. Checksum: {checksum}")
 
     return frame
 
@@ -161,6 +161,7 @@ telemetry = {
     "utc": 0,
 
     "satellites": 0,
+    "h_dilution": 0,
     "has_fix": 0,
     
     "peak_speed_kts": 0,
@@ -174,8 +175,11 @@ while True:
         # NOTE Update telemetry data from GNSS data
         gnss.update()
         gnss_data = get_gnss()
+
         for key in telemetry.keys():
         # Do not overwrite existing key values, only update the key values that are present   
+        # eg: if we had a location fix but lost it, dont overwrite the last known location with 0
+        # get_gnss() returns 0 for a value if the fix is lost, so that will skip the conditional
             if key in gnss_data:
                 telemetry[key] = gnss_data[key]
 
@@ -210,21 +214,20 @@ while True:
             message = format_message(telemetry)
             frame = generate_tx_request_frame(_FRAME_ID, _DESTINATION_ADDRESS, _BROADCAST_RADIUS, _TRANSMIT_OPTIONS, message)
             xbee_uart.write(frame)
-            
-            # print each byte of the frame, keep it compatible with circuitpython
-            message_bytes = ""
-            for byte in frame:
-                message_bytes += "%02X " % byte
-            print(message_bytes)
-                        
 
-            
-        # NOTE Debugging
-        for data in telemetry.items():
-            print(f"{data[0]}: {data[1]}")
-        print("\n" * 2)
+            # NOTE Debugging  
+            #print("Sent message")
+            # message_bytes = ""
+            # for byte in frame:
+            #     message_bytes += "%02X " % byte
+            # print(message_bytes)
+
+        # NOTE Display data
+        telemetry_print = "\n".join([f"{key}: {value}" for key, value in telemetry.items()]) # console flashes if we print too often
+        print(telemetry_print + "\n\n")
+
+
         time.sleep(UPDATE_RATE)
-
     except Exception as e:
         traceback.print_exception(type(e), e, e.__traceback__)
         led_neo.fill((255, 0, 0))
