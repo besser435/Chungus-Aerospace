@@ -56,10 +56,8 @@ def get_gnss() -> dict:
     altitude = int(gnss.altitude_m) if gnss.altitude_m is not None else 0
     height_geoid = gnss.height_geoid if gnss.height_geoid is not None else 0
 
-    speed = int(gnss.speed_knots) if gnss.speed_knots is not None else 0
+    speed = int(gnss.speed_knots * 0.514444) if gnss.speed_knots is not None else 0
 
-    #utc = str(gnss.timestamp_utc) if gnss.timestamp_utc is not None else 0
-    #time_utc = "{:02d}:{:02d}:{:02d}".format(*time.localtime(gnss.timestamp_utc)[3:6]) if gnss.timestamp_utc is not None else "0",
     time_utc = "{:02d}:{:02d}:{:02d}".format(gnss.timestamp_utc.tm_hour, gnss.timestamp_utc.tm_min, gnss.timestamp_utc.tm_sec) if gnss.timestamp_utc is not None else "0"
 
     satellites = gnss.satellites if gnss.satellites is not None else 0
@@ -119,7 +117,7 @@ def generate_tx_request_frame(frame_id, destination_address, broadcast_radius, t
     payload_data_bytes = str(payload_data).encode("ascii")  # kinda already done in frame_length, but whatever
     # TODO: dont rase value error, just send what we can. In the future, split the message into multiple frames.
     if len(payload_data_bytes) >= 254:
-        raise ValueError(f"Payload data is too long. Maximum length is 254 bytes. Got: {len(payload_data_bytes)}  bytes.")
+        raise ValueError(f"Payload data is too long. Maximum length is 254 bytes. Got: {len(payload_data_bytes)} bytes.")
 
     checksum = 0xFF - (frame_type[0] + frame_id_byte[0] + sum(destination_address_bytes) + sum(reserved) + broadcast_radius_byte[0] + transmit_options_byte[0] + sum(payload_data_bytes)) & 0xFF
 
@@ -164,15 +162,14 @@ telemetry = {
     "h_dilution": 0,
     "has_fix": 0,
     
-    "peak_speed_kts": 0,
-    "peak_alt_m": 0
+    "peak_speed": 0,
+    "peak_alt": 0
 }
 
 
 last_update = time.monotonic()
 while True:
     try:
-        # NOTE Update telemetry data from GNSS data
         gnss.update()
         gnss_data = get_gnss()
 
@@ -184,17 +181,13 @@ while True:
                 telemetry[key] = gnss_data[key]
 
 
-        # NOTE Update peak values. Keep in mind they are not very accurate
-        if gnss_data.get("speed") > telemetry["peak_speed_kts"]:
-            # Convert to m/s on the ground with round(float(telemetry["peak_speed_kts"] * 0.514444), 3)
-            # We dont do that here, because we want to keep the peak speed in knots to be consistent with the GNSS data
-            telemetry["peak_speed_kts"] = gnss_data.get("speed")
+        if gnss_data.get("speed") > telemetry["peak_speed"]:
+            telemetry["peak_speed"] = gnss_data.get("speed")
 
-        if gnss_data.get("altitude") > telemetry["peak_alt_m"]:  # alt in m above earth ellipsoid
-            telemetry["peak_alt_m"] = gnss_data.get("altitude")
+        if gnss_data.get("altitude") > telemetry["peak_alt"]:  # alt in m above earth ellipsoid
+            telemetry["peak_alt"] = gnss_data.get("altitude")
     
 
-        # NOTE Update LED status
         if telemetry["satellites"] < 4 or telemetry["has_fix"] == False:
             led_neo.fill((255, 0, 255))
         elif telemetry["satellites"] < 12:
@@ -203,7 +196,6 @@ while True:
             led_neo.fill((0, 255, 0))
 
 
-        # NOTE update as often as configured
         if time.monotonic() - last_update >= MESSAGE_SEND_RATE:
             # Will reading fast adversely affect battery life?
             # TODO Test GPS, XBee, MCU, power sleep modes if not high enough, and only update every 10 seconds
