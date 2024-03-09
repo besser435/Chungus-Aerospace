@@ -4,6 +4,7 @@ import digitalio
 import traceback
 import time
 import json
+import requests
 from datetime import datetime
 import os
 os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -48,7 +49,6 @@ def reset_xbee():
     time.sleep(1)   # Required
     print("XBee reset complete.")
 xbee = XBeeDevice("/dev/serial0", 9600)
-xbee.open()
 
 # Buttons
 sw1 = Button(17)
@@ -71,9 +71,6 @@ enable_logging = True
 enable_buzzer = False
 
 
-
-
-
 def boot():
     # Use a monospace font
     font_path = "Ubuntu-Bold.ttf"
@@ -93,6 +90,7 @@ def boot():
 
 
     reset_xbee()
+    xbee.open()     #TODO fix could not determine operating mode error
 
 
     buzzer.play(Tone(frequency=1200))
@@ -110,6 +108,48 @@ def boot():
     buzzer.stop()
     time.sleep(0.1)
 boot()
+
+
+def api_send(data: dict):
+    """Sends the data to a website so it can be easily viewable on a phone's map."""
+    URL = "https://chugnus.space/api/ground_station"
+
+
+def show_alert(message):
+    # Alert font
+    alert_font_path = "Ubuntu-Bold.ttf"
+    alert_font_size = 22
+    alert_font = ImageFont.truetype(alert_font_path, size=alert_font_size)
+
+    # Message font, use a monospace one
+    msg_font_path = "droid-sans-mono.ttf"
+    msg_font_size = 14
+    msg_font = ImageFont.truetype(msg_font_path, size=msg_font_size)
+
+    oled_width_center = oled.width // 2
+
+    # Alert box size and position
+    alert_box_width = 60
+    alert_box_height = 22
+    alert_box_x = oled_width_center - (alert_box_width // 2)
+    alert_box_y = 0
+
+    # Alert Text positioning
+    alert_text_x = alert_box_x + 3
+    alert_text_y = alert_box_y - 2
+
+    # Draw alert box and text
+    with canvas(oled) as draw:
+        _, _, text_width, _ = draw.textbbox((0, 0), message, font=msg_font)  # Calculate text width
+        message_x = (oled.width - text_width) // 2  # Calculate x-coordinate for centering
+        
+        draw.rectangle((alert_box_x, alert_box_y, alert_box_x + alert_box_width, alert_box_y + alert_box_height), outline="white", fill="white")
+        draw.text((alert_text_x, alert_text_y), "Alert", fill="black", align="center", font=alert_font)
+        draw.text((message_x, alert_box_height), message, fill="white", align="center", font=msg_font)
+
+        print(f"\n{message}\n")
+
+    time.sleep(3)
 
 
 def xbee_is_alive() -> bool:    # NOTE not implemented, but maybe should be tested periodically in the main loop
@@ -199,6 +239,8 @@ def draw_screen(data: dict):
             draw.text((0, i * 10), line, fill="white", font=font)
 
 
+# TODO ask adafruit discord on why the beep sounds terrible. Probably some PWN issue.
+# Maybe try on a different board like the RP2040
 def rssi_to_hz(rssi) -> int:
     """Maps the RSSI value to a frequency in Hz for the buzzer"""
     rssi_min = -170
@@ -208,7 +250,14 @@ def rssi_to_hz(rssi) -> int:
 
     frequency = ((rssi - rssi_min) / (rssi_max - rssi_min)) * (freq_max - freq_min) + freq_min
 
+    print(f"Freq: {int(frequency)}Hz, RSSI: {rssi}dBm")
+
     return int(frequency)
+
+
+def generate_qr_code(data: dict):   # also print a link, and a tinyurl link if there is internet
+    """Generates a QR code with a Google Maps link to the current beacon's location."""
+    pass
 
 
 telemetry = {
@@ -253,7 +302,6 @@ while True:
             if enable_buzzer:
                 freq = rssi_to_hz(rssi)
                 buzzer.play(Tone(frequency=freq))
-                print("Mapped frequency:", freq, "Hz at RSSI:", rssi, "dBm")
         else:
             pass
             buzzer.stop()
@@ -275,19 +323,17 @@ while True:
 
         if sw1.is_pressed: # Toggle buzzer mute
             enable_buzzer = not enable_buzzer
-            print(f"\nToggled buzzer mute to: {enable_buzzer}\n")
-            time.sleep(0.5) # Debounce
-
+            buzzer.stop()
+            show_alert(f"Buzzer\n{'Enabled' if enable_buzzer else 'Disabled'}")
+            
         if sw2.is_pressed: # Toggle logging
             enable_logging = not enable_logging
-            print(f"\nToggled logging to: {enable_logging}\n")
-            time.sleep(0.5) # Debounce
-            #display_message("Logging {enable_logging}")
+            buzzer.stop()
+            show_alert(f"Logging\n{'Enabled' if enable_logging else 'Disabled'}")
 
         if sw3.is_pressed: # Cycle through display modes
             pass
-            time.sleep(0.5) # Debounce
-            #display_message("Display mode {mode}")
+
 
         time.sleep(0.1)
     except Exception:
