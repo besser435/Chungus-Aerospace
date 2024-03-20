@@ -72,8 +72,7 @@ enable_buzzer = False
 
 
 def boot():
-    # Use a monospace font
-    font_path = "Ubuntu-Bold.ttf"
+    font_path = "Ubuntu-Bold.ttf"   # Use a monospace font
     font_size = 60
     font = ImageFont.truetype(font_path, size=font_size)
 
@@ -86,8 +85,6 @@ def boot():
     with canvas(oled) as draw:
         draw.rectangle(oled.bounding_box, outline="white", fill="black")
         draw.text((x, y), text="AR2", fill="white", font=font)
-    time.sleep(1)
-
 
     reset_xbee()
     xbee.open()     #TODO fix could not determine operating mode error
@@ -149,7 +146,7 @@ def show_alert(message):
 
         print(f"\n{message}\n")
 
-    time.sleep(3)
+    time.sleep(2)
 
 
 def xbee_is_alive() -> bool:    # NOTE not implemented, but maybe should be tested periodically in the main loop
@@ -273,7 +270,7 @@ telemetry = {
 
     "satellites": 0,
     "h_dilution": 0,
-    "has_fix": 0,
+    "fix_quality": 0,
     
     "peak_speed": 0,
     "peak_alt": 0,
@@ -290,12 +287,13 @@ while True:
     try:
         message, rssi, pkt_timestamp = get_message()
 
-        if message is not None:
-            if telemetry["satellites"] >= 4 or telemetry["has_fix"] == True:    # Don't log if no fix. Only used on startup when values are 0 
+        # TODO only logs if there is a fix. should it log if there is no fix?
+        if message:
+            if telemetry["satellites"] >= 4 or telemetry["fix_quality"] >= 2:    # Don't log if no fix. Only used on startup when values are 0 
                 log_data(telemetry)
 
             for key, value in message.items():
-                telemetry[key] = value
+                    telemetry[key] = value
             telemetry["rssi"] = rssi
 
 
@@ -305,7 +303,7 @@ while True:
         else:
             pass
             buzzer.stop()
-            # add some sort of heartbeat to the GS to ensure its still searching, maybe the xbee_is_alive() function
+            # xbee_is_alive() # TODO test this periodically
 
         if pkt_timestamp:
             telemetry["packet_age"] = int((time.monotonic() - pkt_timestamp) * 1000)
@@ -315,6 +313,7 @@ while True:
             
 
         draw_screen(telemetry)
+
 
         print("\n" * 2)
         print("\n".join([f"{key}: {value}" for key, value in telemetry.items()]))

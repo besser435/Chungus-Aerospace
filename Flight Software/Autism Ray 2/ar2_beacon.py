@@ -13,12 +13,12 @@ UPDATE_RATE = 0    # Seconds between loop iterations
 
 
 _FRAME_ID = 0x01
-_DESTINATION_ADDRESS = "00:00:00:00:00:00:FF:FF"  # 64 bit XBee address of the ground station. Or use broadcast address "00..FF:FF"
+_DESTINATION_ADDRESS = "00:00:00:00:00:00:FF:FF"  # 64 bit address of the ground station. Or use broadcast address "00::FF:FF"
 _BROADCAST_RADIUS = 0x00
 _TRANSMIT_OPTIONS = 0x00
 
 # Hardware setup
-led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.3)
+led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.2)
 
 # https://learn.adafruit.com/todbot-circuitpython-tricks/i2c
 # NOTE On Rev 2 and later, UART is properly connected (broken on R1), but I2C might be better. 
@@ -62,8 +62,8 @@ def get_gnss() -> dict:
 
     satellites = gnss.satellites if gnss.satellites is not None else 0
     h_dilution = round(gnss.horizontal_dilution, 1) if gnss.horizontal_dilution is not None else 0
-    has_fix = "true" if gnss.has_fix is True else "false"   # JSON requires lowercase true and false
-
+    #has_fix = "true" if gnss.has_fix is True else "false"   # JSON requires lowercase true and false
+    fix_quality = gnss.fix_quality_3d if gnss.fix_quality_3d is not None else 0
     data = {
         "latitude": f"{latitude_int}.{latitude_minutes_str}",
         "longitude": f"{longitude_int}.{longitude_minutes_str}",
@@ -77,7 +77,7 @@ def get_gnss() -> dict:
 
         "satellites": satellites,
         "h_dilution": h_dilution,
-        "has_fix": has_fix
+        "fix_quality": fix_quality
     }
 
     return data
@@ -160,7 +160,7 @@ telemetry = {
 
     "satellites": 0,
     "h_dilution": 0,
-    "has_fix": 0,
+    "fix_quality": 0,
     
     "peak_speed": 0,
     "peak_alt": 0
@@ -188,7 +188,7 @@ while True:
             telemetry["peak_alt"] = gnss_data.get("altitude")
     
 
-        if telemetry["satellites"] < 4 or telemetry["has_fix"] == False:
+        if telemetry["satellites"] < 4 or telemetry["fix_quality"] == 1:
             led_neo.fill((255, 0, 255))
         elif telemetry["satellites"] < 12:
             led_neo.fill((255, 255, 0))
@@ -207,14 +207,12 @@ while True:
             frame = generate_tx_request_frame(_FRAME_ID, _DESTINATION_ADDRESS, _BROADCAST_RADIUS, _TRANSMIT_OPTIONS, message)
             xbee_uart.write(frame)
 
-            # NOTE Debugging  
             #print("Sent message")
             # message_bytes = ""
             # for byte in frame:
             #     message_bytes += "%02X " % byte
             # print(message_bytes)
 
-        # NOTE Display data
         telemetry_print = "\n".join([f"{key}: {value}" for key, value in telemetry.items()]) # console flashes if we print too often
         print(telemetry_print + "\n\n")
 
