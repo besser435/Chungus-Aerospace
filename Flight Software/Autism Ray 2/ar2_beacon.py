@@ -7,8 +7,8 @@ import adafruit_gps
 import traceback
 
 # Configuration
-# BUG acts weird when blow 1
-MESSAGE_SEND_RATE = 1   # Seconds between messages
+# BUG acts weird when below 1
+MESSAGE_SEND_RATE = 2   # Seconds between messages
 UPDATE_RATE = 0    # Seconds between loop iterations
 
 
@@ -173,9 +173,9 @@ while True:
         gnss.update()
         gnss_data = get_gnss()
 
-        for key in telemetry.keys():
+        for key in telemetry.keys():    # BUG the last comment line isnt true, "'0'" == True
         # Do not overwrite existing key values, only update the key values that are present   
-        # eg: if we had a location fix but lost it, dont overwrite the last known location with 0
+        # eg: if we had a location fix but lost it, dont overwrite the last known location with 0.
         # get_gnss() returns 0 for a value if the fix is lost, so that will skip the conditional
             if key in gnss_data:
                 telemetry[key] = gnss_data[key]
@@ -188,37 +188,38 @@ while True:
             telemetry["peak_alt"] = gnss_data.get("altitude")
     
 
-        if telemetry["satellites"] < 4 or telemetry["fix_quality"] == 1:
-            led_neo.fill((255, 0, 255))
-        elif telemetry["satellites"] < 12:
-            led_neo.fill((255, 255, 0))
-        elif telemetry["satellites"] >= 12:
-            led_neo.fill((0, 255, 0))
-
-
         if time.monotonic() - last_update >= MESSAGE_SEND_RATE:
+            if telemetry["satellites"] < 4 or telemetry["fix_quality"] == 1:
+                led_neo.fill((255, 0, 255))
+            elif telemetry["satellites"] < 12:
+                led_neo.fill((255, 255, 0))
+            elif telemetry["satellites"] >= 12:
+                led_neo.fill((0, 255, 0))
+
+
             # Will reading fast adversely affect battery life?
             # TODO Test GPS, XBee, MCU, power sleep modes if not high enough, and only update every 10 seconds
             # see https://learn.adafruit.com/deep-sleep-with-circuitpython/alarms-and-sleep
             last_update = time.monotonic()
 
-            # NOTE format and send the message
             message = format_message(telemetry)
             frame = generate_tx_request_frame(_FRAME_ID, _DESTINATION_ADDRESS, _BROADCAST_RADIUS, _TRANSMIT_OPTIONS, message)
             xbee_uart.write(frame)
 
-            #print("Sent message")
+            # print("Sent message")
             # message_bytes = ""
             # for byte in frame:
             #     message_bytes += "%02X " % byte
             # print(message_bytes)
 
-        telemetry_print = "\n".join([f"{key}: {value}" for key, value in telemetry.items()]) # console flashes if we print too often
+        telemetry_print = "\n".join([f"{key}: {value}" for key, value in telemetry.items()])
         print(telemetry_print + "\n\n")
+        
 
+        led_neo.fill((0, 0, 0))
 
-        time.sleep(UPDATE_RATE)
-    except Exception as e:
+        time.sleep(UPDATE_RATE) # https://docs.circuitpython.org/en/latest/shared-bindings/alarm/index.html light sleep instead?
+    except Exception as e:  # TODO add proper exception handling and logging
         traceback.print_exception(type(e), e, e.__traceback__)
         led_neo.fill((255, 0, 0))
 
