@@ -5,12 +5,19 @@ import board
 import neopixel
 import adafruit_gps
 import traceback
+import microcontroller
+import alarm
+import supervisor
 
 # Configuration
 # BUG acts weird when below 1
-MESSAGE_SEND_RATE = 2   # Seconds between messages
-UPDATE_RATE = 0    # Seconds between loop iterations
+MESSAGE_SEND_RATE = 1   # Seconds between message transmissions. Will not go lower than UPDATE_RATE.
+UPDATE_RATE = 2    # Seconds between loop iterations. Must be non-zero for alarm sleep to work.
 
+
+# Underclock to save power. USB requires > 48MHz; boot into safe mode by pressing reset on power on in case this is too low.
+microcontroller.cpu.frequency = 50_000_000
+print(f"CPU frequency: {microcontroller.cpu.frequency}")
 
 _FRAME_ID = 0x01
 _DESTINATION_ADDRESS = "00:00:00:00:00:00:FF:FF"  # 64 bit address of the ground station. Or use broadcast address "00::FF:FF"
@@ -20,9 +27,6 @@ _TRANSMIT_OPTIONS = 0x00
 # Hardware setup
 led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.2)
 
-# https://learn.adafruit.com/todbot-circuitpython-tricks/i2c
-# NOTE On Rev 2 and later, UART is properly connected (broken on R1), but I2C might be better. 
-#gnss_uart = busio.UART(board.MISO, board.MOSI, baudrate=9600)
 i2c = busio.I2C(board.SCL, board.SDA, frequency=400_000)    # SAM M10Q requires 400kHz
 gnss = adafruit_gps.GPS_GtopI2C(i2c, debug=False, address=0x42)   # 0x42 is the default SAM M10Q address
 
@@ -41,7 +45,7 @@ def reset_xbee():
     xbee_reset.direction = digitalio.Direction.INPUT # Set as input (pulling high might cause damage the XBee)
 reset_xbee()
 
-#TODO only show 5 decimal places for lat and long   
+
 def get_gnss() -> dict:
     # The GPS library does not return all the minutes.
     # We need to manually add them together.    
@@ -62,7 +66,6 @@ def get_gnss() -> dict:
 
     satellites = gnss.satellites if gnss.satellites is not None else 0
     h_dilution = round(gnss.horizontal_dilution, 1) if gnss.horizontal_dilution is not None else 0
-    #has_fix = "true" if gnss.has_fix is True else "false"   # JSON requires lowercase true and false
     fix_quality = gnss.fix_quality_3d if gnss.fix_quality_3d is not None else 0
     data = {
         "latitude": f"{latitude_int}.{latitude_minutes_str}",
@@ -92,7 +95,7 @@ def format_message(message) -> str:
 
     return message
 
-# TODO ensure the frame isnt too long. It will get longer as the flight progresses, as speed, alt, and peak values increase
+
 def generate_tx_request_frame(frame_id, destination_address, broadcast_radius, transmit_options, payload_data) -> bytes:
     """Generates a transmit request frame for an XBee in API 1 mode. Uses frame type 0x10.
     Raises a ValueError if the payload data is too long. The maximum length is 254 bytes."""
@@ -140,13 +143,9 @@ def generate_tx_request_frame(frame_id, destination_address, broadcast_radius, t
     return frame
 
 
-def send_status() -> bytearray:
-    """Checks if the XBee sent the message successfully. Returns the status code."""
-    # TODO Implement this
-    return False
 
 # Outside of loop as to not reset values. 
-# We dont want to reset them incase we loose a GNSS fix.
+# We dont want to reset them in case we loose a GNSS fix.
 telemetry = {   
     "latitude": 0,
     "longitude": 0,
@@ -173,7 +172,7 @@ while True:
         gnss.update()
         gnss_data = get_gnss()
 
-        for key in telemetry.keys():    # BUG the last comment line isnt true, "'0'" == True
+        for key in telemetry.keys():    # BUG the last comment line here isnt true, "'0'" == True. 
         # Do not overwrite existing key values, only update the key values that are present   
         # eg: if we had a location fix but lost it, dont overwrite the last known location with 0.
         # get_gnss() returns 0 for a value if the fix is lost, so that will skip the conditional
@@ -196,10 +195,6 @@ while True:
             elif telemetry["satellites"] >= 12:
                 led_neo.fill((0, 255, 0))
 
-
-            # Will reading fast adversely affect battery life?
-            # TODO Test GPS, XBee, MCU, power sleep modes if not high enough, and only update every 10 seconds
-            # see https://learn.adafruit.com/deep-sleep-with-circuitpython/alarms-and-sleep
             last_update = time.monotonic()
 
             message = format_message(telemetry)
@@ -218,10 +213,20 @@ while True:
 
         led_neo.fill((0, 0, 0))
 
-        time.sleep(UPDATE_RATE) # https://docs.circuitpython.org/en/latest/shared-bindings/alarm/index.html light sleep instead?
+        time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + UPDATE_RATE)
+        alarm.light_sleep_until_alarms(time_alarm)
     except Exception as e:  # TODO add proper exception handling and logging
         traceback.print_exception(type(e), e, e.__traceback__)
         led_neo.fill((255, 0, 0))
 
         reset_xbee()
+
+        # problem for future me
+        # if not supervisor.runtime.usb_connected:
+        #     import storage
+        #     storage.remount("/", readonly=False)
+
+        #     with open("error.log", "a") as f:
+        #         traceback.print_exception(type(e), e, e.__traceback__, file=f)
+       
         time.sleep(1)
