@@ -1,5 +1,5 @@
 from digitalio import DigitalInOut
-import time, busio, digitalio, board, neopixel, adafruit_rfm9x
+import time, busio, digitalio, board, neopixel, adafruit_rfm9x, microcontroller
 """
 Authored by besser435
 Created February 2023
@@ -16,11 +16,14 @@ but we might as well try.
 This is the rocket code. It will broadcast the radio signal, and
 will also beep for when we get close to finding it.
 """
-version = "Autism Ray v1.1 (Rocket)"
+version = "Autism Ray v1.2 (Rocket)"
 
+# Underclock to save power. USB requires > 48MHz; boot into safe mode by pressing reset on power on in case this is too low.
+microcontroller.cpu.frequency = 50_000_000
+print(f"CPU frequency: {microcontroller.cpu.frequency}")
 
 # LEDs
-led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=1)
+led_neo = neopixel.NeoPixel(board.NEOPIXEL, 1, brightness=0.3)
 led = digitalio.DigitalInOut(board.LED_GREEN)
 led.direction = digitalio.Direction.OUTPUT
 led.value = True
@@ -34,7 +37,7 @@ rfm.tx_power = 23
 prev_packet = None
 
 # Beeper
-mute_beeper = 0
+mute_beeper = 1
 beeper = digitalio.DigitalInOut(board.D1) 
 beeper.direction = digitalio.Direction.OUTPUT
 def beep(state):
@@ -44,7 +47,8 @@ def beep(state):
         elif state:
             beeper.value = True
     else:
-        led_neo.brightness = 0.01
+        #led_neo.brightness = 0.01
+        pass
 
 
 def error(e):
@@ -67,6 +71,7 @@ def error(e):
         rfm.send(send_data)
         print("Sent the message: " + str(send_data))
         time.sleep(1)
+
 
 heartbeat = 0
 while True:
@@ -91,6 +96,8 @@ while True:
         led_neo.fill((0, 0, 0))
         beep(0)
         heartbeat += 1
+
+        #alarm/sleep
             
     except Exception as e:
         error(e)
