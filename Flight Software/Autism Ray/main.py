@@ -1,5 +1,7 @@
 from digitalio import DigitalInOut
-import time, busio, digitalio, board, neopixel, adafruit_rfm9x, microcontroller
+import time, busio, digitalio, board, neopixel, adafruit_rfm9x
+import microcontroller, alarm, traceback
+
 """
 Authored by besser435
 Created February 2023
@@ -16,7 +18,7 @@ but we might as well try.
 This is the rocket code. It will broadcast the radio signal, and
 will also beep for when we get close to finding it.
 """
-version = "Autism Ray v1.2 (Rocket)"
+version = "Autism Ray v1.2.1 (Rocket)"
 
 # Underclock to save power. USB requires > 48MHz; boot into safe mode by pressing reset on power on in case this is too low.
 microcontroller.cpu.frequency = 50_000_000
@@ -56,7 +58,7 @@ def error(e):
     #https://discord.com/channels/914767468331929653/938696892659929109/1083860244003831829
     #add proper redundancy, see message above
 
-    print("Error occurred: \n", e)
+    traceback.print_exception(type(e), e, e.__traceback__)
     for i in range(120):    # wait 2 minutes for the issue to magically disappear before trying one last time
         led_neo.fill((255, 0, 0))
         beep(1)
@@ -76,7 +78,6 @@ def error(e):
 heartbeat = 0
 while True:
     try:
-        time.sleep(0.2)
         led_neo.fill((255, 255, 255))
         beep(1)
 
@@ -88,16 +89,17 @@ while True:
         
         New lines would fix this, as I could just parse for new lines, rather that set char counts in a list.
         """ 
+
         send_data = bytes(version + " Beacon Heartbeat: " + str(heartbeat) + "      \r\n","utf-8")
         rfm.send(send_data)
-        print("Sent the message: " + str(send_data))
+        print(str(send_data))
 
-        time.sleep(0.2)
-        led_neo.fill((0, 0, 0))
-        beep(0)
         heartbeat += 1
+        beep(0)
+        led_neo.fill((0, 0, 0))
 
-        #alarm/sleep
+        time_alarm = alarm.time.TimeAlarm(monotonic_time=time.monotonic() + 0.4)
+        alarm.light_sleep_until_alarms(time_alarm)
             
     except Exception as e:
         error(e)
