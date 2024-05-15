@@ -4,9 +4,10 @@ import adafruit_icm20x, adafruit_bmp3xx, csv, random, logging, numpy as np, time
 #NOTE https://realpython.com/python-logging/ do this properly
 
 
-class rocket_systems:
+class rocket:
     def __init__(self, starting_alt=None):  
         self.starting_alt = None #NOTE not done
+        self.has_landed = False
         self.spoof_current_alt = None
         self.spoof_current_accel = None
         pass
@@ -52,6 +53,7 @@ class rocket_systems:
     def test_func(self):
         return "test"
     
+<<<<<<< Updated upstream
 class orientation:
 
     radconv = np.pi / 180
@@ -72,3 +74,7 @@ class orientation:
         norm = np.sqrt(quat_orientation_int[0]**2 + quat_orientation_int[1]**2 + quat_orientation_int[2]**2 + quat_orientation_int[3]**2) # Normalization for quaternion
         quat_orientation = quat_orientation_int / norm   # Final quaternion measurement
         return quat_orientation, time_1
+=======
+#if "__name__" == "__main__":
+#    pass
+>>>>>>> Stashed changes
