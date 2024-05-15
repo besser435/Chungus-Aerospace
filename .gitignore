@@ -14,3 +14,19 @@ Flight Software/CONTACT INFO IF FOUND.txt
 Flight Software/Autism Ray/.vscode/settings.json
 Flight Software/Autism Ray/.vscode/launch.json
 Rockets/cone.csv
+
+
+*.lck
+*.000
+*.bak
+*.bck
+*.kicad_pcb-bak
+*.sch-bak
+*~
+_autosave-*
+*.tmp
+*-save.pro
+*-save.kicad_pcb
+fp-info-cache
+*.kicad_prl
+/PCBs/E22-900M_LoRa_breakout/E22-900M_LoRa_breakout/E22-900M_LoRa_breakout-backups
