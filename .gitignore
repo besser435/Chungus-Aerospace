@@ -30,3 +30,4 @@ _autosave-*
 fp-info-cache
 *.kicad_prl
 /PCBs/E22-900M_LoRa_breakout/E22-900M_LoRa_breakout/E22-900M_LoRa_breakout-backups
+/PCBs/ChungRF/ChungRF-backups

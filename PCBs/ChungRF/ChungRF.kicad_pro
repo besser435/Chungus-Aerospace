@@ -38,8 +38,8 @@
         "other_text_upright": false,
         "pads": {
           "drill": 0.0,
-          "height": 0.7,
-          "width": 1.8
+          "height": 1.5,
+          "width": 1.5
         },
         "silk_line_width": 0.16,
         "silk_text_italic": false,
@@ -122,7 +122,7 @@
         "max_error": 0.005,
         "min_clearance": 0.127,
         "min_connection": 0.0,
-        "min_copper_edge_clearance": 0.5,
+        "min_copper_edge_clearance": 0.3,
         "min_hole_clearance": 0.254,
         "min_hole_to_hole": 0.5,
         "min_microvia_diameter": 0.19999999999999998,
@@ -130,7 +130,7 @@
         "min_resolved_spokes": 2,
         "min_silk_clearance": 0.0,
         "min_text_height": 1.0999999999999999,
-        "min_text_thickness": 0.15,
+        "min_text_thickness": 0.155,
         "min_through_hole_diameter": 0.26,
         "min_track_width": 0.127,
         "min_via_annular_width": 0.13999999999999999,
@@ -187,7 +187,7 @@
         0.19,
         0.3,
         0.34925,
-        0.5,
+        0.6,
         1.0
       ],
       "tuning_pattern_settings": {
@@ -462,7 +462,7 @@
     "pinned_symbol_libs": []
   },
   "meta": {
-    "filename": "E22-900M_LoRa_breakout.kicad_pro",
+    "filename": "ChungRF.kicad_pro",
     "version": 1
   },
   "net_settings": {
@@ -513,7 +513,7 @@
         "name": "GND",
         "pcb_color": "rgb(99, 101, 115)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.5,
+        "track_width": 0.6,
         "via_diameter": 0.9,
         "via_drill": 0.4,
         "wire_width": 6
@@ -530,7 +530,7 @@
         "name": "PWR",
         "pcb_color": "rgb(255, 0, 34)",
         "schematic_color": "rgba(0, 0, 0, 0.000)",
-        "track_width": 0.5,
+        "track_width": 0.6,
         "via_diameter": 0.9,
         "via_drill": 0.4,
         "wire_width": 6
@@ -611,6 +611,14 @@
       {
         "netclass": "CTRL",
         "pattern": "/NRST"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "/RXEN"
+      },
+      {
+        "netclass": "CTRL",
+        "pattern": "/TXEN"
       }
     ]
   },
@@ -622,7 +630,7 @@
       "plot": "",
       "pos_files": "",
       "specctra_dsn": "",
-      "step": "",
+      "step": "E22-900M_LoRa_breakout.step",
       "svg": "",
       "vrml": ""
     },
