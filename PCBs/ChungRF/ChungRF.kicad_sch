@@ -2134,6 +2134,16 @@
 		)
 		(uuid "fc825462-0296-49a8-9340-acc0c032fec5")
 	)
+	(text "Switch to 10 pin for extra ground pin"
+		(exclude_from_sim no)
+		(at 188.976 88.9 0)
+		(effects
+			(font
+				(size 2.54 2.54)
+			)
+		)
+		(uuid "7fc9c88d-a9e0-4117-9e44-0f1f609aebc3")
+	)
 	(text "50Ω matching\n"
 		(exclude_from_sim no)
 		(at 138.176 84.582 0)
