@@ -2136,7 +2136,7 @@
 	)
 	(text "Switch to 10 pin for extra ground pin"
 		(exclude_from_sim no)
-		(at 188.976 88.9 0)
+		(at 192.532 70.612 0)
 		(effects
 			(font
 				(size 2.54 2.54)
@@ -3630,6 +3630,7 @@
 					(size 1.27 1.27)
 				)
 				(justify left)
+				(hide yes)
 			)
 		)
 		(property "Footprint" "besser_footprints:CON-SMA-EDGE-S"
@@ -3641,7 +3642,7 @@
 				(hide yes)
 			)
 		)
-		(property "Datasheet" " ~"
+		(property "Datasheet" "https://www.digikey.com/en/products/detail/rf-solutions/CON-SMA-EDGE-S/5845767"
 			(at 149.86 82.55 0)
 			(effects
 				(font
