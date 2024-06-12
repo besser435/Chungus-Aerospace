@@ -5,9 +5,9 @@
 	(uuid "b47f346d-8bfc-49c9-b731-fa8ccc5e04fa")
 	(paper "A4")
 	(title_block
-		(title "Ebyte E22 Radio Breakout")
-		(date "2024-05-13")
-		(rev "R1")
+		(title "ChungRF")
+		(date "2024-05-23")
+		(rev "R2")
 		(company "Chungus Aerospace")
 	)
 	(lib_symbols
@@ -2660,7 +2660,7 @@
 		(dnp no)
 		(uuid "20ca6076-a60a-4d8b-9f80-e10eb70172e6")
 		(property "Reference" "R2"
-			(at 96.52 88.9 90)
+			(at 96.52 88.9 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -3750,7 +3750,7 @@
 		(dnp no)
 		(uuid "b5109b22-f473-4f44-ad08-d556d2aaf1c9")
 		(property "Reference" "R1"
-			(at 88.9 86.36 90)
+			(at 88.9 86.36 0)
 			(effects
 				(font
 					(size 1.27 1.27)
