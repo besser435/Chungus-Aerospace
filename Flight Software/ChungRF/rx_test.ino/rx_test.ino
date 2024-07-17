@@ -29,11 +29,11 @@
 #include <RadioLib.h>
 
 // SX1262 has the following connections:
-// NSS pin:   10
-// DIO1 pin:  2
-// NRST pin:  3
-// BUSY pin:  9
-SX1262 radio = new Module(12, 6, 11, 10);
+// NSS pin:   GPIO6, SCK
+// DIO1 pin:  GPIO4, MISO
+// NRST pin:  GPIO3, MOSI
+// BUSY pin:  GPIO29, A0
+SX1262 radio = new Module(6, 4, 3, 29);
 
 // or using RadioShield
 // https://github.com/jgromes/RadioShield
@@ -48,13 +48,8 @@ void setup() {
   // initialize SX1262 with default settings
   Serial.print(F("[SX1262] Initializing ... "));
   int state = radio.begin();
-  if (state == RADIOLIB_ERR_NONE) {
-    Serial.println(F("success!"));
-  } else {
-    Serial.print(F("failed, code "));
-    Serial.println(state);
-    while (true);
-  }
+
+  
 }
 
 void loop() {
