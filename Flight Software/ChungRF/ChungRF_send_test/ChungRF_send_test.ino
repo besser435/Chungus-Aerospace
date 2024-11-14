@@ -1,41 +1,11 @@
-/*
-  RadioLib SX126x Blocking Transmit Example
-
-  This example transmits packets using SX1262 LoRa radio module.
-  Each packet contains up to 256 bytes of data, in the form of:
-  - Arduino String
-  - null-terminated char array (C-string)
-  - arbitrary binary data (byte array)
-
-  Other modules from SX126x family can also be used.
-
-  Using blocking transmit is not recommended, as it will lead
-  to inefficient use of processor time!
-  Instead, interrupt transmit is recommended.
-
-  For default module settings, see the wiki page
-  https://github.com/jgromes/RadioLib/wiki/Default-configuration#sx126x---lora-modem
-
-  For full API reference, see the GitHub Pages
-  https://jgromes.github.io/RadioLib/
-*/
-
-// include the library
 #include <RadioLib.h>
 
-// SX1262 has the following connections:
-// NSS pin:   D3 - 3
+// Ebyte Module connets to the KB2040 as such (uses default SPI pins): 
+// NSS pin:   D7 - 7
 // DIO1 pin:  D2 - 2
 // NRST pin:  D4 - 4
 // BUSY pin:  D5 - 5
-SX1262 radio = new Module(3, 2, 4, 5);
-
-// or using RadioShield
-// https://github.com/jgromes/RadioShield
-//SX1262 radio = RadioShield.ModuleA;
-
-// or using CubeCell
-//SX1262 radio = new Module(RADIOLIB_BUILTIN_MODULE);
+SX1262 radio = new Module(7, 2, 4, 5);
 
 void setup() {
   Serial.begin(9600);
@@ -45,8 +15,7 @@ void setup() {
   Serial.print(F("[SX1262] Initializing ... "));
   int state = radio.begin();
   if (state == RADIOLIB_ERR_NONE) {
-
-    radio.setFrequency(915.0);
+    radio.setFrequency(868.0);	// the short whip antenna I have is for 868 MHz
 
     // Make sure this is set properly. Max is 140, but module can go to 650.
     // 140 number for the SX1262, and the 650 for the RF amplifier?
@@ -54,7 +23,6 @@ void setup() {
 
     // Module can do 30dBm, so this is probably for the SX1262?
     radio.setOutputPower(22);
-
 
 
     Serial.println(F("success!"));
@@ -68,10 +36,10 @@ void setup() {
   // controlled via two pins (RX enable, TX enable)
   // to enable automatic control of the switch,
   // call the following method
-  // RX enable:   4
-  // TX enable:   5
+  // RX enable:   9
+  // TX enable:   8
   /*
-    radio.setRfSwitchPins(4, 5);
+    radio.setRfSwitchPins(9, 8);
   */
 }
 
@@ -106,6 +74,7 @@ void loop() {
 
     Serial.print(F("Current limit: \t"));
     Serial.println(radio.getCurrentLimit());
+    Serial.println();
 
 
 
@@ -125,5 +94,5 @@ void loop() {
   }
 
   // wait for a second before transmitting again
-  delay(1000);
+  delay(500);
 }
