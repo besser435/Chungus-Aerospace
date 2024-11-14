@@ -6,8 +6,8 @@
 	(paper "A4")
 	(title_block
 		(title "ChungRF")
-		(date "2024-11-06")
-		(rev "R3")
+		(date "2024-11-13")
+		(rev "R4")
 		(company "Chungus Aerospace")
 	)
 	(lib_symbols
@@ -3023,10 +3023,6 @@
 		(uuid "1a19d1aa-c543-492a-973a-ce2325e2ce0d")
 	)
 	(no_connect
-		(at 36.83 46.99)
-		(uuid "32b161a9-d7a9-4d2e-aaf4-28454214bfea")
-	)
-	(no_connect
 		(at 205.74 49.53)
 		(uuid "3981f3f5-726f-4f6f-909c-a4b9c7f0c937")
 	)
@@ -3061,6 +3057,10 @@
 	(no_connect
 		(at 205.74 39.37)
 		(uuid "70ca4971-d042-4615-8caa-7266a9073c92")
+	)
+	(no_connect
+		(at 36.83 54.61)
+		(uuid "7d84fac5-0496-4b74-b37e-b346df0d4e36")
 	)
 	(no_connect
 		(at 62.23 48.26)
@@ -3398,6 +3398,16 @@
 	)
 	(wire
 		(pts
+			(xy 22.86 46.99) (xy 36.83 46.99)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "a1b2d373-d538-4f91-8053-5a643a6b6f25")
+	)
+	(wire
+		(pts
 			(xy 29.21 49.53) (xy 36.83 49.53)
 		)
 		(stroke
@@ -3545,16 +3555,6 @@
 			(type default)
 		)
 		(uuid "c84e23db-bbe9-4759-a1e7-b4723148cb97")
-	)
-	(wire
-		(pts
-			(xy 22.86 54.61) (xy 36.83 54.61)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "ca8e3545-9a8a-4075-9b4e-340cba415e14")
 	)
 	(wire
 		(pts
@@ -3710,6 +3710,17 @@
 		)
 		(uuid "8c325dfb-b1a6-4999-aefe-c1cef96ff4f3")
 	)
+	(text "Ensure I2C pins for the \nRP2040 are on the correct\nperipheral! Not all \npins can be used,\nand some are on a different\nperipheral."
+		(exclude_from_sim no)
+		(at 42.926 79.756 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+			(justify left)
+		)
+		(uuid "901764e3-d4ce-4e3f-9f7b-2e1a9639ef8c")
+	)
 	(text "Pin layout is bad for \nrouting, but it works.\nCannot use software \nSPI with radio library.\n\nDo NOT change them."
 		(exclude_from_sim no)
 		(at 15.748 81.28 0)
@@ -3829,7 +3840,7 @@
 		(uuid "40db4f29-f356-425b-a531-c87a90a922a8")
 	)
 	(label "GNSS_SCL"
-		(at 22.86 54.61 0)
+		(at 22.86 46.99 0)
 		(fields_autoplaced yes)
 		(effects
 			(font
