@@ -1,52 +1,49 @@
 #include <RadioLib.h>
 #include <Adafruit_NeoPixel.h>
 
-// Ebyte Module connets to the KB2040 as such (uses default SPI pins): 
-// NSS pin:   D7 - 7
-// DIO1 pin:  D2 - 2
-// NRST pin:  D4 - 4
-// BUSY pin:  D5 - 5
-SX1262 radio = new Module(7, 2, 4, 5);
+// Ebyte Module connections (default SPI pins):
+#define NSS_PIN  7
+#define DIO1_PIN 2  // Interrupt Pin
+#define NRST_PIN 4
+#define BUSY_PIN 5
+
+SX1262 radio = new Module(NSS_PIN, DIO1_PIN, NRST_PIN, BUSY_PIN);
 Adafruit_NeoPixel pixels(1, 17, NEO_GRB + NEO_KHZ800);
+
+volatile bool receivedFlag = false;  // Flag to indicate message received
+String receivedMessage = "";         // Stores received message
+
+void setFlag(void) {
+    receivedFlag = true; // Interrupt function - triggers when a message is received
+}
 
 void setup() {
     Serial.begin(115200);
     delay(2000);
 
-    Serial.print(F("ChungRF Receive starting..."));
+    Serial.println(F("ChungRF Receiver initializing..."));
 
     pixels.begin();
     pixels.setBrightness(255);
     pixels.show();
 
-
-
     int state = radio.begin();
     if (state == RADIOLIB_ERR_NONE) {
-        radio.setFrequency(868.0);	// the short whip antenna I have is for 868 MHz
-
-        // Make sure this is set properly. Library max is 140ma, but module can go to 650ma.
-        // 140 number for the SX1262, and the 650ma for the RF amplifier?
-        radio.setCurrentLimit(140); 
-
-        // Module can do 30dBm, so this is probably for the SX1262?
+        radio.setFrequency(868.0);
+        radio.setCurrentLimit(140);
         radio.setOutputPower(22);
-
 
         Serial.println(F("Initialization done"));
 
-        // some modules have an external RF switch
-        // controlled via two pins (RX enable, TX enable)
-        // to enable automatic control of the switch,
-        // call the following method
-        // RX enable:   9
-        // TX enable:   8
-        /*
-            radio.setRfSwitchPins(9, 8);
-        */
+        // Attach interrupt on DIO1 (pin 2) when a message is received
+        radio.setDio1Action(setFlag);
+
+        // Start receiving in continuous mode
+        radio.startReceive();
 
     } else {
-        Serial.print("Failed to initialize radio, code " + String(state));
+        Serial.print(F("Failed to initialize radio, code "));
+        Serial.println(state);
         pixels.setPixelColor(0, pixels.Color(255, 0, 0));
         pixels.show();
 
@@ -55,41 +52,37 @@ void setup() {
 }
 
 void loop() {
-    Serial.println(F("ChungRF Waiting for transmission..."));
+    if (receivedFlag) {  // If message received
+        receivedFlag = false;  // Reset flag
 
-    String message;
-    int timeout = 5000;
-    int state = radio.receive(message, timeout);
+        int state = radio.readData(receivedMessage);
 
+        if (state == RADIOLIB_ERR_NONE) {
+            pixels.setPixelColor(0, pixels.Color(0, 255, 0)); // Green for success
+            pixels.show();
 
-    if (state == RADIOLIB_ERR_NONE) {
-        pixels.setPixelColor(0, pixels.Color(0, 255, 0));
-        pixels.show();
+            Serial.print(F("ChungRF Got:\t\t"));
+            Serial.println(receivedMessage);
 
-        Serial.print(F("ChungRF Got:\t\t"));
-        Serial.println(message);
+            // Print RSSI and SNR
+            Serial.print(F("RSSI:\t\t"));
+            Serial.print(radio.getRSSI());
+            Serial.println(F(" dBm"));
 
-        // RSSI (Received Signal Strength Indicator)
-        Serial.print(F("RSSI:\t\t"));
-        Serial.print(radio.getRSSI());
-        Serial.println(F(" dBm"));
+            Serial.print(F("SNR:\t\t"));
+            Serial.print(radio.getSNR());
+            Serial.println(F(" dB"));
 
-        // SNR (Signal-to-Noise Ratio)
-        Serial.print(F("SNR:\t\t"));
-        Serial.print(radio.getSNR());
-        Serial.println(F(" dB"));
+            pixels.setPixelColor(0, pixels.Color(0, 0, 0)); // Turn off LED
+            pixels.show();
 
+        } else {
+            Serial.println(F("Receive failed!"));
+            pixels.setPixelColor(0, pixels.Color(255, 0, 0)); // Red for failure
+            pixels.show();
+        }
 
-        pixels.setPixelColor(0, pixels.Color(0, 0, 0));
-        pixels.show();
-
-    } else if (state == RADIOLIB_ERR_RX_TIMEOUT) {
-        Serial.println("Error: timed out");
-
-    } else if (state == RADIOLIB_ERR_CRC_MISMATCH) {
-        Serial.println("Error: CRC mismatch");
-
-    } else {
-        Serial.println("Unknown error: " + String(state));
+        // Resume listening for next transmission
+        radio.startReceive();
     }
 }
