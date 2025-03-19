@@ -16,12 +16,11 @@ void setup() {
     Serial.begin(115200);
     delay(2000);
 
-    Serial.print("ChungRF Transmit initializing...");
-
+    Serial.println("ChungRF Transmit initializing...");
 
     pixels.begin();
-    pixels.setBrightness(250); // 0-255
-    pixels.show(); // Initialize all pixels to 'off'
+    pixels.setBrightness(255);
+    pixels.show();
 
 
 
@@ -37,6 +36,16 @@ void setup() {
         radio.setOutputPower(22);
 
         Serial.println(F("Initialization done"));
+
+        // some modules have an external RF switch
+        // controlled via two pins (RX enable, TX enable)
+        // to enable automatic control of the switch,
+        // call the following method
+        // RX enable:   9
+        // TX enable:   8
+        /*
+            radio.setRfSwitchPins(9, 8);
+        */
 
     } else {
         Serial.print("Failed to initialize radio, code " + String(state));
@@ -58,30 +67,37 @@ void setup() {
 
         while (true);
     }
-    // some modules have an external RF switch
-    // controlled via two pins (RX enable, TX enable)
-    // to enable automatic control of the switch,
-    // call the following method
-    // RX enable:   9
-    // TX enable:   8
-    /*
-        radio.setRfSwitchPins(9, 8);
-    */
+
 }
 
 int i = 0;
 void loop() {
-    Serial.println(F("CRF Transmitting packet..."));
+    Serial.println(F("ChungRF Transmitting packet..."));
 
     pixels.setPixelColor(0, pixels.Color(0, 0, 255));
     pixels.show();
 
     // Can transmit up to 256 bytes, strings or byte arrays
+    GPS.read();
+
     String message = "Heartbeat #" + String(i++) +
                  " GNSS sats: " + String(GPS.satellites) +
+                 " Lat: " + String(GPS.latitude) +
+                 " Lon: " + String(GPS.longitude) +
                  " Alt: " + String(GPS.altitude) + 
+
+                 " NMEA: " + String(GPS.lastNMEA()) +
+
+
                  " Fix: " + String(GPS.fix);
+                 
     int state = radio.transmit(message);
+
+
+    char c = GPS.read();
+    Serial.println(c);
+
+
 
 
     if (state == RADIOLIB_ERR_NONE) {
@@ -125,5 +141,5 @@ void loop() {
     pixels.setPixelColor(0, pixels.Color(0, 0, 0));
     pixels.show();
 
-    delay(500);
+    delay(1500);
 }
